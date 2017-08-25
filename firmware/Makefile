@@ -76,27 +76,12 @@ include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
 
-FREEMODBUS = ../../freemodbus-v1.5.0/modbus
-FREEMODBUS_INC = $(FREEMODBUS)/include
-FREEMODBUS_SRC = $(FREEMODBUS)/functions/mbfunccoils.c \
-                 $(FREEMODBUS)/functions/mbfuncdiag.c \
-                 $(FREEMODBUS)/functions/mbfuncdisc.c \
-                 $(FREEMODBUS)/functions/mbfuncholding.c \
-                 $(FREEMODBUS)/functions/mbfuncinput.c \
-                 $(FREEMODBUS)/functions/mbfuncother.c \
-                 $(FREEMODBUS)/functions/mbutils.c \
-                 $(FREEMODBUS)/rtu/mbcrc.c \
-                 $(FREEMODBUS)/rtu/mbrtu.c \
-                 $(FREEMODBUS)/mb.c
-FREEMODBUS_PORT_INC = freemodbus/port
-FREEMODBUS_PORT_SRC = freemodbus/port/portevent.c \
-                      freemodbus/port/portother.c \
-                      freemodbus/port/portserial.c \
-                      freemodbus/port/porttimer.c
-
 # Define linker script file here
-LDSCRIPT= $(PORTLD)/STM32F407xG.ld
+LDSCRIPT = STM32F405xG.ld
 #LDSCRIPT= $(PORTLD)/STM32F407xG_CCM.ld
+
+SRC = src
+INCLUDE = include
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -108,23 +93,22 @@ CSRC = $(PORTSRC) \
        $(BOARDSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
        $(CHIBIOS)/os/various/memstreams.c \
-       usbcfg.c \
-       shell.c \
-       utils.c
+       $(SRC)/usbcfg.c \
+       $(SRC)/shell.c \
+       $(SRC)/utils.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = main.cpp \
-	     modbus/modbus.cpp \
-         peripherals.cpp \
-         DRV8301.cpp \
-         AS5047D.cpp \
-         constants.cpp \
-         state.cpp \
-         control.cpp \
-         comms.cpp \
-         LUTFunction.cpp \
-         fast_math.cpp
+CPPSRC = $(SRC)/main.cpp \
+         $(SRC)/peripherals.cpp \
+         $(SRC)/DRV8301.cpp \
+         $(SRC)/AS5047D.cpp \
+         $(SRC)/constants.cpp \
+         $(SRC)/state.cpp \
+         $(SRC)/control.cpp \
+         $(SRC)/comms.cpp \
+         $(SRC)/LUTFunction.cpp \
+         $(SRC)/fast_math.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -152,8 +136,7 @@ ASMSRC = $(PORTASM)
 INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(CHIBIOS)/os/various \
-#         $(FREEMODBUS_INC) \
-#         $(FREEMODBUS_PORT_INC)
+         $(INCLUDE)
 
 #
 # Project, sources and paths

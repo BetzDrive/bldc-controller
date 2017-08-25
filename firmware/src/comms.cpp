@@ -4,6 +4,8 @@
 #include "hal.h"
 #include "chprintf.h"
 #include "peripherals.h"
+#include "state.h"
+#include <cstring>
 
 namespace motor_driver {
 
@@ -43,6 +45,22 @@ void UARTEndpoint::waitReceive() {
   uint16_t expected_crc = ((uint16_t)rx_buf_[rx_len_ + 1] << 8) | (uint16_t)rx_buf_[rx_len_];
   if (computed_crc != expected_crc) {
     rx_error_ = true;
+  }
+}
+
+bool UARTEndpoint::pollReceive() {
+  msg_t result = chBSemWaitTimeout(&bsem_, TIME_INFINITE);
+
+  if (result == RDY_OK) {
+    uint16_t computed_crc = computeCRC(rx_buf_, rx_len_);
+    uint16_t expected_crc = ((uint16_t)rx_buf_[rx_len_ + 1] << 8) | (uint16_t)rx_buf_[rx_len_];
+    if (computed_crc != expected_crc) {
+      rx_error_ = true;
+    }
+
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -314,6 +332,31 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
   }
 }
 
+template<typename T>
+static void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
+  constexpr size_t var_size = sizeof(var);
+
+  if (buf_size - index < var_size) {
+    errors |= COMM_ERRORS_BUF_LEN_MISMATCH;
+    return;
+  }
+
+  uint8_t *u8_var = reinterpret_cast<uint8_t *>(&var);
+
+  switch (access_type) {
+    case RegAccessType::READ:
+      std::memcpy(buf + index, u8_var, var_size);
+      index += var_size;
+      break;
+    case RegAccessType::WRITE:
+      std::memcpy(u8_var, buf + index, var_size);
+      index += var_size;
+      break;
+    default:
+      break;
+  }
+}
+
 static void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   size_t index = 0;
 
@@ -331,19 +374,21 @@ static void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint
         }
         break;
       case 7:
-        if (access_type == RegAccessType::READ) {
-          uint16_t angle = encoder.readRegister(0x3fff);
-          if (buf_size - index >= 2) {
-            buf[index++] = (uint8_t)(angle & 0xff);
-            buf[index++] = (uint8_t)((angle >> 8) & 0xff);
-          }
-        }
+        buf[index] = 0xdd;
+        buf[index + 1] = 0xdd;
+        handleVarAccess(results.encoder_angle, buf, index, buf_size, access_type, errors);
         break;
       default:
         errors |= COMM_ERRORS_INVALID_ADDR;
         return;
     }
+
+    if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) {
+      break;
+    }
   }
+
+  // TODO: check if there is still data left
 
   if (access_type == RegAccessType::READ) {
     buf_len = index;
@@ -356,28 +401,26 @@ Server comms_server(1, commsRegAccessHandler);
 
 ProtocolFSM comms_protocol_fsm(comms_server);
 
-void initComms() {}
+void startComms() {
+  comms_endpoint.start();
+}
 
 void runComms() {
-  comms_endpoint.start();
+  comms_endpoint.waitReceive();
 
-  while (true) {
-    comms_endpoint.waitReceive();
+  if (!comms_endpoint.hasReceiveError()) {
+    /* Received valid datagram */
+    comm_errors_t errors;
 
-    if (!comms_endpoint.hasReceiveError()) {
-      /* Received valid datagram */
-      comm_errors_t errors;
+    size_t receive_len = comms_endpoint.getReceiveLength();
+    comms_protocol_fsm.handleRequest(comms_endpoint.getReceiveBufferPtr(), receive_len, errors);
 
-      size_t receive_len = comms_endpoint.getReceiveLength();
-      comms_protocol_fsm.handleRequest(comms_endpoint.getReceiveBufferPtr(), receive_len, errors);
+    size_t transmit_len;
+    comms_protocol_fsm.composeResponse(comms_endpoint.getTransmitBufferPtr(), transmit_len, comms_endpoint.getTransmitBufferSize(), errors);
 
-      size_t transmit_len;
-      comms_protocol_fsm.composeResponse(comms_endpoint.getTransmitBufferPtr(), transmit_len, comms_endpoint.getTransmitBufferSize(), errors);
-
-      if (transmit_len > 0) {
-        comms_endpoint.setTransmitLength(transmit_len);
-        comms_endpoint.startTransmit();
-      }
+    if (transmit_len > 0) {
+      comms_endpoint.setTransmitLength(transmit_len);
+      comms_endpoint.startTransmit();
     }
   }
 }

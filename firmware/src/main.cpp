@@ -9,6 +9,7 @@
 #include "control.h"
 #include "comms.h"
 #include "fast_math.h"
+#include "state.h"
 
 namespace motor_driver {
 
@@ -52,7 +53,7 @@ static msg_t blinkerThreadRun(void *arg) {
     chThdSleepMilliseconds(10);
   }
 
-  return CH_SUCCESS;
+  return CH_SUCCESS; // Should never get here
 }
 
 /*
@@ -65,17 +66,22 @@ static msg_t commsThreadRun(void *arg) {
 
   chRegSetThreadName("comms");
 
-  initComms();
+  startComms();
 
-  runComms(); // Does not return
+  while (true) {
+    runComms();
+  }
 
-  return CH_SUCCESS;
+  return CH_SUCCESS; // Should never get here
 }
 
 int main(void) {
   // Start RTOS
   halInit();
   chSysInit();
+
+  // Initialize state
+  initState();
 
   // Start peripherals
   startPeripherals();
@@ -107,7 +113,7 @@ int main(void) {
   //   }
   // }
 
-  return 0; // Should never get here
+  return CH_SUCCESS; // Should never get here
 }
 
 } // namespace motor_driver

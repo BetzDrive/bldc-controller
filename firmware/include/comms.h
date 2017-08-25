@@ -49,6 +49,8 @@ public:
 
   void waitReceive();
 
+  bool pollReceive();
+
   uint8_t *getReceiveBufferPtr();
 
   size_t getReceiveLength() const;
@@ -183,7 +185,7 @@ extern Server comms_server;
 
 extern ProtocolFSM comms_protocol_fsm;
 
-void initComms();
+void startComms();
 
 void runComms();
 
