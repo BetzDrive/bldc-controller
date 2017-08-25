@@ -5,7 +5,6 @@
 #include "hal.h"
 #include "DRV8301.h"
 #include "AS5047D.h"
-#include "modbus/modbus.h"
 
 extern SerialUSBDriver SDU1;
 

@@ -83,6 +83,9 @@ LDSCRIPT = STM32F405xG.ld
 SRC = src
 INCLUDE = include
 
+COMMON_SRC = ../common/src
+COMMON_INCLUDE = ../common/include
+
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CSRC = $(PORTSRC) \
@@ -93,22 +96,23 @@ CSRC = $(PORTSRC) \
        $(BOARDSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
        $(CHIBIOS)/os/various/memstreams.c \
+       $(COMMON_SRC)/utils.c \
        $(SRC)/usbcfg.c \
-       $(SRC)/shell.c \
-       $(SRC)/utils.c
+       $(SRC)/shell.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = $(SRC)/main.cpp \
+CPPSRC = $(COMMON_SRC)/comms.cpp \
+		 $(SRC)/main.cpp \
          $(SRC)/peripherals.cpp \
          $(SRC)/DRV8301.cpp \
          $(SRC)/AS5047D.cpp \
          $(SRC)/constants.cpp \
          $(SRC)/state.cpp \
          $(SRC)/control.cpp \
-         $(SRC)/comms.cpp \
          $(SRC)/LUTFunction.cpp \
-         $(SRC)/fast_math.cpp
+         $(SRC)/fast_math.cpp \
+         $(SRC)/fw_comms.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -136,6 +140,7 @@ ASMSRC = $(PORTASM)
 INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(CHIBIOS)/os/various \
+         $(COMMON_INCLUDE) \
          $(INCLUDE)
 
 #
