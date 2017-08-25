@@ -69,7 +69,7 @@ PROJECT = motor_controller
 
 # Imported source files and paths
 CHIBIOS = ../../chibios-2.6.6
-include board.mk
+COMMON = ../common
 include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
@@ -83,8 +83,10 @@ LDSCRIPT = STM32F405xG.ld
 SRC = src
 INCLUDE = include
 
-COMMON_SRC = ../common/src
-COMMON_INCLUDE = ../common/include
+COMMON_SRC = $(COMMON)/src
+COMMON_INCLUDE = $(COMMON)/include
+BOARDSRC = $(COMMON)/board.c
+BOARDINC = $(COMMON)
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
