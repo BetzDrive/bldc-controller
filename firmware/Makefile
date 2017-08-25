@@ -105,11 +105,11 @@ CSRC = $(PORTSRC) \
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = $(COMMON_SRC)/comms.cpp \
+         $(COMMON_SRC)/constants.cpp \
 		 $(SRC)/main.cpp \
          $(SRC)/peripherals.cpp \
          $(SRC)/DRV8301.cpp \
          $(SRC)/AS5047D.cpp \
-         $(SRC)/constants.cpp \
          $(SRC)/state.cpp \
          $(SRC)/control.cpp \
          $(SRC)/LUTFunction.cpp \
