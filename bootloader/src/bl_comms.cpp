@@ -1,13 +1,15 @@
-#include "fw_comms.h"
+#include "bl_comms.h"
 
 #include "ch.h"
 #include "hal.h"
 #include "peripherals.h"
-#include "state.h"
 #include <cstring>
 #include "constants.h"
+#include "helper.h"
 
 namespace motor_driver {
+
+static uint32_t jump_addr = 0;
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
   if (state_ != State::IDLE) {
@@ -44,41 +46,44 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_READ_REGS:
-      /* Read registers */
+    case COMM_FC_LEAVE_BOOTLOADER:
+      /* Leave the bootloader and jump to our application */
 
-      if (datagram_len - index < 3) {
+      if (datagram_len - index < 4) {
         errors |= COMM_ERRORS_MALFORMED;
         state_ = State::RESPONDING;
         break;
       }
 
-      start_addr_ = (comm_addr_t)datagram[index++];
-      start_addr_ |= (comm_addr_t)datagram[index++] << 8;
-      reg_count_ = datagram[index++];
-
-      state_ = State::RESPONDING_READ;
-
-      break;
-
-    case COMM_FC_WRITE_REGS:
-      /* Write registers */
-
-      if (datagram_len - index < 3) {
-        errors |= COMM_ERRORS_MALFORMED;
-        state_ = State::RESPONDING;
-        break;
-      }
-
-      start_addr_ = (comm_addr_t)datagram[index++];
-      start_addr_ |= (comm_addr_t)datagram[index++] << 8;
-      reg_count_ = datagram[index++];
-
-      server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors);
+      jump_addr = (uint32_t)datagram[index++];
+      jump_addr |= (uint32_t)datagram[index++] << 8;
+      jump_addr |= (uint32_t)datagram[index++] << 16;
+      jump_addr |= (uint32_t)datagram[index++] << 24;
 
       state_ = State::RESPONDING;
 
       break;
+
+    case COMM_FC_FLASH_UNLOCK:
+      /* Unlock flash */
+
+      // bool success = (flashUnlock() == CH_SUCCESS);
+
+      // if (!success) {
+      //   // TODO
+      // }
+
+      break;
+
+    case COMM_FC_FLASH_LOCK:
+    case COMM_FC_FLASH_SECTOR_COUNT:
+    case COMM_FC_FLASH_SECTOR_START:
+    case COMM_FC_FLASH_SECTOR_SIZE:
+    case COMM_FC_FLASH_SECTOR_ERASE:
+    case COMM_FC_FLASH_WRITE:
+    case COMM_FC_FLASH_READ:
+    case COMM_FC_FLASH_VERIFY:
+    case COMM_FC_FLASH_VERIFY_ERASED:
 
     default:
       /* Invalid function code */
@@ -131,11 +136,6 @@ static void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint
           }
         }
         break;
-      case 7:
-        buf[index] = 0xdd;
-        buf[index + 1] = 0xdd;
-        handleVarAccess(results.encoder_angle, buf, index, buf_size, access_type, errors);
-        break;
       default:
         errors |= COMM_ERRORS_INVALID_ADDR;
         return;
@@ -179,6 +179,11 @@ void runComms() {
     if (transmit_len > 0) {
       comms_endpoint.setTransmitLength(transmit_len);
       comms_endpoint.startTransmit();
+    }
+
+    /* Exit the bootloader if a jump address is set */
+    if (jump_addr != 0) {
+      flashJumpApplication(jump_addr);
     }
   }
 }

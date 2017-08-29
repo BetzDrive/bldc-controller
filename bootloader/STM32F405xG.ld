@@ -22,7 +22,7 @@ __process_stack_size__  = 0x0400;
 
 MEMORY
 {
-    flash : org = 0x08004000, len = 1M - 0x4000
+    flash : org = 0x08000000, len = 1M
     ram : org = 0x20000000, len = 112k
     ethram : org = 0x2001C000, len = 16k
     ccmram : org = 0x10000000, len = 64k
