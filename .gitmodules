@@ -1,0 +1,4 @@
+[submodule "chibios"]
+	path = chibios
+	url = git@github.com:allanzhao/ChibiOS.git
+	branch = stable_2.6.x
