@@ -5,14 +5,6 @@
 
 namespace motor_driver {
 
-extern UARTEndpoint comms_endpoint;
-
-extern Server comms_server;
-
-extern ProtocolFSM comms_protocol_fsm;
-
-void startComms();
-
 void runComms();
 
 } // namespace motor_driver

@@ -179,6 +179,16 @@ private:
   size_t buf_len_;
 };
 
+void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+
+void startComms();
+
+extern UARTEndpoint comms_endpoint;
+
+extern Server comms_server;
+
+extern ProtocolFSM comms_protocol_fsm;
+
 } // namespace motor_driver
 
 #endif /* _COMMS_H_ */

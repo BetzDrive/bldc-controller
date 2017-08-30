@@ -5,7 +5,6 @@
 #include "peripherals.h"
 #include "state.h"
 #include <cstring>
-#include "constants.h"
 
 namespace motor_driver {
 
@@ -115,7 +114,7 @@ static void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size
   }
 }
 
-static void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
+void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   size_t index = 0;
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
@@ -151,16 +150,6 @@ static void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint
   if (access_type == RegAccessType::READ) {
     buf_len = index;
   }
-}
-
-UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
-
-Server comms_server(1, commsRegAccessHandler);
-
-ProtocolFSM comms_protocol_fsm(comms_server);
-
-void startComms() {
-  comms_endpoint.start();
 }
 
 void runComms() {

@@ -3,6 +3,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "peripherals.h"
+#include "constants.h"
 #include <cstring>
 
 namespace motor_driver {
@@ -248,5 +249,15 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
       break;
   }
 }
+
+void startComms() {
+  comms_endpoint.start();
+}
+
+UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
+
+Server comms_server(1, commsRegAccessHandler);
+
+ProtocolFSM comms_protocol_fsm(comms_server);
 
 } // namespace motor_driver
