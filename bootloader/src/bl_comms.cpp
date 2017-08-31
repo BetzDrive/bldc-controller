@@ -142,8 +142,8 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_FLASH_WRITE:
-      /* Write values to flash memory */
+    case COMM_FC_FLASH_PROGRAM:
+      /* Program values into flash memory */
 
       if (datagram_len - index < 4) {
         errors |= COMM_ERRORS_MALFORMED;
