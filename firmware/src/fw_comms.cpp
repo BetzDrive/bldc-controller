@@ -136,7 +136,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         handleVarAccess(results.encoder_angle, buf, index, buf_size, access_type, errors);
         break;
       default:
-        errors |= COMM_ERRORS_INVALID_ADDR;
+        errors |= COMM_ERRORS_INVALID_ARGS;
         return;
     }
 

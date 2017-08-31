@@ -166,7 +166,9 @@ private:
   enum class State {
     IDLE,
     RESPONDING,
-    RESPONDING_READ
+    RESPONDING_READ,
+    RESPONDING_MEM,
+    RESPONDING_U32
   };
 
   Server * const server_;
@@ -175,8 +177,9 @@ private:
   comm_errors_t errors_;
   comm_addr_t start_addr_;
   size_t reg_count_;
-  uint8_t *buf_;
-  size_t buf_len_;
+  uint32_t u32_value_;
+  uint32_t src_addr_;
+  size_t src_len_;
 };
 
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);

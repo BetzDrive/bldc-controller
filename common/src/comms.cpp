@@ -240,6 +240,46 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
 
       break;
 
+    case State::RESPONDING_MEM:
+      /* Send a response with memory contents */
+
+      /* Save space for the error code */
+      error_index = index;
+      index += 2;
+
+      if (max_datagram_len - index >= src_len_) {
+        std::memcpy(&datagram[index], (void *)src_addr_, src_len_);
+        index += src_len_;
+      } else {
+        /* Not enough space in response datagram */
+        errors |= COMM_ERRORS_INVALID_ARGS;
+      }
+
+      /* Copy error code into response */
+      datagram[error_index++] = (uint8_t)(errors & 0xff);
+      datagram[error_index++] = (uint8_t)((errors >> 8) & 0xff);
+
+      datagram_len = index;
+      state_ = State::IDLE;
+
+      break;
+
+    case State::RESPONDING_U32:
+      /* Send a response with a uint32_t value */
+
+      datagram[index++] = (uint8_t)(errors & 0xff);
+      datagram[index++] = (uint8_t)((errors >> 8) & 0xff);
+
+      datagram[index++] = (uint8_t)(u32_value_ & 0xff);
+      datagram[index++] = (uint8_t)((u32_value_ >> 8) & 0xff);
+      datagram[index++] = (uint8_t)((u32_value_ >> 16) & 0xff);
+      datagram[index++] = (uint8_t)((u32_value_ >> 24) & 0xff);
+
+      datagram_len = index;
+      state_ = State::IDLE;
+
+      break;
+
     default:
       /* Don't send a response */
 
