@@ -227,5 +227,8 @@ ULIBS =
 # End of user defines
 ##############################################################################
 
+upload:
+	openocd
+
 RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
 include $(RULESPATH)/rules.mk
