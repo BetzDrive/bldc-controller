@@ -7,9 +7,6 @@ SerialUSBDriver SDU1;
 
 namespace motor_driver {
 
-constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
-constexpr unsigned int motor_pwm_cycle_freq = 80000; // Hz
-
 void resumeInnerControlLoop();
 
 /**
@@ -78,8 +75,70 @@ AS5047D encoder(
   {GPIOA, GPIOA_ENC_CSN}
 );
 
+BinarySemaphore ivsense_adc_samples_bsem;
+
+volatile adcsample_t *ivsense_adc_samples_ptr = NULL;
+
+volatile size_t ivsense_adc_samples_count;
+
+adcsample_t ivsense_sample_buf[ivsense_channel_count * ivsense_sample_buf_depth];
+
+static void ivsenseADCEndCallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
+  (void)adcp;
+
+  chSysLockFromIsr();
+
+  ivsense_adc_samples_ptr = buffer;
+  ivsense_adc_samples_count = n;
+  chBSemSignalI(&ivsense_adc_samples_bsem); // Signal that new ADC samples are available
+
+  chSysUnlockFromIsr();
+}
+
+static void ivsenseADCErrorCallback(ADCDriver *adcp, adcerror_t err) {
+  (void)adcp;
+  (void)err;
+
+  // TODO: display error
+}
+
+static const ADCConversionGroup ivsense_adc_group = {
+  true,                                     // Use circular buffer
+  ivsense_channel_count,
+  ivsenseADCEndCallback,
+  ivsenseADCErrorCallback,
+  0,                                        // CR1
+  ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2
+  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_144)
+      | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_480) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_480), // SMPR1
+  ADC_SMPR2_SMP_AN8(ADC_SAMPLE_480),        // SMPR2
+  ADC_SQR1_NUM_CH(ivsense_channel_count),   // SQR1
+  ADC_SQR2_SQ7_N(ADC_CHANNEL_IN13),         // SQR2
+  ADC_SQR3_SQ1_N(ADC_CHANNEL_IN14) | ADC_SQR3_SQ2_N(ADC_CHANNEL_IN15) | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN8)
+      | ADC_SQR3_SQ4_N(ADC_CHANNEL_IN10) | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN11) | ADC_SQR3_SQ6_N(ADC_CHANNEL_IN12) // SQR3
+};
+
+static const PWMConfig adc_trigger_pwm_config = {
+  2 * motor_pwm_cycle_freq * ivsense_samples_per_cycle,   // PWM clock frequency
+  2,                                                      // PWM period (ticks)
+  NULL,                                                   // PWM callback
+  {
+    {PWM_OUTPUT_DISABLED, NULL},
+    {PWM_OUTPUT_DISABLED, NULL},
+    {PWM_OUTPUT_DISABLED, NULL},
+    {PWM_OUTPUT_DISABLED, NULL}
+  },
+  TIM_CR2_MMS_1,                                          // CR2
+  0,                                                      // BDTR
+  0
+};
+
+void initPeripherals() {
+  chBSemInit(&ivsense_adc_samples_bsem, true);
+}
+
 void startPeripherals() {
-  // Start USB Serial
+  // Start USB serial
   sduObjectInit(&SDU1);
   sduStart(&SDU1, &serial_usb_config);
 
@@ -102,6 +161,14 @@ void startPeripherals() {
 
   // Start encoder
   encoder.start();
+
+  // Start ADC
+  adcStart(&ADCD1, NULL);
+  adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, ivsense_sample_buf_depth);
+
+  // Start ADC trigger timer
+  // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
+  pwmStart(&PWMD3, &adc_trigger_pwm_config);
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {

@@ -47,9 +47,9 @@ static msg_t blinkerThreadRun(void *arg) {
     if (gate_driver.hasFault() || gate_driver.hasOCTW()) {
       setStatusLEDColor(g < 50 ? 255 : 0, g, 0);
     } else {
-      setStatusLEDColor(0, g, 0);
+      setStatusLEDColor(g, 0, g);
     }
-    t = (t + 10) % 510;
+    t = (t + 20) % 510;
     chThdSleepMilliseconds(10);
   }
 
@@ -82,6 +82,9 @@ int main(void) {
 
   // Initialize state
   initState();
+
+  // Initialize peripherals
+  initPeripherals();
 
   // Start peripherals
   startPeripherals();

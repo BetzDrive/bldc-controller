@@ -5,6 +5,7 @@
 #include "hal.h"
 #include "DRV8301.h"
 #include "AS5047D.h"
+#include "constants.h"
 
 extern SerialUSBDriver SDU1;
 
@@ -19,6 +20,16 @@ extern DRV8301 gate_driver;
 extern const PWMConfig led_pwm_config;
 
 extern AS5047D encoder;
+
+extern BinarySemaphore ivsense_adc_samples_bsem;
+
+extern volatile adcsample_t *ivsense_adc_samples_ptr;
+
+extern volatile size_t ivsense_adc_samples_count;
+
+extern adcsample_t ivsense_sample_buf[ivsense_channel_count * ivsense_sample_buf_depth];
+
+void initPeripherals();
 
 void startPeripherals();
 
