@@ -1,0 +1,222 @@
+EESchema Schematic File Version 2
+LIBS:bldc-controller
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:stepper-driver
+LIBS:bldc-controller-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 9 11
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L ST3485 U8
+U 1 1 5978DC0C
+P 5400 3950
+F 0 "U8" H 5400 3850 60  0000 C CNN
+F 1 "ST3485" H 5400 4050 60  0000 C CNN
+F 2 "bldc-controller:SOIC-8" H 5400 3950 60  0001 C CNN
+F 3 "" H 5400 3950 60  0001 C CNN
+F 4 "STMicroelectronics" H 5400 3950 60  0001 C CNN "MFR_NAME"
+F 5 "ST3485EBDR" H 5400 3950 60  0001 C CNN "MFR_PN"
+F 6 "Mouser" H 5400 3950 60  0001 C CNN "DIST_NAME"
+F 7 "511-ST3485EBDR" H 5400 3950 60  0001 C CNN "DIST_PN"
+	1    5400 3950
+	1    0    0    -1  
+$EndComp
+Text HLabel 6300 3700 1    60   Input ~ 0
+VDD
+Wire Wire Line
+	6300 3700 6300 3800
+Wire Wire Line
+	6100 3800 6400 3800
+$Comp
+L GND #PWR073
+U 1 1 5978DC16
+P 6300 4200
+F 0 "#PWR073" H 6300 3950 50  0001 C CNN
+F 1 "GND" H 6300 4050 50  0000 C CNN
+F 2 "" H 6300 4200 50  0000 C CNN
+F 3 "" H 6300 4200 50  0000 C CNN
+	1    6300 4200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6100 4100 6300 4100
+Wire Wire Line
+	6300 4100 6300 4200
+Text HLabel 4300 3900 0    60   Input ~ 0
+~RE
+Text HLabel 4300 4000 0    60   Input ~ 0
+DE
+Text HLabel 4300 3800 0    60   Output ~ 0
+RO
+Text HLabel 4300 4100 0    60   Input ~ 0
+DI
+Wire Wire Line
+	6100 4000 7400 4000
+Wire Wire Line
+	7400 3500 7400 4100
+Wire Wire Line
+	7300 3600 7300 4200
+Wire Wire Line
+	7300 4200 7600 4200
+$Comp
+L GND #PWR074
+U 1 1 5978DC31
+P 6800 4400
+F 0 "#PWR074" H 6800 4150 50  0001 C CNN
+F 1 "GND" H 6800 4250 50  0000 C CNN
+F 2 "" H 6800 4400 50  0000 C CNN
+F 3 "" H 6800 4400 50  0000 C CNN
+	1    6800 4400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7100 4300 7600 4300
+Wire Wire Line
+	4300 3800 4700 3800
+Wire Wire Line
+	4300 3900 4700 3900
+Wire Wire Line
+	4300 4000 4700 4000
+Wire Wire Line
+	4300 4100 4700 4100
+$Comp
+L C_Small C37
+U 1 1 5978DC3D
+P 6500 3800
+F 0 "C37" V 6450 3850 50  0000 L CNN
+F 1 "0.1u" V 6550 3850 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 6500 3800 50  0001 C CNN
+F 3 "" H 6500 3800 50  0000 C CNN
+	1    6500 3800
+	0    1    1    0   
+$EndComp
+Connection ~ 6300 3800
+Wire Wire Line
+	6600 3800 6800 3800
+$Comp
+L R_Small R31
+U 1 1 5978DC47
+P 4500 4300
+F 0 "R31" H 4530 4320 50  0000 L CNN
+F 1 "47k" H 4530 4260 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 4500 4300 50  0001 C CNN
+F 3 "" H 4500 4300 50  0000 C CNN
+	1    4500 4300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4500 4000 4500 4200
+Connection ~ 4500 4000
+$Comp
+L GND #PWR075
+U 1 1 5978DC50
+P 4500 4500
+F 0 "#PWR075" H 4500 4250 50  0001 C CNN
+F 1 "GND" H 4500 4350 50  0000 C CNN
+F 2 "" H 4500 4500 50  0000 C CNN
+F 3 "" H 4500 4500 50  0000 C CNN
+	1    4500 4500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4500 4400 4500 4500
+Wire Wire Line
+	6100 3900 7300 3900
+Wire Wire Line
+	7400 4100 7600 4100
+Wire Wire Line
+	7600 3700 7200 3700
+Wire Wire Line
+	7400 3500 7600 3500
+Connection ~ 7400 4000
+Wire Wire Line
+	7300 3600 7600 3600
+Connection ~ 7300 3900
+Wire Wire Line
+	6800 3800 6800 4400
+Wire Wire Line
+	7200 3700 7200 4300
+$Comp
+L R_Small R32
+U 1 1 5978F610
+P 7000 4300
+F 0 "R32" V 7100 4300 50  0000 C CNN
+F 1 "DNP" V 6900 4300 50  0000 C CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 7000 4300 50  0001 C CNN
+F 3 "" H 7000 4300 50  0000 C CNN
+	1    7000 4300
+	0    -1   -1   0   
+$EndComp
+Connection ~ 7200 4300
+Wire Wire Line
+	6900 4300 6800 4300
+Connection ~ 6800 4300
+$Comp
+L CONN_01X03 J2
+U 1 1 5986679F
+P 7800 3600
+F 0 "J2" H 7800 3800 50  0000 C CNN
+F 1 "JST GH" V 7900 3600 50  0000 C CNN
+F 2 "bldc-controller:SM03B-GHS-TB" H 7800 3600 50  0001 C CNN
+F 3 "" H 7800 3600 50  0000 C CNN
+F 4 "JST" H 7800 3600 60  0001 C CNN "MFR_NAME"
+F 5 "SM03B-GHS-TB(LF)(SN)" H 7800 3600 60  0001 C CNN "MFR_PN"
+	1    7800 3600
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_01X03 J3
+U 1 1 598668C8
+P 7800 4200
+F 0 "J3" H 7800 4400 50  0000 C CNN
+F 1 "JST GH" V 7900 4200 50  0000 C CNN
+F 2 "bldc-controller:SM03B-GHS-TB" H 7800 4200 50  0001 C CNN
+F 3 "" H 7800 4200 50  0000 C CNN
+F 4 "JST" H 7800 4200 60  0001 C CNN "MFR_NAME"
+F 5 "SM03B-GHS-TB(LF)(SN)" H 7800 4200 60  0001 C CNN "MFR_PN"
+	1    7800 4200
+	1    0    0    -1  
+$EndComp
+Text Label 6100 3900 0    60   ~ 0
+D+
+Text Label 6100 4000 0    60   ~ 0
+D-
+$EndSCHEMATC

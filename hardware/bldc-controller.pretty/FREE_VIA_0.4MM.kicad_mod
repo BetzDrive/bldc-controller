@@ -1,0 +1,10 @@
+(module FREE_VIA_0.4MM (layer F.Cu) (tedit 597FC638)
+  (fp_text reference REF** (at 0 0.635) (layer F.SilkS) hide
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (fp_text value FREE_VIA_0.4MM (at 0 -0.5) (layer F.Fab) hide
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (pad "" thru_hole circle (at 0 0) (size 0.8 0.8) (drill 0.4) (layers *.Cu)
+    (zone_connect 2))
+)

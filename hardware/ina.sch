@@ -1,0 +1,387 @@
+EESchema Schematic File Version 2
+LIBS:bldc-controller
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:stepper-driver
+LIBS:bldc-controller-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 11 11
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L MCP6N16 U11
+U 1 1 59799F9C
+P 6600 3200
+F 0 "U11" H 6600 3250 60  0000 C CNN
+F 1 "MCP6N16-100" H 6600 3150 60  0000 C CNN
+F 2 "bldc-controller:MSOP-8" H 6600 3200 60  0001 C CNN
+F 3 "" H 6600 3200 60  0001 C CNN
+F 4 "Microchip Technology" H 6600 3200 60  0001 C CNN "MFR_NAME"
+F 5 "MCP6N16-100E/MS" H 6600 3200 60  0001 C CNN "MFR_PN"
+	1    6600 3200
+	1    0    0    -1  
+$EndComp
+$Comp
+L MCP6001 U10
+U 1 1 5979AB9F
+P 5100 5700
+F 0 "U10" H 5100 5750 60  0000 C CNN
+F 1 "MCP6001" H 5100 5650 60  0000 C CNN
+F 2 "" H 5100 5700 60  0001 C CNN
+F 3 "" H 5100 5700 60  0001 C CNN
+	1    5100 5700
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR084
+U 1 1 5979BBAE
+P 5100 6300
+F 0 "#PWR084" H 5100 6050 50  0001 C CNN
+F 1 "GND" H 5100 6150 50  0000 C CNN
+F 2 "" H 5100 6300 50  0000 C CNN
+F 3 "" H 5100 6300 50  0000 C CNN
+	1    5100 6300
+	1    0    0    -1  
+$EndComp
+Text HLabel 5100 4700 1    60   Input ~ 0
+VDDA
+$Comp
+L R_Small R48
+U 1 1 5979CAAE
+P 4100 5400
+F 0 "R48" H 4130 5420 50  0000 L CNN
+F 1 "100k" H 4130 5360 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 4100 5400 50  0001 C CNN
+F 3 "" H 4100 5400 50  0000 C CNN
+F 4 "1%" H 4100 5400 60  0001 C CNN "Tolerance"
+	1    4100 5400
+	1    0    0    -1  
+$EndComp
+Text HLabel 4100 5200 1    60   Input ~ 0
+VDDA
+$Comp
+L R_Small R49
+U 1 1 5979CB82
+P 4100 5800
+F 0 "R49" H 4130 5820 50  0000 L CNN
+F 1 "100k" H 4130 5760 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 4100 5800 50  0001 C CNN
+F 3 "" H 4100 5800 50  0000 C CNN
+F 4 "1%" H 4100 5800 60  0001 C CNN "Tolerance"
+	1    4100 5800
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR085
+U 1 1 5979CBB0
+P 4100 6000
+F 0 "#PWR085" H 4100 5750 50  0001 C CNN
+F 1 "GND" H 4100 5850 50  0000 C CNN
+F 2 "" H 4100 6000 50  0000 C CNN
+F 3 "" H 4100 6000 50  0000 C CNN
+	1    4100 6000
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_01X04 J8
+U 1 1 5979D953
+P 5000 3150
+F 0 "J8" H 5000 3400 50  0000 C CNN
+F 1 "Clik-Mate" V 5100 3150 50  0000 C CNN
+F 2 "bldc-controller:502585-0470" H 5000 3150 50  0001 C CNN
+F 3 "" H 5000 3150 50  0000 C CNN
+F 4 "Molex" H 5000 3150 60  0001 C CNN "MFR_NAME"
+F 5 "5025850470" H 5000 3150 60  0001 C CNN "MFR_PN"
+	1    5000 3150
+	-1   0    0    -1  
+$EndComp
+$Comp
+L C_Small C52
+U 1 1 5979F325
+P 5700 3200
+F 0 "C52" H 5710 3270 50  0000 L CNN
+F 1 "1n" H 5710 3120 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 5700 3200 50  0001 C CNN
+F 3 "" H 5700 3200 50  0000 C CNN
+F 4 "non microphonic" H 5700 3200 60  0001 C CNN "Dielectric"
+	1    5700 3200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5100 6200 5100 6300
+Wire Wire Line
+	5100 4700 5100 5200
+Wire Wire Line
+	4500 5800 4400 5800
+Wire Wire Line
+	4400 5800 4400 6600
+Wire Wire Line
+	4400 6600 6000 6600
+Wire Wire Line
+	6000 6600 6000 4200
+Wire Wire Line
+	6000 5700 5900 5700
+Wire Wire Line
+	4100 5200 4100 5300
+Wire Wire Line
+	4100 5500 4100 5700
+Wire Wire Line
+	4100 5900 4100 6000
+Wire Wire Line
+	4100 5600 4500 5600
+Connection ~ 4100 5600
+Wire Wire Line
+	6000 3100 5900 3100
+Wire Wire Line
+	5900 3100 5900 3000
+Wire Wire Line
+	5900 3000 5500 3000
+Wire Wire Line
+	5700 3000 5700 3100
+Wire Wire Line
+	6000 3300 5900 3300
+Wire Wire Line
+	5900 3300 5900 3400
+Wire Wire Line
+	5900 3400 5500 3400
+Wire Wire Line
+	5700 3400 5700 3300
+Wire Wire Line
+	5500 3400 5500 3200
+Wire Wire Line
+	5500 3200 5200 3200
+Connection ~ 5700 3400
+Wire Wire Line
+	5200 3100 5500 3100
+Wire Wire Line
+	5500 3100 5500 3000
+Connection ~ 5700 3000
+Text HLabel 6600 1900 1    60   Input ~ 0
+VDDA
+Wire Wire Line
+	6600 1900 6600 2600
+$Comp
+L GND #PWR086
+U 1 1 5979FD0D
+P 6600 3900
+F 0 "#PWR086" H 6600 3650 50  0001 C CNN
+F 1 "GND" H 6600 3750 50  0000 C CNN
+F 2 "" H 6600 3900 50  0000 C CNN
+F 3 "" H 6600 3900 50  0000 C CNN
+	1    6600 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6600 3800 6600 3900
+$Comp
+L R_Small R52
+U 1 1 597A0037
+P 7700 3500
+F 0 "R52" H 7730 3520 50  0000 L CNN
+F 1 "100k" H 7730 3460 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 7700 3500 50  0001 C CNN
+F 3 "" H 7700 3500 50  0000 C CNN
+F 4 "1%" H 7700 3500 60  0001 C CNN "Tolerance"
+	1    7700 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L R_Small R53
+U 1 1 597A0077
+P 7700 3900
+F 0 "R53" H 7730 3920 50  0000 L CNN
+F 1 "100" H 7730 3860 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 7700 3900 50  0001 C CNN
+F 3 "" H 7700 3900 50  0000 C CNN
+F 4 "1%" H 7700 3900 60  0001 C CNN "Tolerance"
+	1    7700 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L R_Small R51
+U 1 1 597A0141
+P 6800 3900
+F 0 "R51" H 6830 3920 50  0000 L CNN
+F 1 "100" H 6830 3860 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 6800 3900 50  0001 C CNN
+F 3 "" H 6800 3900 50  0000 C CNN
+F 4 "1%" H 6800 3900 60  0001 C CNN "Tolerance"
+	1    6800 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6800 3700 6800 3800
+Wire Wire Line
+	7600 3200 7900 3200
+Wire Wire Line
+	7700 3200 7700 3400
+Wire Wire Line
+	7700 3600 7700 3800
+Wire Wire Line
+	7000 3600 7000 3700
+Wire Wire Line
+	7000 3700 7700 3700
+Connection ~ 7700 3700
+Wire Wire Line
+	6800 4200 6800 4000
+Connection ~ 6000 5700
+Wire Wire Line
+	7700 4200 7700 4000
+Connection ~ 6800 4200
+Connection ~ 7700 3200
+Text HLabel 7900 3200 2    60   Output ~ 0
+VOUT
+Text HLabel 7000 2700 1    60   Input ~ 0
+EN
+Wire Wire Line
+	7000 2700 7000 2800
+Text HLabel 5300 2900 1    60   Input ~ 0
+VDDA
+Wire Wire Line
+	5300 2900 5300 3000
+Wire Wire Line
+	5300 3000 5200 3000
+$Comp
+L GND #PWR087
+U 1 1 597A0FD4
+P 5300 3900
+F 0 "#PWR087" H 5300 3650 50  0001 C CNN
+F 1 "GND" H 5300 3750 50  0000 C CNN
+F 2 "" H 5300 3900 50  0000 C CNN
+F 3 "" H 5300 3900 50  0000 C CNN
+	1    5300 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5200 3300 5300 3300
+Wire Wire Line
+	5300 3300 5300 3400
+Wire Wire Line
+	6000 4200 7700 4200
+Wire Wire Line
+	5300 3800 5300 3900
+$Comp
+L Q_NMOS_GSD Q7
+U 1 1 597A14DB
+P 5200 3600
+F 0 "Q7" H 5400 3650 50  0000 L CNN
+F 1 "BSS806N" H 5400 3550 50  0000 L CNN
+F 2 "bldc-controller:SOT-23" H 5400 3700 50  0001 C CNN
+F 3 "" H 5200 3600 50  0000 C CNN
+F 4 "Infineon" H 5200 3600 60  0001 C CNN "MFR_NAME"
+F 5 "BSS806NH6327XTSA1" H 5200 3600 60  0001 C CNN "MFR_PN"
+	1    5200 3600
+	1    0    0    -1  
+$EndComp
+Text HLabel 4600 3600 0    60   Input ~ 0
+EN
+$Comp
+L R_Small R50
+U 1 1 597A25EE
+P 4800 3600
+F 0 "R50" V 4900 3600 50  0000 C CNN
+F 1 "100" V 4700 3600 50  0000 C CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 4800 3600 50  0001 C CNN
+F 3 "" H 4800 3600 50  0000 C CNN
+	1    4800 3600
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4600 3600 4700 3600
+Wire Wire Line
+	4900 3600 5000 3600
+$Comp
+L C_Small C53
+U 1 1 597C8A68
+P 6300 2200
+F 0 "C53" H 6310 2270 50  0000 L CNN
+F 1 "0.1u" H 6310 2120 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 6300 2200 50  0001 C CNN
+F 3 "" H 6300 2200 50  0000 C CNN
+	1    6300 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6600 2000 6300 2000
+Wire Wire Line
+	6300 2000 6300 2100
+Connection ~ 6600 2000
+$Comp
+L GND #PWR088
+U 1 1 597C8B31
+P 6300 2400
+F 0 "#PWR088" H 6300 2150 50  0001 C CNN
+F 1 "GND" H 6300 2250 50  0000 C CNN
+F 2 "" H 6300 2400 50  0000 C CNN
+F 3 "" H 6300 2400 50  0000 C CNN
+	1    6300 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6300 2400 6300 2300
+$Comp
+L C_Small C51
+U 1 1 597C9920
+P 5400 5000
+F 0 "C51" H 5410 5070 50  0000 L CNN
+F 1 "0.1u" H 5410 4920 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 5400 5000 50  0001 C CNN
+F 3 "" H 5400 5000 50  0000 C CNN
+	1    5400 5000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5100 4800 5400 4800
+Wire Wire Line
+	5400 4800 5400 4900
+Connection ~ 5100 4800
+$Comp
+L GND #PWR089
+U 1 1 597C9B6F
+P 5400 5200
+F 0 "#PWR089" H 5400 4950 50  0001 C CNN
+F 1 "GND" H 5400 5050 50  0000 C CNN
+F 2 "" H 5400 5200 50  0000 C CNN
+F 3 "" H 5400 5200 50  0000 C CNN
+	1    5400 5200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 5100 5400 5200
+$EndSCHEMATC

@@ -1,0 +1,815 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:bldc-controller
+LIBS:stepper-driver
+LIBS:bldc-controller-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 2 6
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L DRV8301 U1
+U 1 1 596D5DBB
+P 5800 3800
+F 0 "U1" H 5800 3850 60  0000 C CNN
+F 1 "DRV8301" H 5800 3750 60  0000 C CNN
+F 2 "bldc-controller:R-PDSO-G56" H 5700 3750 60  0001 C CNN
+F 3 "" H 5800 3850 60  0001 C CNN
+F 4 "Texas Instruments" H 5900 3950 60  0001 C CNN "MFR_NAME"
+	1    5800 3800
+	1    0    0    -1  
+$EndComp
+$Comp
+L L_Small L1
+U 1 1 596D6063
+P 7500 1800
+F 0 "L1" V 7600 1800 50  0000 C CNN
+F 1 "33u" V 7400 1800 50  0000 C CNN
+F 2 "bldc-controller:TYS6045" H 7500 1800 50  0001 C CNN
+F 3 "" H 7500 1800 50  0000 C CNN
+F 4 "Laird Technologies" H 7500 1800 60  0001 C CNN "MFR_NAME"
+F 5 "TYS6045330M-10" H 7500 1800 60  0001 C CNN "MFR_PN"
+	1    7500 1800
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 5000 1700
+$Comp
+L R_Small R3
+U 1 1 596E586B
+P 3600 2100
+F 0 "R3" H 3630 2120 50  0000 L CNN
+F 1 "15k" H 3630 2060 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 3600 2100 50  0001 C CNN
+F 3 "" H 3600 2100 50  0000 C CNN
+	1    3600 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C5
+U 1 1 596E5923
+P 3600 2400
+F 0 "C5" H 3610 2470 50  0000 L CNN
+F 1 "6.8n" H 3610 2320 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 3600 2400 50  0001 C CNN
+F 3 "" H 3600 2400 50  0000 C CNN
+	1    3600 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C6
+U 1 1 596E59A3
+P 3900 2300
+F 0 "C6" H 3910 2370 50  0000 L CNN
+F 1 "120p" H 3910 2220 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 3900 2300 50  0001 C CNN
+F 3 "" H 3900 2300 50  0000 C CNN
+	1    3900 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C7
+U 1 1 596E5ABB
+P 4200 2300
+F 0 "C7" H 4210 2370 50  0000 L CNN
+F 1 "1n" H 4210 2220 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 4200 2300 50  0001 C CNN
+F 3 "" H 4200 2300 50  0000 C CNN
+	1    4200 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR012
+U 1 1 596E5B14
+P 4200 2500
+F 0 "#PWR012" H 4200 2250 50  0001 C CNN
+F 1 "GND" H 4200 2350 50  0000 C CNN
+F 2 "" H 4200 2500 50  0000 C CNN
+F 3 "" H 4200 2500 50  0000 C CNN
+	1    4200 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L R_Small R6
+U 1 1 596E5B75
+P 4800 2300
+F 0 "R6" V 4900 2300 50  0000 C CNN
+F 1 "220k" V 4700 2300 50  0000 C CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 4800 2300 50  0001 C CNN
+F 3 "" H 4800 2300 50  0000 C CNN
+	1    4800 2300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L GND #PWR013
+U 1 1 596E5F39
+P 4500 2500
+F 0 "#PWR013" H 4500 2250 50  0001 C CNN
+F 1 "GND" H 4500 2350 50  0000 C CNN
+F 2 "" H 4500 2500 50  0000 C CNN
+F 3 "" H 4500 2500 50  0000 C CNN
+	1    4500 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR014
+U 1 1 596E604F
+P 3600 2700
+F 0 "#PWR014" H 3600 2450 50  0001 C CNN
+F 1 "GND" H 3600 2550 50  0000 C CNN
+F 2 "" H 3600 2700 50  0000 C CNN
+F 3 "" H 3600 2700 50  0000 C CNN
+	1    3600 2700
+	1    0    0    -1  
+$EndComp
+Text HLabel 4900 2700 0    60   Input ~ 0
+VDD
+$Comp
+L C_Small C8
+U 1 1 596E61C5
+P 4800 2900
+F 0 "C8" V 4750 2950 50  0000 L CNN
+F 1 "1u" V 4850 2950 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 4800 2900 50  0001 C CNN
+F 3 "" H 4800 2900 50  0000 C CNN
+F 4 "6.3V" V 4800 2900 60  0001 C CNN "Voltage"
+	1    4800 2900
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR015
+U 1 1 596E63C9
+P 4500 3300
+F 0 "#PWR015" H 4500 3050 50  0001 C CNN
+F 1 "GND" H 4500 3150 50  0000 C CNN
+F 2 "" H 4500 3300 50  0000 C CNN
+F 3 "" H 4500 3300 50  0000 C CNN
+	1    4500 3300
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C9
+U 1 1 596E6790
+P 4800 3100
+F 0 "C9" V 4750 3150 50  0000 L CNN
+F 1 "1u" V 4850 3150 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 4800 3100 50  0001 C CNN
+F 3 "" H 4800 3100 50  0000 C CNN
+F 4 "10V" V 4800 3100 60  0001 C CNN "Voltage"
+	1    4800 3100
+	0    1    1    0   
+$EndComp
+Text HLabel 4900 3600 0    60   Output ~ 0
+nOCTW
+Text HLabel 4900 3800 0    60   Output ~ 0
+nFAULT
+Text HLabel 4900 4000 0    60   Input ~ 0
+nSCS
+Text HLabel 4900 4100 0    60   Input ~ 0
+SDI
+Text HLabel 4900 4200 0    60   Output ~ 0
+SDO
+Text HLabel 4900 4300 0    60   Input ~ 0
+SCLK
+Text HLabel 4900 4500 0    60   Input ~ 0
+EN_GATE
+Text HLabel 4900 4700 0    60   Input ~ 0
+INH_A
+Text HLabel 4900 4800 0    60   Input ~ 0
+INL_A
+Text HLabel 4900 4900 0    60   Input ~ 0
+INH_B
+Text HLabel 4900 5000 0    60   Input ~ 0
+INL_B
+Text HLabel 4900 5100 0    60   Input ~ 0
+INH_C
+Text HLabel 4900 5200 0    60   Input ~ 0
+INL_C
+$Comp
+L R_Small R7
+U 1 1 596E7475
+P 4800 5400
+F 0 "R7" V 4900 5400 50  0000 C CNN
+F 1 "0" V 4700 5400 50  0000 C CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 4800 5400 50  0001 C CNN
+F 3 "" H 4800 5400 50  0000 C CNN
+	1    4800 5400
+	0    -1   -1   0   
+$EndComp
+$Comp
+L GND #PWR016
+U 1 1 596E75F5
+P 4500 5500
+F 0 "#PWR016" H 4500 5250 50  0001 C CNN
+F 1 "GND" H 4500 5350 50  0000 C CNN
+F 2 "" H 4500 5500 50  0000 C CNN
+F 3 "" H 4500 5500 50  0000 C CNN
+	1    4500 5500
+	1    0    0    -1  
+$EndComp
+Text HLabel 4900 5600 0    60   Input ~ 0
+VDD
+NoConn ~ 5000 5800
+NoConn ~ 5000 6000
+NoConn ~ 5000 6100
+Text HLabel 6800 1000 1    60   Input ~ 0
+VIN
+$Comp
+L C_Small C16
+U 1 1 596E82CE
+P 7000 1300
+F 0 "C16" H 7010 1370 50  0000 L CNN
+F 1 "0.1u" H 7010 1220 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 7000 1300 50  0001 C CNN
+F 3 "" H 7000 1300 50  0000 C CNN
+F 4 "60V" H 7000 1300 60  0001 C CNN "Voltage"
+	1    7000 1300
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C17
+U 1 1 596E84B8
+P 7300 1300
+F 0 "C17" H 7310 1370 50  0000 L CNN
+F 1 "4.7u" H 7310 1220 50  0000 L CNN
+F 2 "bldc-controller:C_1206_IPC_NOMINAL" H 7300 1300 50  0001 C CNN
+F 3 "" H 7300 1300 50  0000 C CNN
+F 4 "60V" H 7300 1300 60  0001 C CNN "Voltage"
+F 5 "X5R, X7R" H 7300 1300 60  0001 C CNN "Dielectric"
+	1    7300 1300
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR017
+U 1 1 596EC1E4
+P 7300 1500
+F 0 "#PWR017" H 7300 1250 50  0001 C CNN
+F 1 "GND" H 7300 1350 50  0000 C CNN
+F 2 "" H 7300 1500 50  0000 C CNN
+F 3 "" H 7300 1500 50  0000 C CNN
+	1    7300 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L D_Schottky_Small_ALT D2
+U 1 1 596ECB27
+P 7200 2000
+F 0 "D2" V 7150 2050 50  0000 L CNN
+F 1 "PMEG6020ER" V 7250 2050 50  0000 L CNN
+F 2 "bldc-controller:SOD123W" V 7200 2000 50  0001 C CNN
+F 3 "" V 7200 2000 50  0000 C CNN
+F 4 "Nexperia" H 7200 2000 60  0001 C CNN "MFR_NAME"
+F 5 "PMEG6020ER" H 7200 2000 60  0001 C CNN "MFR_PN"
+	1    7200 2000
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR018
+U 1 1 596ED0E4
+P 7200 2200
+F 0 "#PWR018" H 7200 1950 50  0001 C CNN
+F 1 "GND" H 7200 2050 50  0000 C CNN
+F 2 "" H 7200 2200 50  0000 C CNN
+F 3 "" H 7200 2200 50  0000 C CNN
+	1    7200 2200
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C10
+U 1 1 596ED97D
+P 6800 1800
+F 0 "C10" V 6700 1800 50  0000 C CNN
+F 1 "0.1u" V 6900 1800 50  0000 C CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 6800 1800 50  0001 C CNN
+F 3 "" H 6800 1800 50  0000 C CNN
+F 4 "X5R" V 6800 1800 60  0001 C CNN "Dielectric"
+F 5 "10V" V 6800 1800 60  0001 C CNN "Voltage"
+	1    6800 1800
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR019
+U 1 1 596EEEC1
+P 7900 2200
+F 0 "#PWR019" H 7900 1950 50  0001 C CNN
+F 1 "GND" H 7900 2050 50  0000 C CNN
+F 2 "" H 7900 2200 50  0000 C CNN
+F 3 "" H 7900 2200 50  0000 C CNN
+	1    7900 2200
+	1    0    0    -1  
+$EndComp
+Text HLabel 8500 1800 2    60   Output ~ 0
+5V
+$Comp
+L R_Small R9
+U 1 1 596EF66E
+P 8300 2400
+F 0 "R9" H 8330 2420 50  0000 L CNN
+F 1 "10k" H 8330 2360 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 8300 2400 50  0001 C CNN
+F 3 "" H 8300 2400 50  0000 C CNN
+F 4 "1%" H 8300 2400 60  0001 C CNN "Tolerance"
+	1    8300 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C19
+U 1 1 596F0B70
+P 7900 2000
+F 0 "C19" H 7910 2070 50  0000 L CNN
+F 1 "47u" H 7910 1920 50  0000 L CNN
+F 2 "bldc-controller:C_1206_IPC_NOMINAL" H 7900 2000 50  0001 C CNN
+F 3 "" H 7900 2000 50  0000 C CNN
+F 4 "Murata" H 7900 2000 60  0001 C CNN "MFR_NAME"
+F 5 "GRM31CR61A476KE15L" H 7900 2000 60  0001 C CNN "MFR_PN"
+F 6 "10V" H 7900 2000 60  0001 C CNN "Voltage"
+	1    7900 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L R_Small R4
+U 1 1 596F178F
+P 4600 1000
+F 0 "R4" H 4630 1020 50  0000 L CNN
+F 1 "DNP" H 4630 960 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 4600 1000 50  0001 C CNN
+F 3 "" H 4600 1000 50  0000 C CNN
+	1    4600 1000
+	1    0    0    -1  
+$EndComp
+$Comp
+L R_Small R5
+U 1 1 596F1873
+P 4600 1400
+F 0 "R5" H 4630 1420 50  0000 L CNN
+F 1 "DNP" H 4630 1360 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 4600 1400 50  0001 C CNN
+F 3 "" H 4600 1400 50  0000 C CNN
+	1    4600 1400
+	1    0    0    -1  
+$EndComp
+Text HLabel 4600 800  1    60   Input ~ 0
+VIN
+$Comp
+L GND #PWR020
+U 1 1 596F1C83
+P 4600 1600
+F 0 "#PWR020" H 4600 1350 50  0001 C CNN
+F 1 "GND" H 4600 1450 50  0000 C CNN
+F 2 "" H 4600 1600 50  0000 C CNN
+F 3 "" H 4600 1600 50  0000 C CNN
+	1    4600 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR021
+U 1 1 596F2280
+P 8300 2600
+F 0 "#PWR021" H 8300 2350 50  0001 C CNN
+F 1 "GND" H 8300 2450 50  0000 C CNN
+F 2 "" H 8300 2600 50  0000 C CNN
+F 3 "" H 8300 2600 50  0000 C CNN
+	1    8300 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L R_Small R8
+U 1 1 596F2497
+P 8300 2000
+F 0 "R8" H 8330 2020 50  0000 L CNN
+F 1 "52.3k" H 8330 1960 50  0000 L CNN
+F 2 "bldc-controller:R_0603_IPC_NOMINAL" H 8300 2000 50  0001 C CNN
+F 3 "" H 8300 2000 50  0000 C CNN
+F 4 "1%" H 8300 2000 60  0001 C CNN "Tolerance"
+	1    8300 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C18
+U 1 1 596FCE32
+P 7600 2900
+F 0 "C18" H 7610 2970 50  0000 L CNN
+F 1 "0.1u" H 7610 2820 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 7600 2900 50  0001 C CNN
+F 3 "" H 7600 2900 50  0000 C CNN
+F 4 "60V" H 7600 2900 60  0001 C CNN "Voltage"
+	1    7600 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C20
+U 1 1 596FCE3B
+P 7900 2900
+F 0 "C20" H 7910 2970 50  0000 L CNN
+F 1 "4.7u" H 7910 2820 50  0000 L CNN
+F 2 "bldc-controller:C_1206_IPC_NOMINAL" H 7900 2900 50  0001 C CNN
+F 3 "" H 7900 2900 50  0000 C CNN
+F 4 "60V" H 7900 2900 60  0001 C CNN "Voltage"
+F 5 "X5R, X7R" H 7900 2900 60  0001 C CNN "Dielectric"
+	1    7900 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR022
+U 1 1 596FD19A
+P 7900 3200
+F 0 "#PWR022" H 7900 2950 50  0001 C CNN
+F 1 "GND" H 7900 3050 50  0000 C CNN
+F 2 "" H 7900 3200 50  0000 C CNN
+F 3 "" H 7900 3200 50  0000 C CNN
+	1    7900 3200
+	1    0    0    -1  
+$EndComp
+Text HLabel 6800 2600 1    60   Input ~ 0
+VIN
+$Comp
+L C_Small C11
+U 1 1 596FDC5D
+P 6800 2900
+F 0 "C11" V 6750 2950 50  0000 L CNN
+F 1 "2.2u" V 6850 2950 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 6800 2900 50  0001 C CNN
+F 3 "" H 6800 2900 50  0000 C CNN
+F 4 "16V" V 6800 2900 60  0001 C CNN "Voltage"
+	1    6800 2900
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR023
+U 1 1 596FE044
+P 7300 3000
+F 0 "#PWR023" H 7300 2750 50  0001 C CNN
+F 1 "GND" H 7300 2850 50  0000 C CNN
+F 2 "" H 7300 3000 50  0000 C CNN
+F 3 "" H 7300 3000 50  0000 C CNN
+	1    7300 3000
+	1    0    0    -1  
+$EndComp
+$Comp
+L C_Small C12
+U 1 1 596FF4CA
+P 6800 3100
+F 0 "C12" V 6750 3150 50  0000 L CNN
+F 1 "22n" V 6850 3150 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 6800 3100 50  0001 C CNN
+F 3 "" H 6800 3100 50  0000 C CNN
+F 4 "60V" V 6800 3100 60  0001 C CNN "Voltage"
+	1    6800 3100
+	0    1    1    0   
+$EndComp
+$Comp
+L C_Small C13
+U 1 1 596FFC47
+P 6800 3600
+F 0 "C13" V 6750 3650 50  0000 L CNN
+F 1 "0.1u" V 6850 3650 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 6800 3600 50  0001 C CNN
+F 3 "" H 6800 3600 50  0000 C CNN
+F 4 "16V" V 6800 3600 60  0001 C CNN "Voltage"
+	1    6800 3600
+	0    1    1    0   
+$EndComp
+Text HLabel 7300 3700 2    60   Output ~ 0
+GH_A
+Text HLabel 7300 3800 2    60   Input ~ 0
+SH_A
+Text HLabel 7300 3900 2    60   Output ~ 0
+GL_A
+Text HLabel 7300 4000 2    60   Input ~ 0
+SL_A
+$Comp
+L C_Small C14
+U 1 1 59700AA7
+P 6800 4200
+F 0 "C14" V 6750 4250 50  0000 L CNN
+F 1 "0.1u" V 6850 4250 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 6800 4200 50  0001 C CNN
+F 3 "" H 6800 4200 50  0000 C CNN
+F 4 "16V" V 6800 4200 60  0001 C CNN "Voltage"
+	1    6800 4200
+	0    1    1    0   
+$EndComp
+$Comp
+L C_Small C15
+U 1 1 59700B0A
+P 6800 4800
+F 0 "C15" V 6750 4850 50  0000 L CNN
+F 1 "0.1u" V 6850 4850 50  0000 L CNN
+F 2 "bldc-controller:C_0603_IPC_NOMINAL" H 6800 4800 50  0001 C CNN
+F 3 "" H 6800 4800 50  0000 C CNN
+F 4 "16V" V 6800 4800 60  0001 C CNN "Voltage"
+	1    6800 4800
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3600 2200 3600 2300
+Wire Wire Line
+	4200 2500 4200 2400
+Wire Wire Line
+	4200 2200 4200 2100
+Wire Wire Line
+	4200 2100 5000 2100
+Wire Wire Line
+	5000 2300 4900 2300
+Wire Wire Line
+	4700 2300 4500 2300
+Wire Wire Line
+	4500 2300 4500 2500
+Wire Wire Line
+	3600 1900 5000 1900
+Wire Wire Line
+	3600 1900 3600 2000
+Wire Wire Line
+	3900 2200 3900 1900
+Connection ~ 3900 1900
+Wire Wire Line
+	3600 2500 3600 2700
+Wire Wire Line
+	3600 2600 3900 2600
+Wire Wire Line
+	3900 2600 3900 2400
+Connection ~ 3600 2600
+Wire Wire Line
+	4900 2700 5000 2700
+Wire Wire Line
+	5000 2900 4900 2900
+Wire Wire Line
+	4700 2900 4500 2900
+Wire Wire Line
+	4500 2900 4500 3300
+Wire Wire Line
+	5000 3100 4900 3100
+Wire Wire Line
+	4700 3100 4500 3100
+Connection ~ 4500 3100
+Wire Wire Line
+	4500 3300 5000 3300
+Connection ~ 4500 3300
+Wire Wire Line
+	4900 4000 5000 4000
+Wire Wire Line
+	5000 4100 4900 4100
+Wire Wire Line
+	4900 4200 5000 4200
+Wire Wire Line
+	5000 4300 4900 4300
+Wire Wire Line
+	4900 4500 5000 4500
+Wire Wire Line
+	4900 4700 5000 4700
+Wire Wire Line
+	5000 4800 4900 4800
+Wire Wire Line
+	4900 4900 5000 4900
+Wire Wire Line
+	5000 5000 4900 5000
+Wire Wire Line
+	4900 5100 5000 5100
+Wire Wire Line
+	5000 5200 4900 5200
+Wire Wire Line
+	4900 5400 5000 5400
+Wire Wire Line
+	4500 5500 4500 5400
+Wire Wire Line
+	4500 5400 4700 5400
+Wire Wire Line
+	4900 3600 5000 3600
+Wire Wire Line
+	4900 3800 5000 3800
+Wire Wire Line
+	4900 5600 5000 5600
+Wire Wire Line
+	6800 1600 6600 1600
+Wire Wire Line
+	6800 1500 6600 1500
+Wire Wire Line
+	6800 1000 6800 1600
+Connection ~ 6800 1500
+Wire Wire Line
+	6800 1100 7300 1100
+Wire Wire Line
+	7000 1100 7000 1200
+Connection ~ 6800 1100
+Wire Wire Line
+	7300 1100 7300 1200
+Connection ~ 7000 1100
+Wire Wire Line
+	7000 1500 7000 1400
+Wire Wire Line
+	7300 1400 7300 1500
+Wire Wire Line
+	7300 1500 7000 1500
+Connection ~ 7300 1500
+Wire Wire Line
+	7000 2100 6600 2100
+Wire Wire Line
+	7000 1800 7000 2100
+Wire Wire Line
+	7000 2000 6600 2000
+Wire Wire Line
+	6900 1800 7400 1800
+Connection ~ 7000 2000
+Wire Wire Line
+	7200 2200 7200 2100
+Wire Wire Line
+	6600 1800 6700 1800
+Wire Wire Line
+	7200 1900 7200 1800
+Connection ~ 7200 1800
+Connection ~ 7000 1800
+Wire Wire Line
+	7600 1800 8500 1800
+Wire Wire Line
+	7900 1800 7900 1900
+Wire Wire Line
+	7900 2200 7900 2100
+Connection ~ 7900 1800
+Wire Wire Line
+	4600 1100 4600 1300
+Wire Wire Line
+	4600 1200 4900 1200
+Wire Wire Line
+	4900 1200 4900 1500
+Connection ~ 4600 1200
+Wire Wire Line
+	4900 1500 5000 1500
+Wire Wire Line
+	4600 800  4600 900 
+Wire Wire Line
+	4600 1600 4600 1500
+Wire Wire Line
+	8300 1800 8300 1900
+Connection ~ 8300 1800
+Wire Wire Line
+	8300 2100 8300 2300
+Wire Wire Line
+	8300 2600 8300 2500
+Wire Wire Line
+	6600 2300 7000 2300
+Wire Wire Line
+	7000 2300 7000 2400
+Wire Wire Line
+	7000 2400 8100 2400
+Wire Wire Line
+	8100 2400 8100 2200
+Wire Wire Line
+	8100 2200 8300 2200
+Connection ~ 8300 2200
+Wire Wire Line
+	6600 2700 7900 2700
+Wire Wire Line
+	7600 2700 7600 2800
+Wire Wire Line
+	7900 2700 7900 2800
+Connection ~ 7600 2700
+Wire Wire Line
+	7600 3000 7600 3100
+Wire Wire Line
+	7600 3100 7900 3100
+Wire Wire Line
+	7900 3000 7900 3200
+Connection ~ 7900 3100
+Wire Wire Line
+	6800 2600 6800 2700
+Connection ~ 6800 2700
+Wire Wire Line
+	6600 2900 6700 2900
+Wire Wire Line
+	6900 2900 7300 2900
+Wire Wire Line
+	7300 2900 7300 3000
+Wire Wire Line
+	6600 3100 6700 3100
+Wire Wire Line
+	6900 3100 7100 3100
+Wire Wire Line
+	7100 3100 7100 3300
+Wire Wire Line
+	7100 3300 6600 3300
+Wire Wire Line
+	6600 3600 6700 3600
+Wire Wire Line
+	6900 3600 7100 3600
+Wire Wire Line
+	7100 3600 7100 3800
+Wire Wire Line
+	6600 3800 7300 3800
+Wire Wire Line
+	6600 3700 7300 3700
+Connection ~ 7100 3800
+Wire Wire Line
+	6600 3900 7300 3900
+Wire Wire Line
+	6600 4000 7300 4000
+Wire Wire Line
+	6600 4200 6700 4200
+Text HLabel 7300 4300 2    60   Output ~ 0
+GH_B
+Text HLabel 7300 4400 2    60   Input ~ 0
+SH_B
+Text HLabel 7300 4500 2    60   Output ~ 0
+GL_B
+Text HLabel 7300 4600 2    60   Input ~ 0
+SL_B
+Wire Wire Line
+	6600 4300 7300 4300
+Wire Wire Line
+	7300 4400 6600 4400
+Wire Wire Line
+	6600 4500 7300 4500
+Wire Wire Line
+	7300 4600 6600 4600
+Wire Wire Line
+	6900 4200 7100 4200
+Wire Wire Line
+	7100 4200 7100 4400
+Connection ~ 7100 4400
+Text HLabel 7300 4900 2    60   Output ~ 0
+GH_C
+Text HLabel 7300 5000 2    60   Input ~ 0
+SH_C
+Text HLabel 7300 5100 2    60   Output ~ 0
+GL_C
+Text HLabel 7300 5200 2    60   Input ~ 0
+SL_C
+Wire Wire Line
+	6600 4800 6700 4800
+Wire Wire Line
+	6600 4900 7300 4900
+Wire Wire Line
+	7300 5000 6600 5000
+Wire Wire Line
+	6600 5100 7300 5100
+Wire Wire Line
+	7300 5200 6600 5200
+Wire Wire Line
+	6900 4800 7100 4800
+Wire Wire Line
+	7100 4800 7100 5000
+Connection ~ 7100 5000
+Wire Wire Line
+	6600 5500 6800 5500
+Wire Wire Line
+	6800 5500 6800 6200
+Wire Wire Line
+	6600 5600 6800 5600
+Connection ~ 6800 5600
+Wire Wire Line
+	6600 5900 6800 5900
+Connection ~ 6800 5900
+Wire Wire Line
+	6600 5800 6800 5800
+Connection ~ 6800 5800
+$Comp
+L GND #PWR024
+U 1 1 5970200E
+P 6800 6200
+F 0 "#PWR024" H 6800 5950 50  0001 C CNN
+F 1 "GND" H 6800 6050 50  0000 C CNN
+F 2 "" H 6800 6200 50  0000 C CNN
+F 3 "" H 6800 6200 50  0000 C CNN
+	1    6800 6200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6600 6100 6800 6100
+Connection ~ 6800 6100
+$EndSCHEMATC
