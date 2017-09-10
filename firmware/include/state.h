@@ -42,7 +42,7 @@ struct Parameters {
 /**
  * Result values written by the control thread
  */
-extern Results results;
+extern Results active_results;
 
 /**
  * Result values read by the comms thread
@@ -52,14 +52,22 @@ extern Results sync_results;
 /**
  * Parameter values written by the comms thread
  */
-extern Parameters parameters;
+extern Parameters active_parameters;
 
 /**
  * Parameter values read by the control thread
  */
 extern Parameters sync_parameters;
 
-extern Mutex state_mutex;
+/**
+ * Results synchronization was requested
+ */
+extern volatile bool should_copy_results;
+
+/**
+ * Parameter synchronization was requested
+ */
+extern volatile bool should_copy_parameters;
 
 void initState();
 
