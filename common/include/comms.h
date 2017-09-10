@@ -125,7 +125,7 @@ enum class RegAccessType {
   WRITE
 };
 
-using RegAccessHandler = void (*)(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+using RegAccessHandler = void (*)(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors, bool synced);
 
 class Server {
 public:
@@ -139,12 +139,12 @@ public:
     id_ = id;
   }
 
-  void readRegisters(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, comm_errors_t& errors) {
-    access_handler_(start_addr, reg_count, buf, buf_len, buf_size, RegAccessType::READ, errors);
+  void readRegisters(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, comm_errors_t& errors, bool synced) {
+    access_handler_(start_addr, reg_count, buf, buf_len, buf_size, RegAccessType::READ, errors, synced);
   }
 
-  void writeRegisters(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_len, comm_errors_t& errors) {
-    access_handler_(start_addr, reg_count, buf, buf_len, 0, RegAccessType::WRITE, errors);
+  void writeRegisters(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_len, comm_errors_t& errors, bool synced) {
+    access_handler_(start_addr, reg_count, buf, buf_len, 0, RegAccessType::WRITE, errors, synced);
   }
 
 private:
@@ -180,9 +180,10 @@ private:
   uint32_t u32_value_;
   uint32_t src_addr_;
   size_t src_len_;
+  bool synced_;
 };
 
-void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors, bool synced);
 
 void startComms();
 

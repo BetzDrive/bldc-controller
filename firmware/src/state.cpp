@@ -2,18 +2,19 @@
 
 namespace motor_driver {
 
-Results results;
+Results active_results;
 
 Results sync_results;
 
-Parameters parameters;
+Parameters active_parameters;
 
 Parameters sync_parameters;
 
-Mutex state_mutex;
+volatile bool should_copy_results = false;
+
+volatile bool should_copy_parameters = false;
 
 void initState() {
-    chMtxInit(&state_mutex);
 }
 
 } // namespace motor_driver

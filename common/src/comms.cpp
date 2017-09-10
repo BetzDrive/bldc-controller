@@ -228,7 +228,7 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
       error_index = index;
       index += 2;
 
-      server_->readRegisters(start_addr_, reg_count_, &datagram[index], buf_len, max_datagram_len - index, errors);
+      server_->readRegisters(start_addr_, reg_count_, &datagram[index], buf_len, max_datagram_len - index, errors, synced_);
       index += buf_len;
 
       /* Copy error code into response */

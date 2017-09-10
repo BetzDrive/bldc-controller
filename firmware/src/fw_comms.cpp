@@ -44,6 +44,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       break;
 
     case COMM_FC_READ_REGS:
+    case COMM_FC_READ_REGS_SYNCED:
       /* Read registers */
 
       if (datagram_len - index < 3) {
@@ -56,11 +57,14 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       start_addr_ |= (comm_addr_t)datagram[index++] << 8;
       reg_count_ = datagram[index++];
 
+      synced_ = (function_code_ == COMM_FC_READ_REGS_SYNCED);
+
       state_ = State::RESPONDING_READ;
 
       break;
 
     case COMM_FC_WRITE_REGS:
+    case COMM_FC_WRITE_REGS_SYNCED:
       /* Write registers */
 
       if (datagram_len - index < 3) {
@@ -73,7 +77,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       start_addr_ |= (comm_addr_t)datagram[index++] << 8;
       reg_count_ = datagram[index++];
 
-      server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors);
+      synced_ = (function_code_ == COMM_FC_WRITE_REGS_SYNCED);
+
+      server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors, synced_);
 
       state_ = State::RESPONDING;
 
@@ -114,25 +120,15 @@ static void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size
   }
 }
 
-void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
+void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors, bool synced) {
   size_t index = 0;
+
+  Results& results = synced ? sync_results : active_results;
+  Parameters& parameters = synced ? sync_parameters : active_parameters;
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     switch (addr) {
-      case 5:
-        if (access_type == RegAccessType::WRITE) {
-          if (buf_len - index >= 3) {
-            setStatusLEDColor(buf[index], buf[index + 1], buf[index + 2]);
-            index += 3;
-          } else {
-            errors |= COMM_ERRORS_BUF_LEN_MISMATCH;
-            return;
-          }
-        }
-        break;
-      case 7:
-        buf[index] = 0xdd;
-        buf[index + 1] = 0xdd;
+      case 0x0100:
         handleVarAccess(results.encoder_angle, buf, index, buf_size, access_type, errors);
         break;
       default:

@@ -20,6 +20,15 @@ void resumeInnerControlLoop() {
 void runInnerControlLoop() {
   control_thread_ptr = chThdSelf();
 
+  chSysLock();
+
+  /*
+   * getPipelinedRegisterReadResultI requires startPipelinedRegisterReadI to be called beforehand
+   */
+  encoder.startPipelinedRegisterReadI(0x3fff);
+
+  chSysUnlock();
+
   while (true) {
     /*
      * Wait for resumeInnerControlLoop to be called
@@ -31,20 +40,21 @@ void runInnerControlLoop() {
 }
 
 void runCurrentControl() {
-  palClearPad(GPIOA, GPIOA_LED_Y);
+  uint16_t raw_encoder_angle;
 
-  chSysLock();
+  chSysLock(); // Required for function calls with "I" suffix
 
-  results.encoder_angle = encoder.getPipelinedRegisterReadResultI();
+  raw_encoder_angle = encoder.getPipelinedRegisterReadResultI();
   encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
 
-  // results.encoder_angle = encoder.readRegister(0x3fff);
+  active_results.encoder_angle = raw_encoder_angle;
 
-  // results.encoder_diag = encoder.readRegister(0x3ffc);
+  // YOUR CODE HERE
 
-  palSetPad(GPIOA, GPIOA_LED_Y);
+
+
 }
 
 } // namespace motor_driver

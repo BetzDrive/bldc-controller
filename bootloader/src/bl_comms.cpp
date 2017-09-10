@@ -288,7 +288,7 @@ static void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size
   }
 }
 
-void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
+void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors, bool synced) {
   size_t index = 0;
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
