@@ -29,6 +29,12 @@ struct Parameters {
   uint8_t led_red_intensity;    // Status LED red intensity
   uint8_t led_green_intensity;  // Status LED green intensity
   uint8_t led_blue_intensity;   // Status LED blue intensity
+  uint16_t encoder_zero;        // Phase-aligned encoder zero position
+  uint8_t erpm_per_revolution;     // How many poles does our motor have?
+  uint8_t raw_pwm_mode;
+  float phase0;
+  float phase1;
+  float phase2;
 
   Parameters()
     : foc_q_current_sp(0),
@@ -36,7 +42,13 @@ struct Parameters {
       override_led_color(false),
       led_red_intensity(0),
       led_green_intensity(0),
-      led_blue_intensity(0) {}
+      led_blue_intensity(0),
+      encoder_zero(0),
+      erpm_per_revolution(8),
+      raw_pwm_mode(0),
+      phase0(0),
+      phase1(0),
+      phase2(0) {}
 };
 
 /**

@@ -87,6 +87,14 @@ class BLDCControllerClient:
     def __init__(self, ser):
         self._ser = ser
 
+    def readRegisters(self, server_id, start_addr, count):
+        _, data = self.doTransaction(server_id, COMM_FC_READ_REGS, struct.pack('<HB', start_addr, count))
+        return data
+
+    def writeRegisters(self, server_id, start_addr, count, data):
+        success, _ = self.doTransaction(server_id, COMM_FC_WRITE_REGS, struct.pack('<HB', start_addr, count) + data)
+        return success
+
     def leaveBootloader(self, server_id, jump_addr=COMM_DEFAULT_FIRMWARE_OFFSET):
         self.writeRequest(server_id, COMM_FC_LEAVE_BOOTLOADER, struct.pack('<I', jump_addr))
         return True
@@ -224,7 +232,7 @@ class BLDCControllerClient:
 
             if len(lb) == 1:
                 break
-            
+
             time.sleep(try_interval)
         else:
             # Reached maximum number of tries

@@ -51,7 +51,15 @@ void runCurrentControl() {
 
   active_results.encoder_angle = raw_encoder_angle;
 
-  // YOUR CODE HERE
+  if (active_parameters.raw_pwm_mode) {
+    gate_driver.setPWMDutyCycle(0, active_parameters.phase0);
+    gate_driver.setPWMDutyCycle(1, active_parameters.phase1);
+    gate_driver.setPWMDutyCycle(2, active_parameters.phase2);
+  } else {
+    gate_driver.setPWMDutyCycle(0, 0);
+    gate_driver.setPWMDutyCycle(1, 0);
+    gate_driver.setPWMDutyCycle(2, 0.4);
+  }
 
 
 
