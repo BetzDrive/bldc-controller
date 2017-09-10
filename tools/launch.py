@@ -2,8 +2,10 @@
 
 from comms import *
 import serial
+import sys
 
-s = serial.Serial(port='/dev/tty.usbserial-AI057K87', baudrate=3000000)
+port = sys.argv[1]
+s = serial.Serial(port=port, baudrate=3000000)
 
 print s.BAUDRATES
 
