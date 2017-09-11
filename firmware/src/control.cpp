@@ -5,6 +5,7 @@
 #include "peripherals.h"
 #include "state.h"
 #include "fast_math.h"
+#include "chprintf.h"
 
 namespace motor_driver {
 
@@ -40,6 +41,7 @@ void runInnerControlLoop() {
   }
 }
 
+float ang = 0.0;
 void runCurrentControl() {
   uint16_t raw_encoder_angle;
 
@@ -58,8 +60,15 @@ void runCurrentControl() {
     gate_driver.setPWMDutyCycle(2, active_parameters.phase2);
   } else {
     // TODO: optimize this
-    float ang = ((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0 + pi / 2.0;
-    float d = active_parameters.cmd_duty_cycle;
+    //float ang = -((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0f * pi / 16384.0f + pi / 2.0;
+    ang += 0.0001;
+    // chprintf((BaseSequentialStream *) &SDU1, "hello\n");
+    // chprintf((BaseSequentialStream *) &SDU1, "%f\t%d\n", ang, raw_encoder_angle);
+    while(ang > 2.0 * pi) {
+      ang -= 2.0 * pi;
+    }
+
+    float d = active_parameters.cmd_duty_cycle * 2.0f;
     gate_driver.setPWMDutyCycle(0, 0.5f + d * fast_cos(ang));
     gate_driver.setPWMDutyCycle(1, 0.5f + d * fast_cos(ang - 2 / 3.0f * pi));
     gate_driver.setPWMDutyCycle(2, 0.5f + d * fast_cos(ang - 4 / 3.0f * pi));
