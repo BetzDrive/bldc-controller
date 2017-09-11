@@ -128,8 +128,26 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     switch (addr) {
-      case 0x0100:
+      case 0x0100: //256
         handleVarAccess(results.encoder_angle, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0101: //257
+        handleVarAccess(parameters.encoder_zero, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x0102: //258
+        handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x0103: //259
+        handleVarAccess(parameters.phase0, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x0104: //260
+        handleVarAccess(parameters.phase1, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x0105: //261
+        handleVarAccess(parameters.phase2, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x0106: //262
+        handleVarAccess(parameters.cmd_duty_cycle, buf, index, buf_len, access_type, errors);
         break;
       default:
         errors |= COMM_ERRORS_INVALID_ARGS;
