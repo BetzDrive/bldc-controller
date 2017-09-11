@@ -30,6 +30,7 @@ struct Parameters {
   uint8_t led_green_intensity;  // Status LED green intensity
   uint8_t led_blue_intensity;   // Status LED blue intensity
   uint16_t encoder_zero;        // Phase-aligned encoder zero position
+  float cmd_duty_cycle;         // Duty cycle command
   uint8_t erpm_per_revolution;     // How many poles does our motor have?
   uint8_t raw_pwm_mode;
   float phase0;
@@ -44,6 +45,7 @@ struct Parameters {
       led_green_intensity(0),
       led_blue_intensity(0),
       encoder_zero(0),
+      cmd_duty_cycle(0),
       erpm_per_revolution(8),
       raw_pwm_mode(0),
       phase0(0),

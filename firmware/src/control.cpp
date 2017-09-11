@@ -4,6 +4,7 @@
 #include "hal.h"
 #include "peripherals.h"
 #include "state.h"
+#include "fast_math.h"
 
 namespace motor_driver {
 
@@ -56,9 +57,12 @@ void runCurrentControl() {
     gate_driver.setPWMDutyCycle(1, active_parameters.phase1);
     gate_driver.setPWMDutyCycle(2, active_parameters.phase2);
   } else {
-    gate_driver.setPWMDutyCycle(0, 0);
-    gate_driver.setPWMDutyCycle(1, 0);
-    gate_driver.setPWMDutyCycle(2, 0.4);
+    // TODO: optimize this
+    float ang = ((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0 + pi / 2.0;
+    float d = active_parameters.cmd_duty_cycle;
+    gate_driver.setPWMDutyCycle(0, 0.5f + d * fast_cos(ang));
+    gate_driver.setPWMDutyCycle(1, 0.5f + d * fast_cos(ang - 2 / 3.0f * pi));
+    gate_driver.setPWMDutyCycle(2, 0.5f + d * fast_cos(ang - 4 / 3.0f * pi));
   }
 
 

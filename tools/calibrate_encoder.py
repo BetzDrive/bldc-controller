@@ -26,12 +26,12 @@ while True:
 
     client.writeRegisters(0x01, 0x0102, 4, struct.pack('<Bfff', 1, a * duty_cycle, b * duty_cycle, c * duty_cycle))
 
-    time.sleep(0.1)
+    time.sleep(2 if count ==0 else 0.1)
 
     angle = struct.unpack('<H', client.readRegisters(0x01, 0x100, 1))[0]
     angles.append(angle)
 
-    if count > 10 and abs(angles[0] - angle) < abs(angles[1] - angles[0]) / 3.0:
+    if count > 4 and abs(angles[0] - angle) < abs(angles[1] - angles[0]) / 3.0:
         break
 
     count += 1
