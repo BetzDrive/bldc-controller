@@ -88,7 +88,9 @@ class BLDCControllerClient:
         self._ser = ser
 
     def readRegisters(self, server_id, start_addr, count):
-        _, data = self.doTransaction(server_id, COMM_FC_READ_REGS, struct.pack('<HB', start_addr, count))
+        success = False
+        while not success:
+            success, data = self.doTransaction(server_id, COMM_FC_READ_REGS, struct.pack('<HB', start_addr, count))
         return data
 
     def writeRegisters(self, server_id, start_addr, count, data):
@@ -237,23 +239,23 @@ class BLDCControllerClient:
         else:
             # Reached maximum number of tries
             self._ser.reset_input_buffer()
-            return None
+            return False, None
 
         if lb == None or len(lb) == 0:
-            return None
+            return False, None
 
         message_len, = struct.unpack('B', lb)
         message = self._ser.read(message_len)
 
         if len(message) < message_len:
             self._ser.reset_input_buffer()
-            return None
+            return False, None
 
         crc_bytes = self._ser.read(2)
 
         if len(crc_bytes) < 2:
             self._ser.reset_input_buffer()
-            return None
+            return False, None
 
         message_server_id, message_func_code, errors = struct.unpack('<BBH', message[:4])
 

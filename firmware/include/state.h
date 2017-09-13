@@ -38,7 +38,6 @@ struct Parameters {
   float phase0;
   float phase1;
   float phase2;
-  
 
 
   Parameters()

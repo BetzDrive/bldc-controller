@@ -25,7 +25,7 @@ static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
   }
 }
 
-const PWMConfig motor_pwm_config = {
+PWMConfig motor_pwm_config = {
   motor_pwm_clock_freq,                         // PWM clock frequency
   motor_pwm_clock_freq / motor_pwm_cycle_freq, 	// PWM period (ticks)
   motorPWMPeriodicCallback,                		  // PWM callback

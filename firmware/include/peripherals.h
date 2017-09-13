@@ -13,7 +13,7 @@ namespace motor_driver {
 
 constexpr UARTDriver *rs485_uart_driver = &UARTD1;
 
-extern const PWMConfig motor_pwm_config;
+extern PWMConfig motor_pwm_config;
 
 extern DRV8301 gate_driver;
 

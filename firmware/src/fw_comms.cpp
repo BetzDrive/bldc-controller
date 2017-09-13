@@ -126,6 +126,8 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
   Results& results = synced ? sync_results : active_results;
   Parameters& parameters = synced ? sync_parameters : active_parameters;
 
+  float temp;
+
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     switch (addr) {
       case 0x0100: //256
@@ -151,6 +153,11 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         break;
       case 0x0107: //263
         handleVarAccess(results.angle, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0108: //264
+        handleVarAccess(temp, buf, index, buf_len, access_type, errors);
+        motor_pwm_config.period = static_cast<pwmcnt_t>(motor_pwm_clock_freq / temp);
+        pwmStart(&PWMD1, &motor_pwm_config);
         break;
       default:
         errors |= COMM_ERRORS_INVALID_ARGS;
