@@ -150,7 +150,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         handleVarAccess(parameters.cmd_duty_cycle, buf, index, buf_len, access_type, errors);
         break;
       case 0x0107: //263
-        handleVarAccess(results.angle, buf, index, buf_len, access_type, errors);
+        handleVarAccess(results.angle, buf, index, buf_size, access_type, errors);
         break;
       default:
         errors |= COMM_ERRORS_INVALID_ARGS;

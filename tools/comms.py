@@ -239,6 +239,9 @@ class BLDCControllerClient:
             self._ser.reset_input_buffer()
             return None
 
+        if lb == None or len(lb) == 0:
+            return None
+
         message_len, = struct.unpack('B', lb)
         message = self._ser.read(message_len)
 
