@@ -59,6 +59,7 @@ void runCurrentControl() {
   } else {
     // TODO: optimize this
     float ang = ((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0 + pi / 2.0;
+    active_results.angle = ang;
     float d = active_parameters.cmd_duty_cycle;
     gate_driver.setPWMDutyCycle(0, 0.5f + d * fast_cos(ang));
     gate_driver.setPWMDutyCycle(1, 0.5f + d * fast_cos(ang - 2 / 3.0f * pi));

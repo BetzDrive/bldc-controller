@@ -13,13 +13,15 @@ struct Results {
   float foc_d_current_avg;      // Average FOC direct current in amperes
 
   uint16_t encoder_angle;       // Encoder angle, wraps around
-  uint16_t encoder_diag;        // Encoder diagnostics
+  uint16_t encoder_diag;
+  float angle;        // Encoder diagnostics
 
   Results()
     : encoder_pos(0),
       encoder_vel(0),
       foc_q_current_avg(0),
-      foc_d_current_avg(0) {}
+      foc_d_current_avg(0),
+      angle(0)  {}
 };
 
 struct Parameters {
@@ -36,6 +38,8 @@ struct Parameters {
   float phase0;
   float phase1;
   float phase2;
+  
+
 
   Parameters()
     : foc_q_current_sp(0),
@@ -50,7 +54,7 @@ struct Parameters {
       raw_pwm_mode(0),
       phase0(0),
       phase1(0),
-      phase2(0) {}
+      phase2(0){}
 };
 
 /**

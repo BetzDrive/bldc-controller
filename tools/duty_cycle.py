@@ -20,3 +20,7 @@ client.writeRegisters(0x01, 0x0101, 1, struct.pack('<L', 9346) )
 client.writeRegisters(0x01, 0x0106, 1, struct.pack('<f', 0.5) )
 client.writeRegisters(0x01, 0x0102, 1, struct.pack('<B', 0) )
 
+while true:
+	angle = struct.unpack('<H\f', client.readRegisters(0x01, 0x0107, 1))[0]
+	print(angle)
+	time.sleep(0.1)
