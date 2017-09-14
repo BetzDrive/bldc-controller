@@ -10,17 +10,17 @@ import math
 TBC_SCALE_FACTOR = 2. * math.sqrt(3.) / 3.
 
 def sinusoidal_duty_cycles(angle, amplitude):
-    dc_a = cos(angle)
-    dc_b = cos(angle - 2. / 3. * pi)
-    dc_c = cos(angle - 4. / 3. * pi)
-
-    return np.array([dc_a, dc_b, dc_c]) * amplitude
+    return np.array([
+        cos(angle),
+        cos(angle - 2. / 3. * pi),
+        cos(angle - 4. / 3. * pi)
+    ]) * 0.5 * amplitude + 0.5
 
 def tbc_duty_cycles(angle, amplitude):
     dc = sinusoidal_duty_cycles(angle, amplitude * TBC_SCALE_FACTOR)
 
     top_shift = 1. - np.max(dc, axis=0)
-    bottom_shift = 1. + np.min(dc, axis=0)
+    bottom_shift = np.min(dc, axis=0)
 
     return np.where(top_shift < bottom_shift, dc + top_shift, dc - bottom_shift)
 
