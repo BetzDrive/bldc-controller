@@ -87,6 +87,17 @@ class BLDCControllerClient:
     def __init__(self, ser):
         self._ser = ser
 
+    def setCurrent(self, id, value):
+    	ret = self.writeRegisters(id, 0x0102, 1, struct.pack('<f', value))
+    	return ret 
+
+    def getEncoder(self, id):
+    	angle = struct.unpack('<H', client.readRegisters(id, 0x100, 1))[0]
+    	return angle
+
+    def setControlEnabled(self, id, logical):
+    	elf.writeRegisters(id, 0x0102, 1, struct.pack('<B', logical))
+
     def readRegisters(self, server_id, start_addr, count):
         success = False
         while not success:
