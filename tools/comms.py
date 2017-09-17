@@ -92,16 +92,20 @@ class BLDCControllerClient:
     	return ret 
 
     def getEncoder(self, id):
-    	angle = struct.unpack('<H', client.readRegisters(id, 0x100, 1))[0]
+        print(id)
+        angle = struct.unpack('<H', self.readRegisters(id, 0x100, 1))[0]
     	return angle
-
+    def setDuty(self, id, value):
+        ret = self.writeRegisters(id, 0x0106, 1, struct.pack('<f', value ))
+        return ret
+    
     def setControlEnabled(self, id, logical):
-    	elf.writeRegisters(id, 0x0102, 1, struct.pack('<B', logical))
+        self.writeRegisters(id, 0x0102, 1, struct.pack('<B', logical))
 
     def readRegisters(self, server_id, start_addr, count):
-        success = False
-        while not success:
-            success, data = self.doTransaction(server_id, COMM_FC_READ_REGS, struct.pack('<HB', start_addr, count))
+        success, data = self.doTransaction(server_id, COMM_FC_READ_REGS, struct.pack('<HB', start_addr, count))
+        if not success:
+            raise IOError("Register read failed")
         return data
 
     def writeRegisters(self, server_id, start_addr, count, data):
