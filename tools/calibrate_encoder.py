@@ -6,7 +6,7 @@ import sys
 import time
 
 port = sys.argv[1]
-s = serial.Serial(port=port, baudrate=3000000)
+s = serial.Serial(port=port, baudrate=3000000, timeout=0.1)
 
 print s.BAUDRATES
 
