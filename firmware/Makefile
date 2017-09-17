@@ -114,7 +114,8 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/control.cpp \
          $(SRC)/LUTFunction.cpp \
          $(SRC)/fast_math.cpp \
-         $(SRC)/fw_comms.cpp
+         $(SRC)/fw_comms.cpp \
+         $(SRC)/SVM.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
