@@ -66,10 +66,11 @@ void runCurrentControl() {
 
     float d = active_parameters.cmd_duty_cycle / 2.0f;
 
-    float duty1 = 0.5f + d * fast_cos(ang);
-    float duty2 = 0.5f + d * fast_cos(ang - 2 / 3.0f * pi);
+    float duty1 = fast_cos(ang);
+    float duty2 = fast_cos(ang - 2 / 3.0f * pi);
     float duty3;
-    SVM svm_func();
+
+    SVM svm_func(SVMStrategy::SINUSOIDAL);
     svm_func.computeDutyCycles(duty1, duty2, duty1, duty2, duty3);
 
     gate_driver.setPWMDutyCycle(0, duty1);
