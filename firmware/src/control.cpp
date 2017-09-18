@@ -7,6 +7,7 @@
 #include "fast_math.h"
 #include "chprintf.h"
 #include "SVM.h"
+#include "PID.h"
 
 namespace motor_driver {
 
@@ -43,6 +44,11 @@ void runInnerControlLoop() {
 }
 
 float ang = 0.0;
+PID pi_controller_d(100, 10);
+pi_controller_d.setPoint(0);
+PID pi_controller_p(100, 10);
+pi_controller_p.setPoint(0);
+
 void runCurrentControl() {
   uint16_t raw_encoder_angle;
 
@@ -77,7 +83,18 @@ void runCurrentControl() {
     gate_driver.setPWMDutyCycle(1, duty2);
     gate_driver.setPWMDutyCycle(2, duty3);
 
+    // // get raw adc readings
+    // curr1 = ivsense_adc_samples_ptr[0];
+    // curr2 = ivsense_adc_samples_ptr[1];
+    // curr3 = ivsense_adc_samples_ptr[2];
+    // // convert raw values to amps
+    //   // to do
+    // // do the clark and other transform
 
+    // pi_controller_d.update()
+    // pi_controller_p.update()
+    // // inverse transform  
+    // // pass new values into svm and set duty cycles
   }
 
 
