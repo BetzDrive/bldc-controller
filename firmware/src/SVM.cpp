@@ -1,17 +1,14 @@
 #include "SVM.h"
-
+#include "fast_math.h"
 #include <math.h>
 #include <algorithm>
 
 namespace motor_driver {
 
 void SVM::computeDutyCycles(float v_alpha, float v_beta, float& dc_a, float& dc_b, float& dc_c) {
-  constexpr float s3d2 = sqrt(3.0f) / 2.0f;
-  constexpr float scale = 1.0 / sqrt(3.0f);
-
-  dc_a = (v_alpha) * scale + 0.5f;
-  dc_b = (-0.5f * v_alpha + s3d2 * v_beta) * scale + 0.5f;
-  dc_c = (-0.5f * v_alpha - s3d2 * v_beta) * scale + 0.5f;
+  dc_a = (v_alpha) * one_by_sqrt3 + 0.5f;
+  dc_b = (-0.5f * v_alpha + sqrt3_by_2 * v_beta) * one_by_sqrt3 + 0.5f;
+  dc_c = (-0.5f * v_alpha - sqrt3_by_2 * v_beta) * one_by_sqrt3 + 0.5f;
 
   switch (strategy_) {
     case SVMStrategy::SINUSOIDAL:

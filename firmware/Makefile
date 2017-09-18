@@ -114,6 +114,7 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/control.cpp \
          $(SRC)/LUTFunction.cpp \
          $(SRC)/fast_math.cpp \
+         $(SRC)/transforms.cpp \
          $(SRC)/fw_comms.cpp \
          $(SRC)/SVM.cpp
 

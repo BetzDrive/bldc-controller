@@ -66,8 +66,8 @@ void runCurrentControl() {
 
     float d = active_parameters.cmd_duty_cycle / 2.0f;
 
-    float duty1 = fast_cos(ang);
-    float duty2 = fast_cos(ang - 2 / 3.0f * pi);
+    float duty1 = d * fast_cos(ang) / 2.0;
+    float duty2 = d * fast_cos(ang - 2 / 3.0f * pi) / 2.0;
     float duty3;
 
     SVM svm_func(SVMStrategy::SINUSOIDAL);
