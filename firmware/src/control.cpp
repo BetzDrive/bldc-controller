@@ -1,5 +1,5 @@
 #include "control.h"
-
+#include "transforms.h"
 #include "ch.h"
 #include "hal.h"
 #include "peripherals.h"
@@ -45,9 +45,9 @@ void runInnerControlLoop() {
 
 float ang = 0.0;
 PID pi_controller_d(100, 10);
-pi_controller_d.setPoint(0);
+//pi_controller_d.setPoint(0);
 PID pi_controller_p(100, 10);
-pi_controller_p.setPoint(0);
+//pi_controller_p.setPoint(0);
 
 void runCurrentControl() {
   uint16_t raw_encoder_angle;
@@ -90,11 +90,19 @@ void runCurrentControl() {
     // // convert raw values to amps
     //   // to do
     // // do the clark and other transform
+    // float alpha;
+    // float beta;
+    // transforms_clarke(curr1, curr2, curr3, &alpha, &beta);
+    // float d;
+    // float q; 
+    // transforms_park(alpha, beta, ang, &d, &q);
+    // pi_controller_d.update(dt, d, &d);
+    // pi_controller_p.update(dt, q, &q);
+    // transforms_inverse_park(&d, &q, ang, &alpha, &beta);
+    // transforms_inverse_clarke(alpha, beta, &curr1, &curr2, &curr3 );
 
-    // pi_controller_d.update()
-    // pi_controller_p.update()
-    // // inverse transform  
     // // pass new values into svm and set duty cycles
+    // todo
   }
 
 
