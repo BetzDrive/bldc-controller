@@ -6,6 +6,7 @@
 #include "state.h"
 #include "fast_math.h"
 #include "chprintf.h"
+#include "SVM.h"
 
 namespace motor_driver {
 
@@ -70,7 +71,9 @@ void runCurrentControl() {
     gate_driver.setPWMDutyCycle(2, 0.5f + d * fast_cos(ang - 4 / 3.0f * pi));
   }
 
-
+  SVM svm;
+  float dc_a, dc_b, dc_c;
+  svm.computeDutyCycles(0.5f, 0.5f, dc_a, dc_b, dc_c);
 
 }
 

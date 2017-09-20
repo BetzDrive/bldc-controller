@@ -7,17 +7,17 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import math
 
-TBC_SCALE_FACTOR = 2. * math.sqrt(3.) / 3.
+SCALE = 1. / math.sqrt(3)
 
 def sinusoidal_duty_cycles(angle, amplitude):
     return np.array([
         cos(angle),
         cos(angle - 2. / 3. * pi),
         cos(angle - 4. / 3. * pi)
-    ]) * 0.5 * amplitude + 0.5
+    ]) * SCALE * amplitude + 0.5
 
 def tbc_duty_cycles(angle, amplitude):
-    dc = sinusoidal_duty_cycles(angle, amplitude * TBC_SCALE_FACTOR)
+    dc = sinusoidal_duty_cycles(angle, amplitude)
 
     top_shift = 1. - np.max(dc, axis=0)
     bottom_shift = np.min(dc, axis=0)
