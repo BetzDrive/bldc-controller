@@ -70,14 +70,13 @@ void runCurrentControl() {
     float ang = (((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0) * 14.0 + pi / 2.0;
     active_results.angle = ang;
 
-    float d = active_parameters.cmd_duty_cycle / 2.0f;
+    SVM svm_func(SVMStrategy::TOP_BOTTOM_CLAMP);
 
-    float duty1 = d * fast_cos(ang) / 2.0;
-    float duty2 = d * fast_cos(ang - 2 / 3.0f * pi) / 2.0;
+    float duty1;
+    float duty2;
     float duty3;
-
-    SVM svm_func(SVMStrategy::SINUSOIDAL);
-    svm_func.computeDutyCycles(duty1, duty2, duty1, duty2, duty3);
+    float d = active_parameters.cmd_duty_cycle * svm_func.getMaxAmplitude();
+    svm_func.computeDutyCycles(d * fast_cos(ang), d * fast_sin(ang), duty1, duty2, duty3);
 
     gate_driver.setPWMDutyCycle(0, duty1);
     gate_driver.setPWMDutyCycle(1, duty2);
