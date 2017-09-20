@@ -95,6 +95,7 @@ class BLDCControllerClient:
         print(id)
         angle = struct.unpack('<H', self.readRegisters(id, 0x100, 1))[0]
     	return angle
+
     def setDuty(self, id, value):
         ret = self.writeRegisters(id, 0x0106, 1, struct.pack('<f', value ))
         return ret
@@ -111,6 +112,10 @@ class BLDCControllerClient:
     def writeRegisters(self, server_id, start_addr, count, data):
         success, _ = self.doTransaction(server_id, COMM_FC_WRITE_REGS, struct.pack('<HB', start_addr, count) + data)
         return success
+
+    def enterBootloader(self, server_id):
+        self.writeRequest(server_id, COMM_FC_ENTER_BOOTLOADER)
+        return True
 
     def leaveBootloader(self, server_id, jump_addr=COMM_DEFAULT_FIRMWARE_OFFSET):
         self.writeRequest(server_id, COMM_FC_LEAVE_BOOTLOADER, struct.pack('<I', jump_addr))
@@ -236,7 +241,7 @@ class BLDCControllerClient:
         self._ser.reset_input_buffer()
         return self.readResponse(server_id, func_code)
 
-    def writeRequest(self, server_id, func_code, data):
+    def writeRequest(self, server_id, func_code, data=''):
         message = struct.pack('BB', server_id, func_code) + data
         prefixed_message = struct.pack('B', len(message)) + message
         datagram = prefixed_message + struct.pack('<H', self._computeCRC(prefixed_message))

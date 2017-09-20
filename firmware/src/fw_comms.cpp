@@ -8,6 +8,8 @@
 
 namespace motor_driver {
 
+static bool should_reset = false;
+
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
   if (state_ != State::IDLE) {
     return;
@@ -80,6 +82,15 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       synced_ = (function_code_ == COMM_FC_WRITE_REGS_SYNCED);
 
       server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors, synced_);
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_ENTER_BOOTLOADER:
+      /* Enter bootloader using system reset */
+
+      should_reset = true;
 
       state_ = State::RESPONDING;
 
@@ -214,6 +225,10 @@ void runComms() {
       comms_endpoint.setTransmitLength(transmit_len);
       comms_endpoint.startTransmit();
     }
+  }
+
+  if (should_reset) {
+    NVIC_SystemReset();
   }
 }
 

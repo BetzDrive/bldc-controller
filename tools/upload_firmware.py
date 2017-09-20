@@ -21,6 +21,9 @@ if __name__ == '__main__':
 
     client = BLDCControllerClient(ser)
 
+    client.enterBootloader(args.board_id)
+    time.sleep(0.1) # Wait for the controller to reset
+
     flash_sector_map = client.getFlashSectorMap(args.board_id)
 
     with open(args.bin_file, 'rb') as bin_file:
