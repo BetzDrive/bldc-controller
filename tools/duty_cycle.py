@@ -5,6 +5,10 @@ import serial
 import sys
 import time
 
+if len(sys.argv) < 3:
+        print("give me a serial port and duty cycle")
+        exit()
+
 port = sys.argv[1]
 s = serial.Serial(port=port, baudrate=3000000, timeout=0.2)
 

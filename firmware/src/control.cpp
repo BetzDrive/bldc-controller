@@ -1,5 +1,5 @@
 #include "control.h"
-
+#include "transforms.h"
 #include "ch.h"
 #include "hal.h"
 #include "peripherals.h"
@@ -7,6 +7,7 @@
 #include "fast_math.h"
 #include "chprintf.h"
 #include "SVM.h"
+#include "PID.h"
 
 namespace motor_driver {
 
@@ -43,6 +44,11 @@ void runInnerControlLoop() {
 }
 
 float ang = 0.0;
+PID pi_controller_d(100, 10);
+//pi_controller_d.setPoint(0);
+PID pi_controller_p(100, 10);
+//pi_controller_p.setPoint(0);
+
 void runCurrentControl() {
   uint16_t raw_encoder_angle;
 
@@ -64,11 +70,38 @@ void runCurrentControl() {
     float ang = (((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0) * 14.0 + pi / 2.0;
     active_results.angle = ang;
 
-    float d = active_parameters.cmd_duty_cycle / 2.0f;
+    SVM svm_func(SVMStrategy::TOP_BOTTOM_CLAMP);
 
-    gate_driver.setPWMDutyCycle(0, 0.5f + d * fast_cos(ang));
-    gate_driver.setPWMDutyCycle(1, 0.5f + d * fast_cos(ang - 2 / 3.0f * pi));
-    gate_driver.setPWMDutyCycle(2, 0.5f + d * fast_cos(ang - 4 / 3.0f * pi));
+    float duty1;
+    float duty2;
+    float duty3;
+    float d = active_parameters.cmd_duty_cycle * svm_func.getMaxAmplitude();
+    svm_func.computeDutyCycles(d * fast_cos(ang), d * fast_sin(ang), duty1, duty2, duty3);
+
+    gate_driver.setPWMDutyCycle(0, duty1);
+    gate_driver.setPWMDutyCycle(1, duty2);
+    gate_driver.setPWMDutyCycle(2, duty3);
+
+    // // get raw adc readings
+    // curr1 = ivsense_adc_samples_ptr[0];
+    // curr2 = ivsense_adc_samples_ptr[1];
+    // curr3 = ivsense_adc_samples_ptr[2];
+    // // convert raw values to amps
+    //   // to do
+    // // do the clark and other transform
+    // float alpha;
+    // float beta;
+    // transforms_clarke(curr1, curr2, curr3, &alpha, &beta);
+    // float d;
+    // float q; 
+    // transforms_park(alpha, beta, ang, &d, &q);
+    // pi_controller_d.update(dt, d, &d);
+    // pi_controller_p.update(dt, q, &q);
+    // transforms_inverse_park(&d, &q, ang, &alpha, &beta);
+    // transforms_inverse_clarke(alpha, beta, &curr1, &curr2, &curr3 );
+
+    // // pass new values into svm and set duty cycles
+    // todo
   }
 
   SVM svm;
