@@ -82,12 +82,42 @@ void runCurrentControl() {
     gate_driver.setPWMDutyCycle(1, duty2);
     gate_driver.setPWMDutyCycle(2, duty3);
 
-    // // get raw adc readings
-    // curr1 = ivsense_adc_samples_ptr[0];
-    // curr2 = ivsense_adc_samples_ptr[1];
-    // curr3 = ivsense_adc_samples_ptr[2];
-    // // convert raw values to amps
-    //   // to do
+    /*
+     * Calculate average voltage and current
+     */
+
+    // TODO: should this be RMS voltage and current?
+
+    unsigned int adc_ia_sum = 0;
+    unsigned int adc_ib_sum = 0;
+    unsigned int adc_ic_sum = 0;
+    unsigned int adc_va_sum = 0;
+    unsigned int adc_vb_sum = 0;
+    unsigned int adc_vc_sum = 0;
+    unsigned int adc_vin_sum = 0;
+
+    for (size_t i = 0; i < ivsense_samples_per_cycle; i++) {
+      adc_ia_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ia];
+      adc_ib_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ib];
+      adc_ic_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ic];
+      adc_va_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_va];
+      adc_vb_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vb];
+      adc_vc_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vc];
+      adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
+    }
+
+    active_results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
+    active_results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
+    active_results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
+    active_results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
+    active_results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
+    active_results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
+    active_results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
+
+    /*
+     * Run field-oriented control
+     */
+
     // // do the clark and other transform
     // float alpha;
     // float beta;

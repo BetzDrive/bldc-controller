@@ -14,7 +14,15 @@ struct Results {
 
   uint16_t encoder_angle;       // Encoder angle, wraps around
   uint16_t encoder_diag;
-  float angle;        // Encoder diagnostics
+  float angle;                  // Encoder diagnostics
+
+  float average_va;             // Average voltage on phase A, volts
+  float average_vb;             // Average voltage on phase B, volts
+  float average_vc;             // Average voltage on phase C, volts
+  float average_vin;            // Average supply voltage, volts
+  float average_ia;             // Average current into phase A, amperes
+  float average_ib;             // Average current into phase B, amperes
+  float average_ic;             // Average current into phase C, amperes
 
   Results()
     : encoder_pos(0),

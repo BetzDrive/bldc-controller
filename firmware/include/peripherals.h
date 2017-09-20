@@ -39,6 +39,20 @@ void setStatusLEDColor(uint32_t color);
 
 void setRS485TransmitMode(bool transmit);
 
+/**
+ * Converts an ADC value to voltage (in volts)
+ */
+inline float adcValueToVoltage(float adc_value) {
+  return adc_value * ivsense_voltage_per_count;
+}
+
+/**
+ * Converts an ADC value to current (in amperes)
+ */
+inline float adcValueToCurrent(float adc_value) {
+  return (adc_value - (adc_max_value >> 1)) * ivsense_current_per_count;
+}
+
 } // namespace motor_driver
 
 #endif /* _PERIPHERALS_H_ */

@@ -159,6 +159,27 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         motor_pwm_config.period = static_cast<pwmcnt_t>(motor_pwm_clock_freq / temp);
         pwmStart(&PWMD1, &motor_pwm_config);
         break;
+      case 0x0200:
+        handleVarAccess(results.average_ia, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0201:
+        handleVarAccess(results.average_ib, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0202:
+        handleVarAccess(results.average_ic, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0203:
+        handleVarAccess(results.average_va, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0204:
+        handleVarAccess(results.average_vb, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0205:
+        handleVarAccess(results.average_vc, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0206:
+        handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
+        break;
       default:
         errors |= COMM_ERRORS_INVALID_ARGS;
         return;
