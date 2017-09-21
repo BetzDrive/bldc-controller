@@ -193,7 +193,7 @@ extern Server comms_server;
 
 extern ProtocolFSM comms_protocol_fsm;
 
-constexpr uint8_t *comms_id_ptr = (uint8_t *)0x08003ffc;
+uint8_t *comms_id_ptr = reinterpret_cast<uint8_t *>(0x08003ffc);
 
 } // namespace motor_driver
 

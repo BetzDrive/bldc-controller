@@ -45,9 +45,8 @@ void runInnerControlLoop() {
 
 float ang = 0.0;
 PID pi_controller_d(100, 10);
-//pi_controller_d.setPoint(0);
 PID pi_controller_p(100, 10);
-//pi_controller_p.setPoint(0);
+float dt = 1.0 / (motor_pwm_clock_freq / motor_pwm_cycle_freq);
 
 void runCurrentControl() {
   uint16_t raw_encoder_angle;
@@ -67,21 +66,21 @@ void runCurrentControl() {
     gate_driver.setPWMDutyCycle(2, active_parameters.phase2);
   } else {
     // TODO: optimize this
-    float ang = (((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0) * 14.0 + pi / 2.0;
-    active_results.angle = ang;
+    // float ang = (((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0) * 14.0 + pi / 2.0;
+    // active_results.angle = ang;
 
-    SVM svm_func(SVMStrategy::TOP_BOTTOM_CLAMP);
+    // SVM svm_func(SVMStrategy::TOP_BOTTOM_CLAMP);
 
-    float duty1;
-    float duty2;
-    float duty3;
-    float d = active_parameters.cmd_duty_cycle * svm_func.getMaxAmplitude();
-    svm_func.computeDutyCycles(d * fast_cos(ang), d * fast_sin(ang), duty1, duty2, duty3);
+    // float duty1;
+    // float duty2;
+    // float duty3;
+    // float d = active_parameters.cmd_duty_cycle * svm_func.getMaxAmplitude();
+    // svm_func.computeDutyCycles(d * fast_cos(ang), d * fast_sin(ang), duty1, duty2, duty3);
 
-    gate_driver.setPWMDutyCycle(0, duty1);
-    gate_driver.setPWMDutyCycle(1, duty2);
-    gate_driver.setPWMDutyCycle(2, duty3);
-
+    // gate_driver.setPWMDutyCycle(0, duty1);
+    // gate_driver.setPWMDutyCycle(1, duty2);
+    // gate_driver.setPWMDutyCycle(2, duty3);
+    /***********************************************************************************************/
     /*
      * Calculate average voltage and current
      */
@@ -118,20 +117,49 @@ void runCurrentControl() {
      * Run field-oriented control
      */
 
-    // // do the clark and other transform
-    // float alpha;
-    // float beta;
-    // transforms_clarke(curr1, curr2, curr3, &alpha, &beta);
-    // float d;
-    // float q; 
-    // transforms_park(alpha, beta, ang, &d, &q);
-    // pi_controller_d.update(dt, d, &d);
-    // pi_controller_p.update(dt, q, &q);
-    // transforms_inverse_park(&d, &q, ang, &alpha, &beta);
-    // transforms_inverse_clarke(alpha, beta, &curr1, &curr2, &curr3 );
+    // do the clark and other transform
+    float alpha;
+    float beta;
+    transforms_clarke(active_results.average_ia, active_results.average_ib, active_results.average_ic, &alpha, &beta);
+    float d;
+    float q; 
+    
+    float ang = (((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0) * 14.0 + pi / 2.0;
+    active_results.angle = ang;
+    
+    transforms_park(alpha, beta, ang, &d, &q);
+    pi_controller_d.update(dt, d, &d);
+    pi_controller_p.update(dt, q, &q);
 
-    // // pass new values into svm and set duty cycles
-    // todo
+
+	float d_norm = d / ((2.0 / 3.0) * active_results.average_vin);
+    float q_norm = q / ((2.0 / 3.0) * active_results.average_vin);
+
+    float alpha_norm;
+    float beta_norm;
+    transforms_inverse_park(d_norm, q_norm, ang, &alpha_norm, &beta_norm);
+
+    
+    SVM svm_func(SVMStrategy::TOP_BOTTOM_CLAMP);
+    float duty1;
+    float duty2;
+    float duty3;
+    d = active_parameters.cmd_duty_cycle * svm_func.getMaxAmplitude();
+    svm_func.computeDutyCycles(alpha_norm, beta_norm, duty1, duty2, duty3);
+    gate_driver.setPWMDutyCycle(0, duty1);
+    gate_driver.setPWMDutyCycle(1, duty2);
+    gate_driver.setPWMDutyCycle(2, duty3);
+
+    //float a_norm
+    //float b_norm
+    //float c_norm
+    //transforms_inverse_clarke(alpha_norm, beta_norm, &a_norm, &b_norm, &c_norm);
+   
+    //apply_zsm(&motor_state.v_a_norm, &motor_state.v_b_norm, &motor_state.v_c_norm);
+    //SET_DUTY(motor_state.v_a_norm, motor_state.v_b_norm, motor_state.v_c_norm);
+
+    // pass new values into svm and set duty cycles
+
   }
 
   SVM svm;
