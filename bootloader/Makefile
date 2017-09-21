@@ -234,3 +234,7 @@ include $(RULESPATH)/rules.mk
 
 upload: build/$(PROJECT).bin
 	openocd
+
+ifdef ID
+CPPFLAGS += -DCOMMS_ID=${ID}
+endif

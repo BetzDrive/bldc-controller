@@ -9,6 +9,12 @@
 
 namespace motor_driver {
 
+#ifdef COMMS_ID
+const uint8_t comms_id __attribute__((section(".comms_id"))) = COMMS_ID;
+#else
+#error Board ID not provided, try "make ID={id}"
+#endif
+
 static uint32_t jump_addr = 0;
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {

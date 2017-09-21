@@ -141,7 +141,12 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         PROVIDE(_bss_end = .);
-    } > ram    
+    } > ram
+
+    .comms_id : AT(0x3FFC)
+    {
+        *(.comms_id)
+    } > flash
 }
 
 PROVIDE(end = .);
