@@ -5,7 +5,7 @@ import serial
 import sys
 import time
 
-if len(sys.argv) < 3:
+if len(sys.argv) != 4:
         print("give me a serial port, address, and duty cycle")
         exit()
 
