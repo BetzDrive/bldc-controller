@@ -296,7 +296,7 @@ void startComms() {
 
 UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
 
-Server comms_server(*comms_id_ptr, commsRegAccessHandler);
+Server comms_server(4, commsRegAccessHandler);
 
 ProtocolFSM comms_protocol_fsm(comms_server);
 
