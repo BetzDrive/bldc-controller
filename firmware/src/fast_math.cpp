@@ -1,6 +1,7 @@
 #include "fast_math.h"
 
 #include <cmath>
+#include "constants.h"
 
 namespace motor_driver {
 
