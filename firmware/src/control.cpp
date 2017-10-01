@@ -43,12 +43,13 @@ void runInnerControlLoop() {
   }
 }
 
-float ang = 0.0;
-PID pi_controller_d(100, 10);
-PID pi_controller_p(100, 10);
-float dt = 1.0 / (motor_pwm_clock_freq / motor_pwm_cycle_freq);
+static SVM modulator(SVMStrategy::TOP_BOTTOM_CLAMP);
 
 void runCurrentControl() {
+  /*
+   * Get current encoder angle
+   */
+
   uint16_t raw_encoder_angle;
 
   chSysLock(); // Required for function calls with "I" suffix
@@ -60,112 +61,88 @@ void runCurrentControl() {
 
   active_results.encoder_angle = raw_encoder_angle;
 
+  /*
+   * Calculate average voltages and currents
+   */
+
+  // TODO: should this be RMS voltage and current?
+
+  unsigned int adc_ia_sum = 0;
+  unsigned int adc_ib_sum = 0;
+  unsigned int adc_ic_sum = 0;
+  // unsigned int adc_va_sum = 0;
+  // unsigned int adc_vb_sum = 0;
+  // unsigned int adc_vc_sum = 0;
+  unsigned int adc_vin_sum = 0;
+
+  for (size_t i = 0; i < ivsense_samples_per_cycle; i++) {
+    adc_ia_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ia];
+    adc_ib_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ib];
+    adc_ic_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ic];
+    // adc_va_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_va];
+    // adc_vb_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vb];
+    // adc_vc_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vc];
+    adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
+  }
+
+  active_results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
+  active_results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
+  active_results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
+  // active_results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
+  // active_results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
+  // active_results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
+  active_results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
+
+  /*
+   * Compute phase duty cycles
+   */
+
   if (active_parameters.raw_pwm_mode) {
+    /*
+     * Directly set PWM duty cycles
+     */
+
     gate_driver.setPWMDutyCycle(0, active_parameters.phase0);
     gate_driver.setPWMDutyCycle(1, active_parameters.phase1);
     gate_driver.setPWMDutyCycle(2, active_parameters.phase2);
   } else {
-    // TODO: optimize this
-    // float ang = (((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0) * 14.0 + pi / 2.0;
-    // active_results.angle = ang;
-
-    // SVM svm_func(SVMStrategy::TOP_BOTTOM_CLAMP);
-
-    // float duty1;
-    // float duty2;
-    // float duty3;
-    // float d = active_parameters.cmd_duty_cycle * svm_func.getMaxAmplitude();
-    // svm_func.computeDutyCycles(d * fast_cos(ang), d * fast_sin(ang), duty1, duty2, duty3);
-
-    // gate_driver.setPWMDutyCycle(0, duty1);
-    // gate_driver.setPWMDutyCycle(1, duty2);
-    // gate_driver.setPWMDutyCycle(2, duty3);
-    /***********************************************************************************************/
-    /*
-     * Calculate average voltage and current
-     */
-
-    // TODO: should this be RMS voltage and current?
-
-    unsigned int adc_ia_sum = 0;
-    unsigned int adc_ib_sum = 0;
-    unsigned int adc_ic_sum = 0;
-    unsigned int adc_va_sum = 0;
-    unsigned int adc_vb_sum = 0;
-    unsigned int adc_vc_sum = 0;
-    unsigned int adc_vin_sum = 0;
-
-    for (size_t i = 0; i < ivsense_samples_per_cycle; i++) {
-      adc_ia_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ia];
-      adc_ib_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ib];
-      adc_ic_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ic];
-      adc_va_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_va];
-      adc_vb_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vb];
-      adc_vc_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vc];
-      adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
-    }
-
-    active_results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
-    active_results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
-    active_results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
-    active_results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
-    active_results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
-    active_results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
-    active_results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
-
     /*
      * Run field-oriented control
      */
 
-    // do the clark and other transform
-    float alpha;
-    float beta;
-    transforms_clarke(active_results.average_ia, active_results.average_ib, active_results.average_ic, &alpha, &beta);
-    float d;
-    float q; 
+    float ialpha, ibeta;
+    transforms_clarke(active_results.average_ia, active_results.average_ib, active_results.average_ic, &ialpha, &ibeta);
     
-    float ang = (((float) raw_encoder_angle - (float) active_parameters.encoder_zero) * 2.0 * pi / 16384.0) * 14.0 + pi / 2.0;
-    active_results.angle = ang;
-    
-    transforms_park(alpha, beta, ang, &d, &q);
-    pi_controller_d.update(dt, d, &d);
-    pi_controller_p.update(dt, q, &q);
+    uint16_t zeroed_encoder_angle = (raw_encoder_angle - active_parameters.encoder_zero + encoder_period) % encoder_period;
+    // float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * active_parameters.erpm_per_revolution;
+    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * 14.0f;
 
+    float id, iq;
+    transforms_park(ialpha, ibeta, elec_angle_radians, &id, &iq);
 
-	float d_norm = d / ((2.0 / 3.0) * active_results.average_vin);
-    float q_norm = q / ((2.0 / 3.0) * active_results.average_vin);
+    // FIXME: replace with PI controllers
+    // float vd = -10.0f * id;
+    // float vq = -10.0f * (iq - 0.5f);
+    float vd = 0.0f;
+    float vq = active_parameters.cmd_duty_cycle;
 
-    float alpha_norm;
-    float beta_norm;
-    transforms_inverse_park(d_norm, q_norm, ang, &alpha_norm, &beta_norm);
+    float vd_norm = vd / active_results.average_vin;
+    float vq_norm = vq / active_results.average_vin;
 
-    
-    SVM svm_func(SVMStrategy::TOP_BOTTOM_CLAMP);
-    float duty1;
-    float duty2;
-    float duty3;
-    d = active_parameters.cmd_duty_cycle * svm_func.getMaxAmplitude();
-    svm_func.computeDutyCycles(alpha_norm, beta_norm, duty1, duty2, duty3);
-    gate_driver.setPWMDutyCycle(0, duty1);
-    gate_driver.setPWMDutyCycle(1, duty2);
-    gate_driver.setPWMDutyCycle(2, duty3);
+    float valpha_norm, vbeta_norm;
+    transforms_inverse_park(vd_norm, vq_norm, elec_angle_radians, &valpha_norm, &vbeta_norm);
 
-    //float a_norm
-    //float b_norm
-    //float c_norm
-    //transforms_inverse_clarke(alpha_norm, beta_norm, &a_norm, &b_norm, &c_norm);
-   
-    //apply_zsm(&motor_state.v_a_norm, &motor_state.v_b_norm, &motor_state.v_c_norm);
-    //SET_DUTY(motor_state.v_a_norm, motor_state.v_b_norm, motor_state.v_c_norm);
+    if (active_parameters.flip_phases) {
+      vbeta_norm = -vbeta_norm;
+    }
 
-    // pass new values into svm and set duty cycles
+    float duty0, duty1, duty2;
+    modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
 
+    gate_driver.setPWMDutyCycle(0, duty0);
+    gate_driver.setPWMDutyCycle(1, duty1);
+    gate_driver.setPWMDutyCycle(2, duty2);
   }
-
-  SVM svm;
-  float dc_a, dc_b, dc_c;
-  svm.computeDutyCycles(0.5f, 0.5f, dc_a, dc_b, dc_c);
-
 }
 
 } // namespace motor_driver

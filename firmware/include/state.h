@@ -24,6 +24,9 @@ struct Results {
   float average_ib;             // Average current into phase B, amperes
   float average_ic;             // Average current into phase C, amperes
 
+  uint16_t debug_u16;
+  float debug_f;
+
   Results()
     : encoder_pos(0),
       encoder_vel(0),
@@ -41,7 +44,8 @@ struct Parameters {
   uint8_t led_blue_intensity;   // Status LED blue intensity
   uint16_t encoder_zero;        // Phase-aligned encoder zero position
   float cmd_duty_cycle;         // Duty cycle command
-  uint8_t erpm_per_revolution;     // How many poles does our motor have?
+  uint8_t erpm_per_revolution;  // How many poles does our motor have?
+  uint8_t flip_phases;          // Are phases A, B, C are arranged in clockwise order?
   uint8_t raw_pwm_mode;
   float phase0;
   float phase1;
@@ -58,6 +62,7 @@ struct Parameters {
       encoder_zero(0),
       cmd_duty_cycle(0),
       erpm_per_revolution(8),
+      flip_phases(false),
       raw_pwm_mode(0),
       phase0(0),
       phase1(0),

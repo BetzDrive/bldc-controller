@@ -21,14 +21,18 @@ client.leaveBootloader(address)
 s.flush()
 time.sleep(0.1)
 
-client.writeRegisters(address, 0x0101, 1, struct.pack('<H', 9346) )
+client.writeRegisters(address, 0x0101, 1, struct.pack('<H', 0) )
 client.writeRegisters(address, 0x0106, 1, struct.pack('<f', duty_cycle) )
 client.writeRegisters(address, 0x0102, 1, struct.pack('<B', 0) )
+client.writeRegisters(address, 0x0109, 1, struct.pack('<B', 1) )
 
 while True:
     try:
         adc_averages = struct.unpack('<7f', client.readRegisters(address, 0x0200, 7))
         print "ia:{: > 7.3f} ib:{: > 7.3f} ic:{: > 7.3f} va:{: > 7.3f} vb:{: > 7.3f} vc:{: > 7.3f} vin:{: > 7.3f}".format(*adc_averages)
-    except IOError:
+
+        # print struct.unpack('<H', client.readRegisters(address, 0x0100, 1))[0]
+        # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
+    except Exception:
         pass
     time.sleep(0.1)

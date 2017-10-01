@@ -1,7 +1,8 @@
 #include "SVM.h"
-#include "fast_math.h"
+
 #include <math.h>
 #include <algorithm>
+#include "constants.h"
 
 namespace motor_driver {
 
