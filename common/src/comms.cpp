@@ -300,6 +300,4 @@ Server comms_server(4, commsRegAccessHandler);
 
 ProtocolFSM comms_protocol_fsm(comms_server);
 
-const uint8_t *comms_id_ptr = reinterpret_cast<uint8_t *>(0x08003ffc);
-
 } // namespace motor_driver
