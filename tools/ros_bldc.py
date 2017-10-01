@@ -55,7 +55,7 @@ def main():
         global command_queue
 	# Find and connect to the stepper motor controller
 	port = sys.argv[1]
-	s = serial.Serial(port=port, baudrate=3000000, timeout=0.05)
+	s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.05)
 	print s.BAUDRATES
 	device = BLDCControllerClient(s)
 	for key in mapping:

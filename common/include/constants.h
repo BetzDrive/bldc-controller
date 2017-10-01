@@ -8,7 +8,7 @@ namespace motor_driver {
 
 extern const uint16_t led_gamma_table[];
 
-constexpr uint32_t rs485_baud = 3000000;
+constexpr uint32_t rs485_baud = 1000000;
 
 constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
 

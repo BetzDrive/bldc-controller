@@ -5,7 +5,7 @@ import serial
 import sys
 
 port = sys.argv[1]
-s = serial.Serial(port=port, baudrate=3000000)
+s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE)
 
 print s.BAUDRATES
 

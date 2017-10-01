@@ -10,7 +10,7 @@ if len(sys.argv) != 4:
         exit()
 
 port = sys.argv[1]
-s = serial.Serial(port=port, baudrate=3000000, timeout=0.01)
+s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.01)
 
 address = int(sys.argv[2])
 duty_cycle = float(sys.argv[3])
