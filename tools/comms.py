@@ -238,7 +238,7 @@ class BLDCControllerClient:
 
     def doTransaction(self, server_id, func_code, data):
         self.writeRequest(server_id, func_code, data)
-        self._ser.reset_input_buffer()
+        self._ser.flushInput()
         return self.readResponse(server_id, func_code)
 
     def writeRequest(self, server_id, func_code, data=''):
@@ -258,7 +258,7 @@ class BLDCControllerClient:
             time.sleep(try_interval)
         else:
             # Reached maximum number of tries
-            self._ser.reset_input_buffer()
+            self._ser.flushInput()
             return False, None
 
         if lb == None or len(lb) == 0:
@@ -268,13 +268,13 @@ class BLDCControllerClient:
         message = self._ser.read(message_len)
 
         if len(message) < message_len:
-            self._ser.reset_input_buffer()
+            self._ser.flushInput()
             return False, None
 
         crc_bytes = self._ser.read(2)
 
         if len(crc_bytes) < 2:
-            self._ser.reset_input_buffer()
+            self._ser.flushInput()
             return False, None
 
         message_server_id, message_func_code, errors = struct.unpack('<BBH', message[:4])
