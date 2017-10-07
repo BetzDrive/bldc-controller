@@ -86,6 +86,9 @@ int main(void) {
   // Initialize peripherals
   initPeripherals();
 
+  // Initialize control
+  initControl();
+
   // Start peripherals
   startPeripherals();
 

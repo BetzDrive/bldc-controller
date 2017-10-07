@@ -13,6 +13,20 @@ namespace motor_driver {
 
 static Thread *control_thread_ptr;
 
+static SVM modulator(SVMStrategy::TOP_BOTTOM_CLAMP);
+
+static PID pid_id(10.0f, 0.0f, 0.0f, current_control_interval);
+
+static PID pid_iq(10.0f, 0.0f, 0.0f, current_control_interval);
+
+void initControl() {
+  pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
+  pid_id.setOutputLimits(-ivsense_voltage_max, ivsense_voltage_max);
+
+  pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
+  pid_iq.setOutputLimits(-ivsense_voltage_max, ivsense_voltage_max);
+}
+
 void resumeInnerControlLoop() {
   if (control_thread_ptr != NULL) {
     chSysLockFromIsr();
@@ -33,6 +47,9 @@ void runInnerControlLoop() {
 
   chSysUnlock();
 
+  pid_id.setMode(AUTO_MODE);
+  pid_iq.setMode(AUTO_MODE);
+
   while (true) {
     /*
      * Wait for resumeInnerControlLoop to be called
@@ -43,9 +60,9 @@ void runInnerControlLoop() {
   }
 }
 
-static SVM modulator(SVMStrategy::TOP_BOTTOM_CLAMP);
-
 void runCurrentControl() {
+  palClearPad(GPIOA, GPIOA_LED_Y);
+
   /*
    * Get current encoder angle
    */
@@ -120,11 +137,15 @@ void runCurrentControl() {
     float id, iq;
     transforms_park(ialpha, ibeta, elec_angle_radians, &id, &iq);
 
-    // FIXME: replace with PI controllers
-    // float vd = -10.0f * id;
-    // float vq = -10.0f * (iq - 0.5f);
-    float vd = 0.0f;
-    float vq = active_parameters.cmd_duty_cycle;
+    pid_id.setSetPoint(0.0f);
+    pid_id.setProcessValue(id);
+
+    pid_iq.setSetPoint(active_parameters.cmd_duty_cycle);
+    pid_iq.setProcessValue(iq);
+    pid_iq.setBias(active_parameters.cmd_duty_cycle * active_parameters.winding_resistance);
+
+    float vd = pid_id.compute();
+    float vq = pid_iq.compute();
 
     float vd_norm = vd / active_results.average_vin;
     float vq_norm = vq / active_results.average_vin;
@@ -143,6 +164,8 @@ void runCurrentControl() {
     gate_driver.setPWMDutyCycle(1, duty1);
     gate_driver.setPWMDutyCycle(2, duty2);
   }
+
+  palSetPad(GPIOA, GPIOA_LED_Y);
 }
 
 } // namespace motor_driver

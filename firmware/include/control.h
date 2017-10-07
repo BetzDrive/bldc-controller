@@ -3,6 +3,8 @@
 
 namespace motor_driver {
 
+void initControl();
+
 void resumeInnerControlLoop();
 
 void runInnerControlLoop();

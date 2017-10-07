@@ -45,12 +45,12 @@ struct Parameters {
   uint16_t encoder_zero;        // Phase-aligned encoder zero position
   float cmd_duty_cycle;         // Duty cycle command
   uint8_t erpm_per_revolution;  // How many poles does our motor have?
-  uint8_t flip_phases;          // Are phases A, B, C are arranged in clockwise order?
+  uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
+  float winding_resistance;     // Motor winding resistance in ohms
   uint8_t raw_pwm_mode;
   float phase0;
   float phase1;
   float phase2;
-
 
   Parameters()
     : foc_q_current_sp(0),
@@ -63,6 +63,7 @@ struct Parameters {
       cmd_duty_cycle(0),
       erpm_per_revolution(8),
       flip_phases(false),
+      winding_resistance(17.8f), // GBM110-150T
       raw_pwm_mode(0),
       phase0(0),
       phase1(0),

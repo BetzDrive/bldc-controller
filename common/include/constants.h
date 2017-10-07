@@ -23,7 +23,9 @@ constexpr float encoder_angle_to_radians = -2.0f * pi / encoder_period;
 
 constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
 
-constexpr unsigned int motor_pwm_cycle_freq = 80000; // Hz
+constexpr unsigned int motor_pwm_cycle_freq = 40000; // Hz
+
+constexpr float current_control_interval = 2.0f / motor_pwm_cycle_freq; // Current control runs every two PWM cycles
 
 constexpr unsigned int ivsense_samples_per_cycle = 30;
 
@@ -45,11 +47,17 @@ constexpr float ivsense_current_amp_gain = 50.0f;                           // C
 constexpr float adc_vref_voltage = 3.3f;                                    // ADC reference voltage, volts
 constexpr unsigned int adc_max_value = 1u << 12;                            // ADC maximum value
 
+/* Maximum expected voltage measurement */
+constexpr float ivsense_voltage_max = adc_vref_voltage * ivsense_voltage_ratio;
+
+/* Maximum expected current measurement */
+constexpr float ivsense_current_max = adc_vref_voltage / ivsense_current_amp_gain / ivsense_current_shunt_value;
+
 /* Actual voltage per ADC count */
-constexpr float ivsense_voltage_per_count = adc_vref_voltage / adc_max_value * ivsense_voltage_ratio;
+constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;
 
 /* Actual current per ADC count */
-constexpr float ivsense_current_per_count = adc_vref_voltage / adc_max_value / ivsense_current_amp_gain / ivsense_current_shunt_value;
+constexpr float ivsense_current_per_count = ivsense_current_max / adc_max_value;
 
 } // namespace motor_driver
 
