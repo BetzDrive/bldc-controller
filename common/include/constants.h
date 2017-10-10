@@ -8,7 +8,6 @@ namespace motor_driver {
 
 constexpr float pi = 3.1415927410125732421875f;
 constexpr float sqrt3_by_2 = 0.866025388240814208984375f;
-constexpr float sqrt3_by_3 = 0.5773502691896257f;
 constexpr float one_by_sqrt3 = 0.57735025882720947265625f;
 constexpr float two_by_sqrt3 = 1.1547005176544189453125f;
 

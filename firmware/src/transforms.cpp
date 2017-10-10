@@ -24,7 +24,7 @@ void transforms_inverse_park(volatile float d, volatile float q, volatile float 
 void transforms_clarke(volatile float a, volatile float b, volatile float c, volatile float *alpha, volatile float *beta)
 {
     *alpha = (2.0f / 3.0f) * a - (1.0f / 3.0f) * b - (1.0f / 3.0f) * c;
-    *beta = sqrt3_by_3 * b - sqrt3_by_3 * c;
+    *beta = one_by_sqrt3 * b - one_by_sqrt3 * c;
 }
 
 void transforms_inverse_clarke(volatile float alpha, volatile float beta, volatile float *a, volatile float *b, volatile float *c)
