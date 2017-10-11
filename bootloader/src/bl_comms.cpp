@@ -51,8 +51,8 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_LEAVE_BOOTLOADER:
-      /* Leave the bootloader and jump to our application */
+    case COMM_FC_JUMP_TO_ADDR:
+      /* Jump to an arbitrary address */
 
       if (datagram_len - index < 4) {
         errors |= COMM_ERRORS_MALFORMED;

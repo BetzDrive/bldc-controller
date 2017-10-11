@@ -87,8 +87,8 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_ENTER_BOOTLOADER:
-      /* Enter bootloader using system reset */
+    case COMM_FC_SYSTEM_RESET:
+      /* Perform system reset */
 
       should_reset = true;
 
