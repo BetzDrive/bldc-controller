@@ -5,7 +5,7 @@
 #include "stm32f4xx.h"
 #include "stdbool.h"
 #include "peripherals.h"
-#include "bl_comms.h"
+#include "comms.h"
 
 namespace motor_driver {
 

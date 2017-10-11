@@ -1,12 +1,18 @@
 #include "comms.h"
 
+#include <cstring>
 #include "ch.h"
 #include "hal.h"
 #include "peripherals.h"
 #include "constants.h"
-#include <cstring>
+#include "helper.h"
+#include "flash.h"
 
 namespace motor_driver {
+
+static uint32_t jump_addr = 0;
+
+static bool should_reset = false;
 
 void UARTEndpoint::start() {
   uartStart(uart_driver_, &uart_config_);
@@ -180,6 +186,309 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   (void)len;
 
   return 0; // TODO: implement
+}
+
+void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
+  if (state_ != State::IDLE) {
+    return;
+  }
+
+  static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
+  static_assert(sizeof(comm_fc_t) == 1, "Assuming comm_fc_t is uint8_t");
+  static_assert(sizeof(comm_addr_t) == 2, "Assuming comm_addr_t is uint16_t");
+  static_assert(sizeof(comm_reg_count_t) == 1, "Assuming comm_reg_count_t is uint8_t");
+
+  size_t index = 0;
+
+  if (datagram_len - index < 2) {
+    return;
+  }
+
+  comm_id_t id = datagram[index++];
+  function_code_ = datagram[index++];
+
+  if (id != server_->getID()) {
+    /* This datagram is not meant for us, ignore it */
+    return;
+  }
+
+  /* Clear errors */
+  errors = 0;
+
+  /* Temporary variables */
+  uint32_t sector_num, dest_addr;
+  size_t dest_len;
+  bool success;
+
+  switch (function_code_) {
+    case COMM_FC_NOP:
+      /* No operation */
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_READ_REGS:
+    case COMM_FC_READ_REGS_SYNCED:
+      /* Read registers */
+
+      if (datagram_len - index < 3) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      start_addr_ = (comm_addr_t)datagram[index++];
+      start_addr_ |= (comm_addr_t)datagram[index++] << 8;
+      reg_count_ = datagram[index++];
+
+      synced_ = (function_code_ == COMM_FC_READ_REGS_SYNCED);
+
+      state_ = State::RESPONDING_READ;
+
+      break;
+
+    case COMM_FC_WRITE_REGS:
+    case COMM_FC_WRITE_REGS_SYNCED:
+      /* Write registers */
+
+      if (datagram_len - index < 3) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      start_addr_ = (comm_addr_t)datagram[index++];
+      start_addr_ |= (comm_addr_t)datagram[index++] << 8;
+      reg_count_ = datagram[index++];
+
+      synced_ = (function_code_ == COMM_FC_WRITE_REGS_SYNCED);
+
+      server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors, synced_);
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_SYSTEM_RESET:
+      /* Perform system reset */
+
+      should_reset = true;
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_JUMP_TO_ADDR:
+      /* Jump to an arbitrary address */
+
+      if (datagram_len - index < 4) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      jump_addr = (uint32_t)datagram[index++];
+      jump_addr |= (uint32_t)datagram[index++] << 8;
+      jump_addr |= (uint32_t)datagram[index++] << 16;
+      jump_addr |= (uint32_t)datagram[index++] << 24;
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_FLASH_SECTOR_COUNT:
+      /* Respond with the total number of flash sectors */
+
+      u32_value_ = FLASH_SECTOR_COUNT;
+
+      state_ = State::RESPONDING_U32;
+
+      break;
+
+    case COMM_FC_FLASH_SECTOR_START:
+      /* Respond with the start address of a flash sector */
+
+      if (datagram_len - index < 4) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      sector_num = (uint32_t)datagram[index++];
+      sector_num |= (uint32_t)datagram[index++] << 8;
+      sector_num |= (uint32_t)datagram[index++] << 16;
+      sector_num |= (uint32_t)datagram[index++] << 24;
+
+      u32_value_ = flashSectorBegin(sector_num);
+
+      state_ = State::RESPONDING_U32;
+
+      break;
+
+    case COMM_FC_FLASH_SECTOR_SIZE:
+      /* Respond with the size of a flash sector, in bytes */
+
+      if (datagram_len - index < 4) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      sector_num = (uint32_t)datagram[index++];
+      sector_num |= (uint32_t)datagram[index++] << 8;
+      sector_num |= (uint32_t)datagram[index++] << 16;
+      sector_num |= (uint32_t)datagram[index++] << 24;
+
+      u32_value_ = flashSectorSize(sector_num);
+
+      state_ = State::RESPONDING_U32;
+
+      break;
+
+    case COMM_FC_FLASH_SECTOR_ERASE:
+      /* Erase a flash sector */
+
+      if (datagram_len - index < 4) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      sector_num = (uint32_t)datagram[index++];
+      sector_num |= (uint32_t)datagram[index++] << 8;
+      sector_num |= (uint32_t)datagram[index++] << 16;
+      sector_num |= (uint32_t)datagram[index++] << 24;
+
+      success = (flashSectorErase(sector_num) == FLASH_RETURN_SUCCESS);
+
+      if (!success) {
+        errors |= COMM_ERRORS_OP_FAILED;
+      }
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_FLASH_PROGRAM:
+      /* Program values into flash memory */
+
+      if (datagram_len - index < 4) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      dest_addr = (uint32_t)datagram[index++];
+      dest_addr |= (uint32_t)datagram[index++] << 8;
+      dest_addr |= (uint32_t)datagram[index++] << 16;
+      dest_addr |= (uint32_t)datagram[index++] << 24;
+
+      dest_len = datagram_len - index;
+
+      success = (flashWrite(dest_addr, (char *)&datagram[index], dest_len) == FLASH_RETURN_SUCCESS);
+
+      if (!success) {
+        errors |= COMM_ERRORS_OP_FAILED;
+      }
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_FLASH_READ:
+      /* Read values from flash memory */
+
+      if (datagram_len - index < 8) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      src_addr_ = (uint32_t)datagram[index++];
+      src_addr_ |= (uint32_t)datagram[index++] << 8;
+      src_addr_ |= (uint32_t)datagram[index++] << 16;
+      src_addr_ |= (uint32_t)datagram[index++] << 24;
+
+      src_len_ = (size_t)datagram[index++];
+      src_len_ |= (size_t)datagram[index++] << 8;
+      src_len_ |= (size_t)datagram[index++] << 16;
+      src_len_ |= (size_t)datagram[index++] << 24;
+
+      state_ = State::RESPONDING_MEM;
+
+      break;
+
+    case COMM_FC_FLASH_VERIFY:
+      /* Compare values in flash memory with expected values */
+
+      if (datagram_len - index < 4) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      dest_addr = (uint32_t)datagram[index++];
+      dest_addr |= (uint32_t)datagram[index++] << 8;
+      dest_addr |= (uint32_t)datagram[index++] << 16;
+      dest_addr |= (uint32_t)datagram[index++] << 24;
+
+      dest_len = datagram_len - index;
+
+      success = (std::memcmp((void *)dest_addr, &datagram[index], dest_len) == 0);
+
+      if (!success) {
+        errors |= COMM_ERRORS_OP_FAILED;
+      }
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_FLASH_VERIFY_ERASED:
+      /* Verify that a region of flash memory is erased (all ones) */
+
+      if (datagram_len - index < 8) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      dest_addr = (uint32_t)datagram[index++];
+      dest_addr |= (uint32_t)datagram[index++] << 8;
+      dest_addr |= (uint32_t)datagram[index++] << 16;
+      dest_addr |= (uint32_t)datagram[index++] << 24;
+
+      dest_len = (size_t)datagram[index++];
+      dest_len |= (size_t)datagram[index++] << 8;
+      dest_len |= (size_t)datagram[index++] << 16;
+      dest_len |= (size_t)datagram[index++] << 24;
+
+      success = true;
+
+      for (size_t i = 0; i < dest_len; i++) {
+        if (((uint8_t *)dest_addr)[i] != 0xff) {
+          success = false;
+          break;
+        }
+      }
+
+      if (!success) {
+        errors |= COMM_ERRORS_OP_FAILED;
+      }
+
+      state_ = State::RESPONDING;
+
+      break;
+
+    default:
+      /* Invalid function code */
+
+      errors |= COMM_ERRORS_INVALID_FC;
+      state_ = State::RESPONDING;
+
+      break;
+  }
 }
 
 void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_t max_datagram_len, comm_errors_t errors) {

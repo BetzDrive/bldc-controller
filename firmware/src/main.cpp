@@ -7,7 +7,7 @@
 #include "chprintf.h"
 #include "peripherals.h"
 #include "control.h"
-#include "fw_comms.h"
+#include "comms.h"
 #include "fast_math.h"
 #include "state.h"
 

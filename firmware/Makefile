@@ -99,6 +99,8 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
        $(CHIBIOS)/os/various/memstreams.c \
        $(COMMON_SRC)/utils.c \
+       $(COMMON_SRC)/flash.c \
+       $(COMMON_SRC)/helper.c \
        $(SRC)/usbcfg.c \
        $(SRC)/shell.c
 

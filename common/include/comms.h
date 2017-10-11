@@ -187,6 +187,8 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
 
 void startComms();
 
+void runComms();
+
 extern UARTEndpoint comms_endpoint;
 
 extern Server comms_server;
