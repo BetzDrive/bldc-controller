@@ -1,0 +1,78 @@
+BLDC Servo Controller binary protocol "specification" version 1
+
+
+
+
+Request Message Format
+                               -----------------------------------------------------------------
+                              |                             Message                             |
+             +----------------+----------+---------------+------------+----------------+--------+-----+
+Field Name   | Message Length | Board ID | Function Code | Start Addr | Register Count | Values | CRC |
+             +----------------+----------+---------------+------------+----------------+--------+-----+
+Size (bytes) |        1       |    1     |       1       |      2     |        1       |    n   |  2  |
+             +----------------+----------+---------------+------------+----------------+--------+-----+
+where n is arbitrary.
+
+
+
+
+Response Message Format
+                               ------------------------------------------------
+                              |                     Message                    |
+             +----------------+----------+---------------+------------+--------+-------+
+Field Name   | Message Length | Board ID | Function Code |   Errors   | Values |  CRC  |
+             +----------------+----------+---------------+------------+--------+-------+
+Size (bytes) |        1       |     1    |       1       |      2     |    n   |   2   |
+             +----------------+----------+---------------+------------+--------+-------+
+where n is arbitrary.
+
+
+
+
+Example: Read from 16-bit register 0x0005 of board 6
+
+Request: 0x05, 0x06, 0x01, 0x05, 0x00, 0x01, 0xff, 0xff
++----------------+----------+---------------+------------+----------------+--------+-------+
+| Message Length | Board ID | Function Code | Start Addr | Register Count | Values |  CRC  |
++----------------+----------+---------------+------------+----------------+--------+-------+
+|       05       |    06    |       01      |    0500    |       01       |        |  ffff |
++----------------+----------+---------------+------------+----------------+--------+-------+
+
+Response: 0x06, 0x06, 0x01, 0x00, 0x00, 0xcd, 0xba, 0xff, 0xff
++----------------+----------+---------------+------------+--------+-------+
+| Message Length | Board ID | Function Code |   Errors   | Values |  CRC  |
++----------------+----------+---------------+------------+--------+-------+
+|       06       |    06    |       01      |    0000    |  cdba  |  ffff |
++----------------+----------+---------------+------------+--------+-------+
+where 0xabcd is the 16-bit register value and ffff is the CRC checksum.
+
+
+
+
+Example: Write value 0x6789abcd to 32-bit register 0x1234 of board 2
+
+Request: 0x09, 0x02, 0x02, 0x34, 0x12, 0x01, 0xcd, 0xab, 0x89, 0x67, 0xff, 0xff 
++----------------+----------+---------------+------------+----------------+----------+-------+
+| Message Length | Board ID | Function Code | Start Addr | Register Count |  Values  |  CRC  |
++----------------+----------+---------------+------------+----------------+----------+-------+
+|       09       |    02    |       02      |    3412    |       01       | cdab8967 |  ffff |
++----------------+----------+---------------+------------+----------------+----------+-------+
+
+Response: 0x04, 0x02, 0x02, 0x00, 0x00, 0xff, 0xff
++----------------+----------+---------------+------------+--------+-------+
+| Message Length | Board ID | Function Code |   Errors   | Values |  CRC  |
++----------------+----------+---------------+------------+--------+-------+
+|       04       |    02    |       02      |    0000    |        |  ffff |
++----------------+----------+---------------+------------+--------+-------+
+
+
+
+
+Notes
+
+All values are little-endian (least significant byte first).
+Function code 0x01 is read, 0x02 is write.
+You can read or write multiple consecutive registers in a single request. Their values are concatenated together.
+The CRC checksum is not defined yet. You can provide a fake CRC in the request and ignore the CRC in the response.
+Registers can be any size.
+Errors == 0x0000 means a request was successful.
