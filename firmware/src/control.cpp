@@ -15,9 +15,9 @@ static Thread *control_thread_ptr;
 
 static SVM modulator(SVMStrategy::TOP_BOTTOM_CLAMP);
 
-static PID pid_id(10.0f, 0.0f, 0.0f, current_control_interval);
+static PID pid_id(0.01f, 100.0f, 0.0f, current_control_interval);
 
-static PID pid_iq(10.0f, 0.0f, 0.0f, current_control_interval);
+static PID pid_iq(0.01f, 100.0f, 0.0f, current_control_interval);
 
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
@@ -134,18 +134,23 @@ void runCurrentControl() {
     // float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * active_parameters.erpm_per_revolution;
     float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * 14.0f;
 
+    active_results.debug_f = elec_angle_radians;
+
     float id, iq;
     transforms_park(ialpha, ibeta, elec_angle_radians, &id, &iq);
 
-    pid_id.setSetPoint(0.0f);
-    pid_id.setProcessValue(id);
+    // pid_id.setSetPoint(0.0f);
+    // pid_id.setProcessValue(id);
 
-    pid_iq.setSetPoint(active_parameters.cmd_duty_cycle);
-    pid_iq.setProcessValue(iq);
-    pid_iq.setBias(active_parameters.cmd_duty_cycle * active_parameters.winding_resistance);
+    // pid_iq.setSetPoint(active_parameters.cmd_duty_cycle);
+    // pid_iq.setProcessValue(iq);
+    // pid_iq.setBias(active_parameters.cmd_duty_cycle * active_parameters.winding_resistance);
 
-    float vd = pid_id.compute();
-    float vq = pid_iq.compute();
+    // float vd = pid_id.compute();
+    // float vq = pid_iq.compute();
+
+    float vd = -2.0 * id;
+    float vq = -2.0 * (iq - active_parameters.cmd_duty_cycle) + active_parameters.cmd_duty_cycle * active_parameters.winding_resistance;
 
     float vd_norm = vd / active_results.average_vin;
     float vq_norm = vq / active_results.average_vin;

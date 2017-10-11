@@ -64,7 +64,7 @@ struct Parameters {
       erpm_per_revolution(8),
       flip_phases(false),
       winding_resistance(17.8f), // GBM110-150T
-      raw_pwm_mode(0),
+      raw_pwm_mode(1),
       phase0(0),
       phase1(0),
       phase2(0){}

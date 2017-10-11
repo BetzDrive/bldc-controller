@@ -44,6 +44,8 @@ if __name__ == '__main__':
 
         count += 1
 
+    client.writeRegisters(args.board_id, 0x0102, 4, struct.pack('<Bfff', 1, 0, 0, 0))
+
     erpm_per_revolution = count / 6
     phase_aligned_angle = angles[0]
     print("ERPM per rev:\t" + str(erpm_per_revolution))
