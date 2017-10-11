@@ -128,7 +128,7 @@ void runCurrentControl() {
      */
 
     float ialpha, ibeta;
-    transforms_clarke(active_results.average_ia, active_results.average_ib, active_results.average_ic, &ialpha, &ibeta);
+    transformClarke(active_results.average_ia, active_results.average_ib, active_results.average_ic, ialpha, ibeta);
     
     uint16_t zeroed_encoder_angle = (raw_encoder_angle - active_parameters.encoder_zero + encoder_period) % encoder_period;
     // float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * active_parameters.erpm_per_revolution;
@@ -136,8 +136,11 @@ void runCurrentControl() {
 
     active_results.debug_f = elec_angle_radians;
 
+    float cos_theta = fast_cos(elec_angle_radians);
+    float sin_theta = fast_sin(elec_angle_radians);
+
     float id, iq;
-    transforms_park(ialpha, ibeta, elec_angle_radians, &id, &iq);
+    transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
 
     // pid_id.setSetPoint(0.0f);
     // pid_id.setProcessValue(id);
@@ -156,7 +159,7 @@ void runCurrentControl() {
     float vq_norm = vq / active_results.average_vin;
 
     float valpha_norm, vbeta_norm;
-    transforms_inverse_park(vd_norm, vq_norm, elec_angle_radians, &valpha_norm, &vbeta_norm);
+    transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);
 
     if (active_parameters.flip_phases) {
       vbeta_norm = -vbeta_norm;

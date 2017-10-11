@@ -3,10 +3,13 @@
 
 namespace motor_driver {
 
-void transforms_park(volatile float alpha, volatile float beta, volatile float theta, volatile float *d, volatile float *q);
-void transforms_inverse_park(volatile float d, volatile float q, volatile float theta, volatile float *alpha, volatile float *beta);
-void transforms_clarke(volatile float a, volatile float b, volatile float c, volatile float *alpha, volatile float *beta);
-void transforms_inverse_clarke(volatile float alpha, volatile float beta, volatile float *a, volatile float *b, volatile float *c);
+void transformPark(float alpha, float beta, float cos_theta, float sin_theta, float& d, float& q);
+
+void transformInversePark(float d, float q, float cos_theta, float sin_theta, float& alpha, float& beta);
+
+void transformClarke(float a, float b, float c, float& alpha, float& beta);
+
+void transformInverseClarke(float alpha, float beta, float& a, float& b, float& c);
 
 } // namespace motor_driver
 
