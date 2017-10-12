@@ -28,7 +28,9 @@ COMM_FC_FLASH_READ = 0x87
 COMM_FC_FLASH_VERIFY = 0x88
 COMM_FC_FLASH_VERIFY_ERASED = 0x89
 
-COMM_DEFAULT_FIRMWARE_OFFSET = 0x08004000
+COMM_BOOTLOADER_OFFSET = 0x08000000
+COMM_NVPARAMS_OFFSET = 0x08004000
+COMM_FIRMWARE_OFFSET = 0x08008000
 COMM_DEFAULT_BAUD_RATE = 1000000
 
 COMM_SINGLE_PROGRAM_LENGTH = 128
@@ -117,7 +119,7 @@ class BLDCControllerClient:
         self.writeRequest(server_id, COMM_FC_SYSTEM_RESET)
         return True
 
-    def leaveBootloader(self, server_id, jump_addr=COMM_DEFAULT_FIRMWARE_OFFSET):
+    def leaveBootloader(self, server_id, jump_addr=COMM_FIRMWARE_OFFSET):
         self.writeRequest(server_id, COMM_FC_JUMP_TO_ADDR, struct.pack('<I', jump_addr))
         return True
 

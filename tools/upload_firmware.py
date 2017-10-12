@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser.add_argument('board_id', type=int, help='Board ID')
     parser.add_argument('bin_file', type=str, help='.bin file containing firmware image')
     parser.add_argument('--offset', type=int, help='Offset address for firmware image')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_DEFAULT_FIRMWARE_OFFSET)
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_FIRMWARE_OFFSET)
     args = parser.parse_args()
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)

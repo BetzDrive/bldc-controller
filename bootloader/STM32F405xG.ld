@@ -22,7 +22,9 @@ __process_stack_size__  = 0x0400;
 
 MEMORY
 {
-    flash : org = 0x08000000, len = 16k
+    flash_bl : org = 0x08000000, len = 16k
+    flash_nvp : org = 0x08000000 + 16k, len = 16k
+    flash_fw : org = 0x08000000 + 32k, len = 1M - 32k
     ram : org = 0x20000000, len = 112k
     ethram : org = 0x2001C000, len = 16k
     ccmram : org = 0x10000000, len = 64k
@@ -42,7 +44,7 @@ SECTIONS
     startup : ALIGN(16) SUBALIGN(16)
     {
         KEEP(*(vectors))
-    } > flash
+    } > flash_bl
 
     constructors : ALIGN(4) SUBALIGN(4)
     {
@@ -50,7 +52,7 @@ SECTIONS
         KEEP(*(SORT(.init_array.*)))
         KEEP(*(.init_array))
         PROVIDE(__init_array_end = .);
-    } > flash
+    } > flash_bl
 
     destructors : ALIGN(4) SUBALIGN(4)
     {
@@ -58,7 +60,7 @@ SECTIONS
         KEEP(*(.fini_array))
         KEEP(*(SORT(.fini_array.*)))
         PROVIDE(__fini_array_end = .);
-    } > flash
+    } > flash_bl
 
     .text : ALIGN(16) SUBALIGN(16)
     {
@@ -70,33 +72,33 @@ SECTIONS
         *(.glue_7t)
         *(.glue_7)
         *(.gcc*)
-    } > flash
+    } > flash_bl
 
     .ARM.extab :
     {
         *(.ARM.extab* .gnu.linkonce.armextab.*)
-    } > flash
+    } > flash_bl
 
     .ARM.exidx : {
         PROVIDE(__exidx_start = .);
         *(.ARM.exidx* .gnu.linkonce.armexidx.*)
         PROVIDE(__exidx_end = .);
-     } > flash
+     } > flash_bl
 
     .eh_frame_hdr :
     {
         *(.eh_frame_hdr)
-    } > flash
+    } > flash_bl
 
     .eh_frame : ONLY_IF_RO
     {
         *(.eh_frame)
-    } > flash
+    } > flash_bl
     
     .textalign : ONLY_IF_RO
     {
         . = ALIGN(8);
-    } > flash
+    } > flash_bl
 
     . = ALIGN(4);
     _etext = .;
@@ -128,7 +130,7 @@ SECTIONS
         *(.ramtext)
         . = ALIGN(4);
         PROVIDE(_edata = .);
-    } > ram AT > flash
+    } > ram AT > flash_bl
 
     .bss :
     {

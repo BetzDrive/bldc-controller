@@ -11,7 +11,7 @@ if __name__ == '__main__':
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_id', type=int, help='Board ID')
     parser.add_argument('duty_cycle', type=float, help='Duty cycle')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_DEFAULT_FIRMWARE_OFFSET, duty_cycle=0.6)
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6)
     args = parser.parse_args()
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
