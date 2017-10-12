@@ -2,7 +2,7 @@
 
 **Request Message Format:**
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function Code | Payload | CRC |
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Payload | CRC |
 |--------------|------------------|-------------------------|----------------|----------|---------------|-----------------|-----|
 | **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | n | 2 |
 
