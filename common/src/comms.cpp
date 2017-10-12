@@ -603,6 +603,36 @@ void startComms() {
   comms_endpoint.start();
 }
 
+void runComms() {
+  comms_endpoint.waitReceive();
+
+  if (!comms_endpoint.hasReceiveError()) {
+    /* Received valid datagram */
+    comm_errors_t errors = COMM_ERRORS_NONE;
+
+    size_t receive_len = comms_endpoint.getReceiveLength();
+    comms_protocol_fsm.handleRequest(comms_endpoint.getReceiveBufferPtr(), receive_len, errors);
+
+    size_t transmit_len;
+    comms_protocol_fsm.composeResponse(comms_endpoint.getTransmitBufferPtr(), transmit_len, comms_endpoint.getTransmitBufferSize(), errors);
+
+    if (transmit_len > 0) {
+      comms_endpoint.setTransmitLength(transmit_len);
+      comms_endpoint.startTransmit();
+    }
+
+    /* Jump to an address if requested */
+    if (jump_addr != 0) {
+      flashJumpApplication(jump_addr);
+    }
+
+    /* Reset system if requested */
+    if (should_reset) {
+      NVIC_SystemReset();
+    }
+  }
+}
+
 UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
 
 Server comms_server(4, commsRegAccessHandler);
