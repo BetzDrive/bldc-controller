@@ -49,7 +49,7 @@ These are used for things like:
 - Checking firmware version number
 - Re-assigning board ID
 
-### Manipulation
+### Reading/Writing
 Registers can be read from and written to using the `COMM_FC_REG_RW` command. The payload of the function request has five distinct fields:
 
 |  | Read Start Address | Read Count | Write Start Address | Write Count | Write Values |
@@ -58,10 +58,24 @@ Registers can be read from and written to using the `COMM_FC_REG_RW` command. Th
 
 By incrementing the *Read Count* and *Write Count* values, registers with consecutive addresses can be read from and written to in batches. Their values should be concatenated together in `Write Values` (for writes), as well as in the response payload (for reads).
 
-### Addresses
+### Register List
 
-(register list)
+(WIP -- haven't given this a lot of thought)
 
+- System: 0x0***
+- Persistent: 0x1***
+- Volatile: 0x2***
+- Read only: 0x3***
+
+| Address | Description | Type |
+|----------|---------------------------|---------|
+| `0x3000` | Rotor Position (radians) | `float` |
+| `0x3001` | Rotor Velocity (rad/sec) | `float` |
+| `0x3002` | Motor Current (amps) | `float` |
+| `0x3003` | Battery Current (amps) | `float` |
+| `0x3004` | Accelerometer X (m/sec^2) | `float` |
+| `0x3005` | Accelerometer Y (m/sec^2) | `float` |
+| `0x3006` | Accelerometer Z (m/sec^2) | `float` |
 
 -------
 
