@@ -168,7 +168,8 @@ private:
     RESPONDING,
     RESPONDING_READ,
     RESPONDING_MEM,
-    RESPONDING_U32
+    RESPONDING_U32,
+    RESPONDING_U8
   };
 
   Server * const server_;
@@ -178,10 +179,14 @@ private:
   comm_addr_t start_addr_;
   size_t reg_count_;
   uint32_t u32_value_;
+  uint8_t u8_value_;
   uint32_t src_addr_;
   size_t src_len_;
   bool synced_;
 };
+
+template<typename T>
+void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors, bool synced);
 

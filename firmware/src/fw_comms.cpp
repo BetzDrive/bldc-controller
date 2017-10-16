@@ -8,31 +8,6 @@
 
 namespace motor_driver {
 
-template<typename T>
-static void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
-  constexpr size_t var_size = sizeof(var);
-
-  if (buf_size - index < var_size) {
-    errors |= COMM_ERRORS_BUF_LEN_MISMATCH;
-    return;
-  }
-
-  uint8_t *u8_var = reinterpret_cast<uint8_t *>(&var);
-
-  switch (access_type) {
-    case RegAccessType::READ:
-      std::memcpy(buf + index, u8_var, var_size);
-      index += var_size;
-      break;
-    case RegAccessType::WRITE:
-      std::memcpy(u8_var, buf + index, var_size);
-      index += var_size;
-      break;
-    default:
-      break;
-  }
-}
-
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors, bool synced) {
   size_t index = 0;
 

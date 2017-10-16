@@ -105,6 +105,12 @@ class BLDCControllerClient:
     def setControlEnabled(self, id, logical):
         self.writeRegisters(id, 0x0102, 1, struct.pack('<B', logical))
 
+    def leaveBootloader(self, server_id):
+        self.jumpToAddress(server_id, COMM_FIRMWARE_OFFSET)
+
+    def enterBootloader(self, server_id):
+        self.resetSystem(server_id)
+
     def readRegisters(self, server_id, start_addr, count):
         success, data = self.doTransaction(server_id, COMM_FC_READ_REGS, struct.pack('<HB', start_addr, count))
         if not success:
@@ -115,11 +121,11 @@ class BLDCControllerClient:
         success, _ = self.doTransaction(server_id, COMM_FC_WRITE_REGS, struct.pack('<HB', start_addr, count) + data)
         return success
 
-    def enterBootloader(self, server_id):
+    def resetSystem(self, server_id):
         self.writeRequest(server_id, COMM_FC_SYSTEM_RESET)
         return True
 
-    def leaveBootloader(self, server_id, jump_addr=COMM_FIRMWARE_OFFSET):
+    def jumpToAddress(self, server_id, jump_addr=COMM_FIRMWARE_OFFSET):
         self.writeRequest(server_id, COMM_FC_JUMP_TO_ADDR, struct.pack('<I', jump_addr))
         return True
 

@@ -589,6 +589,19 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
 
       break;
 
+    case State::RESPONDING_U8:
+      /* Send a response with a uint8_t value */
+
+      datagram[index++] = (uint8_t)(errors & 0xff);
+      datagram[index++] = (uint8_t)((errors >> 8) & 0xff);
+
+      datagram[index++] = u8_value_;
+
+      datagram_len = index;
+      state_ = State::IDLE;
+
+      break;
+
     default:
       /* Don't send a response */
 
@@ -598,6 +611,37 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
       break;
   }
 }
+
+template<typename T>
+void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
+  constexpr size_t var_size = sizeof(var);
+
+  if (buf_size - index < var_size) {
+    errors |= COMM_ERRORS_BUF_LEN_MISMATCH;
+    return;
+  }
+
+  uint8_t *u8_var = reinterpret_cast<uint8_t *>(&var);
+
+  switch (access_type) {
+    case RegAccessType::READ:
+      std::memcpy(buf + index, u8_var, var_size);
+      index += var_size;
+      break;
+    case RegAccessType::WRITE:
+      std::memcpy(u8_var, buf + index, var_size);
+      index += var_size;
+      break;
+    default:
+      break;
+  }
+}
+
+template void handleVarAccess<uint8_t>(uint8_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+
+template void handleVarAccess<uint16_t>(uint16_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+
+template void handleVarAccess<float>(float& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
 void startComms() {
   comms_endpoint.start();
@@ -635,7 +679,7 @@ void runComms() {
 
 UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
 
-Server comms_server(4, commsRegAccessHandler);
+Server comms_server(5, commsRegAccessHandler);
 
 ProtocolFSM comms_protocol_fsm(comms_server);
 
