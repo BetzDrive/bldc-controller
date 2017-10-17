@@ -130,7 +130,7 @@ void runCurrentControl() {
     float ialpha, ibeta;
     transformClarke(active_results.average_ia, active_results.average_ib, active_results.average_ic, ialpha, ibeta);
     
-    uint16_t zeroed_encoder_angle = (raw_encoder_angle - active_parameters.encoder_zero + encoder_period) % encoder_period;
+    uint16_t zeroed_encoder_angle = (raw_encoder_angle - calibration.encoder_zero + encoder_period) % encoder_period;
     // float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * active_parameters.erpm_per_revolution;
     float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * 14.0f;
 
@@ -147,13 +147,13 @@ void runCurrentControl() {
 
     // pid_iq.setSetPoint(active_parameters.cmd_duty_cycle);
     // pid_iq.setProcessValue(iq);
-    // pid_iq.setBias(active_parameters.cmd_duty_cycle * active_parameters.winding_resistance);
+    // pid_iq.setBias(active_parameters.cmd_duty_cycle * calibration.winding_resistance);
 
     // float vd = pid_id.compute();
     // float vq = pid_iq.compute();
 
     float vd = -2.0 * id;
-    float vq = -2.0 * (iq - active_parameters.cmd_duty_cycle) + active_parameters.cmd_duty_cycle * active_parameters.winding_resistance;
+    float vq = -2.0 * (iq - active_parameters.cmd_duty_cycle) + active_parameters.cmd_duty_cycle * calibration.winding_resistance;
 
     float vd_norm = vd / active_results.average_vin;
     float vq_norm = vq / active_results.average_vin;
@@ -161,7 +161,7 @@ void runCurrentControl() {
     float valpha_norm, vbeta_norm;
     transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);
 
-    if (active_parameters.flip_phases) {
+    if (calibration.flip_phases) {
       vbeta_norm = -vbeta_norm;
     }
 

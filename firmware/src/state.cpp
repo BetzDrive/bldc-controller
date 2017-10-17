@@ -6,6 +6,8 @@ Results active_results;
 
 Results sync_results;
 
+Calibration calibration;
+
 Parameters active_parameters;
 
 Parameters sync_parameters;

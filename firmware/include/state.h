@@ -35,6 +35,19 @@ struct Results {
       angle(0)  {}
 };
 
+struct Calibration {
+  uint16_t encoder_zero;        // Phase-aligned encoder zero position
+  uint8_t erpm_per_revolution;  // How many poles does our motor have?
+  float winding_resistance;     // Motor winding resistance in ohms
+  uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
+
+  Calibration()
+    : encoder_zero(0),
+      erpm_per_revolution(8),
+      winding_resistance(17.8f),// GBM110-150T
+      flip_phases(false) {}
+};
+
 struct Parameters {
   float foc_q_current_sp;       // FOC quadrature current setpoint in amperes
   float foc_d_current_sp;       // FOC direct current setpoint in amperes
@@ -42,11 +55,7 @@ struct Parameters {
   uint8_t led_red_intensity;    // Status LED red intensity
   uint8_t led_green_intensity;  // Status LED green intensity
   uint8_t led_blue_intensity;   // Status LED blue intensity
-  uint16_t encoder_zero;        // Phase-aligned encoder zero position
   float cmd_duty_cycle;         // Duty cycle command
-  uint8_t erpm_per_revolution;  // How many poles does our motor have?
-  uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
-  float winding_resistance;     // Motor winding resistance in ohms
   uint8_t raw_pwm_mode;
   float phase0;
   float phase1;
@@ -59,11 +68,7 @@ struct Parameters {
       led_red_intensity(0),
       led_green_intensity(0),
       led_blue_intensity(0),
-      encoder_zero(0),
       cmd_duty_cycle(0),
-      erpm_per_revolution(8),
-      flip_phases(false),
-      winding_resistance(17.8f), // GBM110-150T
       raw_pwm_mode(1),
       phase0(0),
       phase1(0),
@@ -79,6 +84,12 @@ extern Results active_results;
  * Result values read by the comms thread
  */
 extern Results sync_results;
+
+/**
+ * Calibration values
+ *
+ */
+extern Calibration calibration;
 
 /**
  * Parameter values written by the comms thread

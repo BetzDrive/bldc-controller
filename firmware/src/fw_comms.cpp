@@ -22,7 +22,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         handleVarAccess(results.encoder_angle, buf, index, buf_size, access_type, errors);
         break;
       case 0x0101: //257
-        handleVarAccess(parameters.encoder_zero, buf, index, buf_len, access_type, errors);
+        handleVarAccess(calibration.encoder_zero, buf, index, buf_len, access_type, errors);
         break;
       case 0x0102: //258
         handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
@@ -48,7 +48,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         pwmStart(&PWMD1, &motor_pwm_config);
         break;
       case 0x0109: //265
-        handleVarAccess(parameters.flip_phases, buf, index, buf_len, access_type, errors);
+        handleVarAccess(calibration.flip_phases, buf, index, buf_len, access_type, errors);
         break;
       case 0x0200:
         handleVarAccess(results.average_ia, buf, index, buf_size, access_type, errors);
