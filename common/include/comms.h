@@ -183,6 +183,7 @@ private:
   uint32_t src_addr_;
   size_t src_len_;
   bool synced_;
+  bool broadcast_;
 };
 
 template<typename T>

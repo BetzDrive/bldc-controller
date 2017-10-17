@@ -207,10 +207,12 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
   comm_id_t id = datagram[index++];
   function_code_ = datagram[index++];
 
-  if (id != server_->getID()) {
+  if (id != 0 && id != server_->getID()) {
     /* This datagram is not meant for us, ignore it */
     return;
   }
+
+  broadcast_ = (id == 0);
 
   /* Clear errors */
   errors = 0;
@@ -514,7 +516,12 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
     return;
   }
 
-  datagram[index++] = server_->getID();
+  if (broadcast_) {
+    datagram[index++] = 0;
+  } else {
+    datagram[index++] = server_->getID();
+  }
+
   datagram[index++] = function_code_;
 
   size_t error_index;
