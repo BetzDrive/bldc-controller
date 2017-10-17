@@ -679,7 +679,7 @@ void runComms() {
 
 UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
 
-Server comms_server(5, commsRegAccessHandler);
+Server comms_server(*board_id_ptr, commsRegAccessHandler);
 
 ProtocolFSM comms_protocol_fsm(comms_server);
 
