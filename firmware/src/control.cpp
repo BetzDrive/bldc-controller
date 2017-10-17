@@ -131,8 +131,7 @@ void runCurrentControl() {
     transformClarke(active_results.average_ia, active_results.average_ib, active_results.average_ic, ialpha, ibeta);
     
     uint16_t zeroed_encoder_angle = (raw_encoder_angle - active_parameters.encoder_zero + encoder_period) % encoder_period;
-    // float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * active_parameters.erpm_per_revolution;
-    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * 14.0f;
+    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * active_parameters.erevs_per_mrev;
 
     active_results.debug_f = elec_angle_radians;
 

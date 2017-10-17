@@ -50,6 +50,9 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       case 0x0109: //265
         handleVarAccess(parameters.flip_phases, buf, index, buf_len, access_type, errors);
         break;
+      case 0x010a: //266
+        handleVarAccess(parameters.erevs_per_mrev, buf, index, buf_len, access_type, errors);
+        break;
       case 0x0200:
         handleVarAccess(results.average_ia, buf, index, buf_size, access_type, errors);
         break;

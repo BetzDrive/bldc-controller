@@ -44,7 +44,7 @@ struct Parameters {
   uint8_t led_blue_intensity;   // Status LED blue intensity
   uint16_t encoder_zero;        // Phase-aligned encoder zero position
   float cmd_duty_cycle;         // Duty cycle command
-  uint8_t erpm_per_revolution;  // How many poles does our motor have?
+  uint8_t erevs_per_mrev;       // Number of electrical revolutions per mechanical revolution
   uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
   float winding_resistance;     // Motor winding resistance in ohms
   uint8_t raw_pwm_mode;
@@ -61,7 +61,7 @@ struct Parameters {
       led_blue_intensity(0),
       encoder_zero(0),
       cmd_duty_cycle(0),
-      erpm_per_revolution(8),
+      erevs_per_mrev(1),
       flip_phases(false),
       winding_resistance(17.8f), // GBM110-150T
       raw_pwm_mode(1),
