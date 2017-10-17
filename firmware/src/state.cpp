@@ -2,15 +2,11 @@
 
 namespace motor_driver {
 
-Results active_results;
-
-Results sync_results;
+Results results;
 
 Calibration calibration;
 
-Parameters active_parameters;
-
-Parameters sync_parameters;
+Parameters parameters;
 
 volatile bool should_copy_results = false;
 

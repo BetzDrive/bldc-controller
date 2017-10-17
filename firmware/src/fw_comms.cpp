@@ -8,11 +8,8 @@
 
 namespace motor_driver {
 
-void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors, bool synced) {
+void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   size_t index = 0;
-
-  Results& results = synced ? sync_results : active_results;
-  Parameters& parameters = synced ? sync_parameters : active_parameters;
 
   float temp;
 

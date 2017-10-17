@@ -78,12 +78,7 @@ struct Parameters {
 /**
  * Result values written by the control thread
  */
-extern Results active_results;
-
-/**
- * Result values read by the comms thread
- */
-extern Results sync_results;
+extern Results results;
 
 /**
  * Calibration values
@@ -94,12 +89,7 @@ extern Calibration calibration;
 /**
  * Parameter values written by the comms thread
  */
-extern Parameters active_parameters;
-
-/**
- * Parameter values read by the control thread
- */
-extern Parameters sync_parameters;
+extern Parameters parameters;
 
 /**
  * Results synchronization was requested
