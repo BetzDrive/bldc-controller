@@ -25,7 +25,7 @@
 |--------|-----------------------------|-------------------------------------------------------|-----------|---|
 | `0x00` | `COMM_FC_NOP` |  |  |  |
 | `0x01` | `COMM_FC_REG_RW` | Simultaneous register read/write. (see below) |  |  |
-| `0x80` | `COMM_FC_SYSTEM_RESET` | System reset. Must be done on boot to start firmware. |  |  |
+| `0x80` | `COMM_FC_SYSTEM_RESET` |  |  |  |
 | `0x81` | `COMM_FC_JUMP_TO_ADDR` |  |  |  |
 | `0x82` | `COMM_FC_FLASH_SECTOR_COUNT` |  |  |  |
 | `0x83` | `COMM_FC_FLASH_SECTOR_START` |  |  |  |
@@ -60,12 +60,37 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 
 ### Register List
 
-(WIP -- haven't given this a lot of thought)
+(WIP)
 
-- System: 0x0***
-- Persistent: 0x1***
-- Volatile: 0x2***
-- Read only: 0x3***
+**System Registers `(0x0***)`**
+
+| Address | Description | Type |
+|----------|---------------------------|---------|
+| `0x0000`| Firmware Version | `uint16_t` |
+| `0x0001`| Bootloader Version | `uint16_t` |
+
+**Calibration Registers `(0x1***)`**
+
+| Address | Description | Type |
+|----------|---------------------------|---------|
+| `0x1000` | Phase A Encoder Angle (radians) | `float` |
+| `0x1001`| Invert Phases | `bool` |
+| `0x1002`| FOC Kp (d) | `float` |
+| `0x1003`| FOC Ki (d) | `float` |
+| `0x1004`| FOC Kp (q) | `float` |
+| `0x1005`| FOC Ki (q) | `float` |
+
+**Volatile Registers `(0x2***)`**
+
+| Address | Description | Type |
+|----------|---------------------------|---------|
+| `0x2000` | Mode | `uint8_t` |
+| `0x2001` | Current Command | `float` |
+| `0x2002` | Raw PWM A | `float` |
+| `0x2003` | Raw PWM B | `float` |
+| `0x2004` | Raw PWM C | `float` |
+
+**Read Only Registers `(0x3***)`**
 
 | Address | Description | Type |
 |----------|---------------------------|---------|
