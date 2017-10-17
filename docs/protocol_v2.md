@@ -4,7 +4,7 @@
 
 #### Request Message Format:
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Payload | CRC |
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Payload | CRC* |
 |--------------|------------------|-------------------------|----------------|----------|---------------|-----------------|-----|
 | **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | n | 2 |
 
@@ -14,7 +14,7 @@
 |--------------|------------------|-------------------------|----------------|----------|--------|--------|-----|
 | **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | n | 2 |
 
-*not yet implemented -- currently filled with zeros
+*not yet implemented
 
 -------
 
