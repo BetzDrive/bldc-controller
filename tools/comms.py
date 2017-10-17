@@ -121,11 +121,19 @@ class BLDCControllerClient:
         success, _ = self.doTransaction(server_id, COMM_FC_WRITE_REGS, struct.pack('<HB', start_addr, count) + data)
         return success
 
+<<<<<<< HEAD
     def resetSystem(self, server_id):
         self.writeRequest(server_id, COMM_FC_SYSTEM_RESET)
         return True
 
     def jumpToAddress(self, server_id, jump_addr=COMM_FIRMWARE_OFFSET):
+=======
+    def enterBootloader(self, server_id):
+        self.writeRequest(server_id, COMM_FC_SYSTEM_RESET)
+        return True
+
+    def leaveBootloader(self, server_id, jump_addr=COMM_DEFAULT_FIRMWARE_OFFSET):
+>>>>>>> 9f87111256dd6e56965db1a3d03672c4b1aa1d82
         self.writeRequest(server_id, COMM_FC_JUMP_TO_ADDR, struct.pack('<I', jump_addr))
         return True
 
