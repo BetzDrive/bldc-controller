@@ -37,7 +37,7 @@ struct Results {
 
 struct Calibration {
   uint16_t encoder_zero;        // Phase-aligned encoder zero position
-  uint8_t erpm_per_revolution;  // How many poles does our motor have?
+  uint8_t erevs_per_mrev;       // Electronic revolutions per mechanical revolution
   float winding_resistance;     // Motor winding resistance in ohms
   uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
   float foc_kp_d;               // Proportional gain for FOC/d PI loop
@@ -47,7 +47,7 @@ struct Calibration {
 
   Calibration()
     : encoder_zero(0),
-      erpm_per_revolution(8),
+      erevs_per_mrev(1),
       winding_resistance(17.8f),// GBM110-150T
       flip_phases(false),
       foc_kp_d(0.01f),

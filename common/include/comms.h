@@ -182,6 +182,7 @@ private:
   uint8_t u8_value_;
   uint32_t src_addr_;
   size_t src_len_;
+  bool broadcast_;
 };
 
 template<typename T>

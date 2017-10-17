@@ -207,10 +207,12 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
   comm_id_t id = datagram[index++];
   function_code_ = datagram[index++];
 
-  if (id != server_->getID()) {
+  if (id != 0 && id != server_->getID()) {
     /* This datagram is not meant for us, ignore it */
     return;
   }
+
+  broadcast_ = (id == 0);
 
   /* Clear errors */
   errors = 0;
@@ -276,8 +278,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       break;
 
     case COMM_FC_JUMP_TO_ADDR:
-      /* Jump to an arbitrary address */
+      /* Jump to an arbitrary address (only supported by bootloader) */
 
+#ifdef BOOTLOADER
       if (datagram_len - index < 4) {
         errors |= COMM_ERRORS_MALFORMED;
         state_ = State::RESPONDING;
@@ -288,6 +291,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       jump_addr |= (uint32_t)datagram[index++] << 8;
       jump_addr |= (uint32_t)datagram[index++] << 16;
       jump_addr |= (uint32_t)datagram[index++] << 24;
+#endif // #ifdef BOOTLOADER
 
       state_ = State::RESPONDING;
 
@@ -508,7 +512,12 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
     return;
   }
 
-  datagram[index++] = server_->getID();
+  if (broadcast_) {
+    datagram[index++] = 0;
+  } else {
+    datagram[index++] = server_->getID();
+  }
+
   datagram[index++] = function_code_;
 
   size_t error_index;
@@ -675,7 +684,7 @@ void runComms() {
 
 UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
 
-Server comms_server(5, commsRegAccessHandler);
+Server comms_server(*board_id_ptr, commsRegAccessHandler);
 
 ProtocolFSM comms_protocol_fsm(comms_server);
 

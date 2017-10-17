@@ -132,7 +132,7 @@ void runCurrentControl() {
 
     uint16_t zeroed_encoder_angle = (raw_encoder_angle - calibration.encoder_zero + encoder_period) % encoder_period;
     // float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * parameters.erpm_per_revolution;
-    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * 14.0f;
+    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * calibration.erevs_per_mrev;
 
     results.debug_f = elec_angle_radians;
 

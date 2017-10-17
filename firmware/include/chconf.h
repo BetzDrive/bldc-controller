@@ -532,7 +532,7 @@
 
 #define CHPRINTF_USE_FLOAT              TRUE
 
-#define CORTEX_VTOR_INIT                0x08004000
+#define CORTEX_VTOR_INIT                0x08008000
 
 #endif  /* _CHCONF_H_ */
 
