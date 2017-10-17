@@ -280,8 +280,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       break;
 
     case COMM_FC_JUMP_TO_ADDR:
-      /* Jump to an arbitrary address */
+      /* Jump to an arbitrary address (only supported by bootloader) */
 
+#ifdef BOOTLOADER
       if (datagram_len - index < 4) {
         errors |= COMM_ERRORS_MALFORMED;
         state_ = State::RESPONDING;
@@ -292,6 +293,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       jump_addr |= (uint32_t)datagram[index++] << 8;
       jump_addr |= (uint32_t)datagram[index++] << 16;
       jump_addr |= (uint32_t)datagram[index++] << 24;
+#endif // #ifdef BOOTLOADER
 
       state_ = State::RESPONDING;
 
