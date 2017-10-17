@@ -15,9 +15,9 @@ static Thread *control_thread_ptr;
 
 static SVM modulator(SVMStrategy::TOP_BOTTOM_CLAMP);
 
-static PID pid_id(0.01f, 100.0f, 0.0f, current_control_interval);
+static PID pid_id(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f, current_control_interval);
 
-static PID pid_iq(0.01f, 100.0f, 0.0f, current_control_interval);
+static PID pid_iq(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f, current_control_interval);
 
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
