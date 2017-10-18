@@ -8,6 +8,8 @@
 |--------------|------------------|-------------------------|----------------|----------|---------------|-----------------|-----|
 | **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | n | 2 |
 
+Setting the board ID to `0` will broadcast the request. All connected boards will listen a broadcasted command and attempt to respond, so this should typically only be used with a single board connected.
+
 #### Response Message Format:
 
 |  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Errors | Payload | CRC* |
@@ -19,7 +21,7 @@
 -------
 
 
-## Functions
+## Function Codes
 
 | Function | Name | Description | Request Payload | Response Payload |
 |--------|-----------------------------|-------------------------------------------------------|-----------|---|
@@ -66,6 +68,7 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 
 | Address | Description | Type |
 |----------|---------------------------|---------|
+| `0x0000`| Board ID | `uint8_t` |
 | `0x0000`| Firmware Version | `uint16_t` |
 | `0x0001`| Bootloader Version | `uint16_t` |
 
@@ -74,11 +77,12 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 | Address | Description | Type |
 |----------|---------------------------|---------|
 | `0x1000` | Phase A Encoder Angle (radians) | `float` |
-| `0x1001`| Invert Phases | `bool` |
-| `0x1002`| FOC Kp (d) | `float` |
-| `0x1003`| FOC Ki (d) | `float` |
-| `0x1004`| FOC Kp (q) | `float` |
-| `0x1005`| FOC Ki (q) | `float` |
+| `0x1001`| Electronic Revolutions Per Mechanical Revolutions | `uint8_t` |
+| `0x1002`| Invert Phases | `uint8_t` |
+| `0x1003`| FOC Kp (d) | `float` |
+| `0x1004`| FOC Ki (d) | `float` |
+| `0x1005`| FOC Kp (q) | `float` |
+| `0x1006`| FOC Ki (q) | `float` |
 
 **Volatile Registers `(0x2***)`**
 
