@@ -35,6 +35,28 @@ struct Results {
       angle(0)  {}
 };
 
+struct Calibration {
+  uint16_t encoder_zero;        // Phase-aligned encoder zero position
+  uint8_t erevs_per_mrev;       // Electrical revolutions per mechanical revolution
+  float winding_resistance;     // Motor winding resistance in ohms
+  uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
+  float foc_kp_d;               // Proportional gain for FOC/d PI loop
+  float foc_ki_d;               // Integral gain for FOC/d PI loop
+  float foc_kp_q;               // Proportional gain for FOC/q PI loop
+  float foc_ki_q;               // Integral gain for FOC/q PI loop
+
+  Calibration()
+    : encoder_zero(0),
+      erevs_per_mrev(1),
+      winding_resistance(17.8f),// GBM110-150T
+      flip_phases(false),
+      foc_kp_d(0.01f),
+      foc_ki_d(100.0f),
+      foc_kp_q(0.01f),
+      foc_ki_q(100.0f)
+  {}
+};
+
 struct Parameters {
   float foc_q_current_sp;       // FOC quadrature current setpoint in amperes
   float foc_d_current_sp;       // FOC direct current setpoint in amperes
@@ -42,11 +64,7 @@ struct Parameters {
   uint8_t led_red_intensity;    // Status LED red intensity
   uint8_t led_green_intensity;  // Status LED green intensity
   uint8_t led_blue_intensity;   // Status LED blue intensity
-  uint16_t encoder_zero;        // Phase-aligned encoder zero position
   float cmd_duty_cycle;         // Duty cycle command
-  uint8_t erevs_per_mrev;       // Number of electrical revolutions per mechanical revolution
-  uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
-  float winding_resistance;     // Motor winding resistance in ohms
   uint8_t raw_pwm_mode;
   float phase0;
   float phase1;
@@ -59,11 +77,7 @@ struct Parameters {
       led_red_intensity(0),
       led_green_intensity(0),
       led_blue_intensity(0),
-      encoder_zero(0),
       cmd_duty_cycle(0),
-      erevs_per_mrev(1),
-      flip_phases(false),
-      winding_resistance(17.8f), // GBM110-150T
       raw_pwm_mode(1),
       phase0(0),
       phase1(0),
@@ -73,22 +87,18 @@ struct Parameters {
 /**
  * Result values written by the control thread
  */
-extern Results active_results;
+extern Results results;
 
 /**
- * Result values read by the comms thread
+ * Calibration values
+ *
  */
-extern Results sync_results;
+extern Calibration calibration;
 
 /**
  * Parameter values written by the comms thread
  */
-extern Parameters active_parameters;
-
-/**
- * Parameter values read by the control thread
- */
-extern Parameters sync_parameters;
+extern Parameters parameters;
 
 /**
  * Results synchronization was requested

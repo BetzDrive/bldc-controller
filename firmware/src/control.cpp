@@ -15,9 +15,9 @@ static Thread *control_thread_ptr;
 
 static SVM modulator(SVMStrategy::TOP_BOTTOM_CLAMP);
 
-static PID pid_id(0.01f, 100.0f, 0.0f, current_control_interval);
+static PID pid_id(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f, current_control_interval);
 
-static PID pid_iq(0.01f, 100.0f, 0.0f, current_control_interval);
+static PID pid_iq(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f, current_control_interval);
 
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
@@ -76,7 +76,7 @@ void runCurrentControl() {
 
   chSysUnlock();
 
-  active_results.encoder_angle = raw_encoder_angle;
+  results.encoder_angle = raw_encoder_angle;
 
   /*
    * Calculate average voltages and currents
@@ -102,38 +102,39 @@ void runCurrentControl() {
     adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
   }
 
-  active_results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
-  active_results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
-  active_results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
-  // active_results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
-  // active_results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
-  // active_results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
-  active_results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
+  results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
+  results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
+  results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
+  // results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
+  // results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
+  // results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
+  results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
 
   /*
    * Compute phase duty cycles
    */
 
-  if (active_parameters.raw_pwm_mode) {
+  if (parameters.raw_pwm_mode) {
     /*
      * Directly set PWM duty cycles
      */
 
-    gate_driver.setPWMDutyCycle(0, active_parameters.phase0);
-    gate_driver.setPWMDutyCycle(1, active_parameters.phase1);
-    gate_driver.setPWMDutyCycle(2, active_parameters.phase2);
+    gate_driver.setPWMDutyCycle(0, parameters.phase0);
+    gate_driver.setPWMDutyCycle(1, parameters.phase1);
+    gate_driver.setPWMDutyCycle(2, parameters.phase2);
   } else {
     /*
      * Run field-oriented control
      */
 
     float ialpha, ibeta;
-    transformClarke(active_results.average_ia, active_results.average_ib, active_results.average_ic, ialpha, ibeta);
-    
-    uint16_t zeroed_encoder_angle = (raw_encoder_angle - active_parameters.encoder_zero + encoder_period) % encoder_period;
-    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * active_parameters.erevs_per_mrev;
+    transformClarke(results.average_ia, results.average_ib, results.average_ic, ialpha, ibeta);
 
-    active_results.debug_f = elec_angle_radians;
+    uint16_t zeroed_encoder_angle = (raw_encoder_angle - calibration.encoder_zero + encoder_period) % encoder_period;
+    // float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * parameters.erpm_per_revolution;
+    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * calibration.erevs_per_mrev;
+
+    results.debug_f = elec_angle_radians;
 
     float cos_theta = fast_cos(elec_angle_radians);
     float sin_theta = fast_sin(elec_angle_radians);
@@ -144,23 +145,23 @@ void runCurrentControl() {
     // pid_id.setSetPoint(0.0f);
     // pid_id.setProcessValue(id);
 
-    // pid_iq.setSetPoint(active_parameters.cmd_duty_cycle);
+    // pid_iq.setSetPoint(parameters.cmd_duty_cycle);
     // pid_iq.setProcessValue(iq);
-    // pid_iq.setBias(active_parameters.cmd_duty_cycle * active_parameters.winding_resistance);
+    // pid_iq.setBias(parameters.cmd_duty_cycle * calibration.winding_resistance);
 
     // float vd = pid_id.compute();
     // float vq = pid_iq.compute();
 
     float vd = -2.0 * id;
-    float vq = -2.0 * (iq - active_parameters.cmd_duty_cycle) + active_parameters.cmd_duty_cycle * active_parameters.winding_resistance;
+    float vq = -2.0 * (iq - parameters.cmd_duty_cycle) + parameters.cmd_duty_cycle * calibration.winding_resistance;
 
-    float vd_norm = vd / active_results.average_vin;
-    float vq_norm = vq / active_results.average_vin;
+    float vd_norm = vd / results.average_vin;
+    float vq_norm = vq / results.average_vin;
 
     float valpha_norm, vbeta_norm;
     transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);
 
-    if (active_parameters.flip_phases) {
+    if (calibration.flip_phases) {
       vbeta_norm = -vbeta_norm;
     }
 

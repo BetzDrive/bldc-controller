@@ -244,8 +244,6 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       start_addr_ |= (comm_addr_t)datagram[index++] << 8;
       reg_count_ = datagram[index++];
 
-      synced_ = (function_code_ == COMM_FC_READ_REGS_SYNCED);
-
       state_ = State::RESPONDING_READ;
 
       break;
@@ -264,9 +262,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       start_addr_ |= (comm_addr_t)datagram[index++] << 8;
       reg_count_ = datagram[index++];
 
-      synced_ = (function_code_ == COMM_FC_WRITE_REGS_SYNCED);
-
-      server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors, synced_);
+      server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors);
 
       state_ = State::RESPONDING;
 
@@ -546,7 +542,7 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
       error_index = index;
       index += 2;
 
-      server_->readRegisters(start_addr_, reg_count_, &datagram[index], buf_len, max_datagram_len - index, errors, synced_);
+      server_->readRegisters(start_addr_, reg_count_, &datagram[index], buf_len, max_datagram_len - index, errors);
       index += buf_len;
 
       /* Copy error code into response */
