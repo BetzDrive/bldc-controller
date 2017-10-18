@@ -37,7 +37,7 @@ struct Results {
 
 struct Calibration {
   uint16_t encoder_zero;        // Phase-aligned encoder zero position
-  uint8_t erevs_per_mrev;       // Electronic revolutions per mechanical revolution
+  uint8_t erevs_per_mrev;       // Electrical revolutions per mechanical revolution
   float winding_resistance;     // Motor winding resistance in ohms
   uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
   float foc_kp_d;               // Proportional gain for FOC/d PI loop
