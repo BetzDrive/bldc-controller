@@ -16,6 +16,9 @@ struct Results {
   uint16_t encoder_diag;
   float angle;                  // Encoder diagnostics
 
+  float encoder_radian_angle;
+  uint16_t encoder_revs;
+
   float average_va;             // Average voltage on phase A, volts
   float average_vb;             // Average voltage on phase B, volts
   float average_vc;             // Average voltage on phase C, volts

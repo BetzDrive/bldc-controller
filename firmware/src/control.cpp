@@ -8,7 +8,7 @@
 #include "chprintf.h"
 #include "SVM.h"
 #include "PID.h"
-
+#include "constants.h"
 namespace motor_driver {
 
 static Thread *control_thread_ptr;
@@ -76,6 +76,15 @@ void runCurrentControl() {
 
   chSysUnlock();
 
+  uint16_t prev_raw_encoder_angle = results.encoder_angle;
+  float threshold = pi;
+  float diff = (prev_raw_encoder_angle  - raw_encoder_angle) * encoder_angle_to_radians;
+  if( diff > threshold ){
+    results.encoder_revs += 1;
+  } else if ( diff < -threshold ){
+    results.encoder_revs -= 1;
+  }
+  results.encoder_radian_angle = raw_encoder_angle * encoder_angle_to_radians + results.encoder_revs * 2 * pi;
   results.encoder_angle = raw_encoder_angle;
 
   /*
