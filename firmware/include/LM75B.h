@@ -19,7 +19,7 @@ public:
 private:
   I2CDriver * const i2c_driver_;
   I2CConfig i2c_config_;
-}
+};
 
 } // namespace motor_driver
 

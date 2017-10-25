@@ -120,7 +120,7 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/fw_comms.cpp \
          $(SRC)/SVM.cpp \
          $(SRC)/PID.cpp \
-	 $(SRC)/LM75D.cpp
+	 $(SRC)/LM75B.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler

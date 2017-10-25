@@ -133,7 +133,7 @@ static const PWMConfig adc_trigger_pwm_config = {
   0
 };
 
-LM75D temp_sensor(I2CD1);
+LM75B temp_sensor(I2CD1);
 
 void initPeripherals() {
   chBSemInit(&ivsense_adc_samples_bsem, true);

@@ -14,9 +14,9 @@ bool LM75B::receive(uint16_t addr, uint8_t* data, size_t size) {
   return msg >= 0;
 }
 
-bool getTemperature(float* temp) {
+bool LM75B::getTemperature(float* temp) {
   uint8_t data[2];
-  bool success = receive(0x48, data, 2);
+  bool success = LM75B::receive(0x48, data, 2);
   if (success) {
     int16_t bits = (data[1] << 8) + data[0];
     *temp = (float) (bits >> 5) * 0.125;
