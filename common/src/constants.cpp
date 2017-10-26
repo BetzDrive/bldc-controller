@@ -37,4 +37,7 @@ const uint16_t led_gamma_table[] = {
   48564, 49114, 49668, 50227, 50789, 51355, 51926, 52500,
 };
 
+const void *nvparams_start = reinterpret_cast<void *>(0x08004000);
+const uint8_t *board_id_ptr = reinterpret_cast<const uint8_t *>(nvparams_start);
+
 } // namespace motor_driver
