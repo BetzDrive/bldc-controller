@@ -69,8 +69,8 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 | Address | Description | Type |
 |----------|---------------------------|---------|
 | `0x0000`| Board ID | `uint8_t` |
-| `0x0000`| Firmware Version | `uint16_t` |
-| `0x0001`| Bootloader Version | `uint16_t` |
+| `0x0001`| Firmware Version | `uint16_t` |
+| `0x0002`| Bootloader Version | `uint16_t` |
 
 **Calibration Registers `(0x1***)`**
 
@@ -105,7 +105,7 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 | `0x3004` | Accelerometer X (m/sec^2) | `float` |
 | `0x3005` | Accelerometer Y (m/sec^2) | `float` |
 | `0x3006` | Accelerometer Z (m/sec^2) | `float` |
-| `0x3006` | Temperature (°C) | `float` |
+| `0x3007` | Temperature (°C) | `float` |
 
 -------
 
