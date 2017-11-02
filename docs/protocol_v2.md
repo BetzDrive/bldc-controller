@@ -105,6 +105,7 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 | `0x3004` | Accelerometer X (m/sec^2) | `float` |
 | `0x3005` | Accelerometer Y (m/sec^2) | `float` |
 | `0x3006` | Accelerometer Z (m/sec^2) | `float` |
+| `0x3006` | Temperature (°C) | `float` |
 
 -------
 
