@@ -42,7 +42,7 @@ constexpr size_t ivsense_channel_vin = 6;   // Supply voltage channel index
 
 constexpr float ivsense_voltage_ratio = (2.21e3f + 39.2e3f) / 2.21e3f;      // Ratio of actual voltage to ADC input voltage
 constexpr float ivsense_current_shunt_value = 0.002f;                       // Current shunt resistor value, ohms
-constexpr float ivsense_current_amp_gain = 50.0f;                           // Current shunt amplifier gain
+constexpr float ivsense_current_amp_gain = 50.0f;                           // Current shunt amplifier gain, V/V
 constexpr float adc_vref_voltage = 3.3f;                                    // ADC reference voltage, volts
 constexpr unsigned int adc_max_value = 1u << 12;                            // ADC maximum value
 
