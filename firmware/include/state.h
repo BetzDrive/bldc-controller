@@ -14,7 +14,6 @@ struct Results {
 
   uint16_t encoder_angle;       // Encoder angle, wraps around
   uint16_t encoder_diag;
-  float angle;                  // Encoder diagnostics
 
   float encoder_radian_angle;
   int16_t encoder_revs;
