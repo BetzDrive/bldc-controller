@@ -132,6 +132,18 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       break;
     case State::IDLE:
       /* Start of datagram */
+      if (c == 0xFF)
+        state_ = State::INITIALIZING;
+      break;
+    case State::RECEIVING_PROTOCOL_VERSION:
+      /* Start of datagram */
+      if (c == 0xFF)
+        state_ = State::RECEIVING_LENGTH;
+      else
+        state_ = State::INITIALIZING;
+      break;
+    case State::RECEIVING_LENGTH:
+      /* Start of datagram */
       rx_len_ = (size_t)c;
       uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_);
       gptStartOneShotI(gpt_driver_, ((1 + rx_len_ + crc_length + 4) * 2) * 10);
