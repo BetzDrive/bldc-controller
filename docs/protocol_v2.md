@@ -106,6 +106,7 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 | `0x3005` | Accelerometer Y (m/sec^2) | `float` |
 | `0x3006` | Accelerometer Z (m/sec^2) | `float` |
 | `0x3007` | Temperature (°C) | `float` |
+| `0x3008` | Battery Voltage (V) | `float` |
 
 -------
 
