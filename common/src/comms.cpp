@@ -27,7 +27,9 @@ void UARTEndpoint::start() {
 }
 
 void UARTEndpoint::startTransmit() {
-  tx_buf_[0] = (uint8_t)tx_len_;
+  tx_buf_[0] = 0xFF; // Sync flag
+  tx_buf_[1] = 0xFF; // Protocol version
+  tx_buf_[2] = (uint8_t)tx_len_;
   uint16_t crc = computeCRC(tx_buf_, tx_len_);
   tx_buf_[tx_len_ + 1] = crc & 0xff;
   tx_buf_[tx_len_ + 2] = (crc >> 8) & 0xff;
@@ -82,7 +84,7 @@ bool UARTEndpoint::hasReceiveError() const {
 }
 
 uint8_t *UARTEndpoint::getTransmitBufferPtr() {
-  return tx_buf_ + 1;
+  return tx_buf_ + 3;
 }
 
 void UARTEndpoint::setTransmitLength(size_t len) {
