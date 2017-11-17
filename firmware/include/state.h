@@ -7,10 +7,10 @@
 namespace motor_driver {
 
 struct Results {
-  int32_t encoder_pos;          // Encoder position in encoder units
-  float encoder_vel;            // Encoder velocity in encoder units/second
-  float foc_q_current_avg;      // Average FOC quadrature current in amperes
-  float foc_d_current_avg;      // Average FOC direct current in amperes
+  int32_t encoder_pos;          // Encoder position (encoder units)
+  float encoder_vel;            // Encoder velocity (encoder units/second)
+  float foc_d_current;          // Measured FOC direct current (amperes)
+  float foc_q_current;          // Measured FOC quadrature current (amperes)
 
   uint16_t encoder_angle;       // Encoder angle, wraps around
   uint16_t encoder_diag;
@@ -19,13 +19,13 @@ struct Results {
   float encoder_radian_angle;
   int16_t encoder_revs;
 
-  float average_va;             // Average voltage on phase A, volts
-  float average_vb;             // Average voltage on phase B, volts
-  float average_vc;             // Average voltage on phase C, volts
-  float average_vin;            // Average supply voltage, volts
-  float average_ia;             // Average current into phase A, amperes
-  float average_ib;             // Average current into phase B, amperes
-  float average_ic;             // Average current into phase C, amperes
+  float average_va;             // Average voltage on phase A (volts)
+  float average_vb;             // Average voltage on phase B (volts)
+  float average_vc;             // Average voltage on phase C (volts)
+  float average_vin;            // Average supply voltage (volts)
+  float average_ia;             // Average current into phase A (amperes)
+  float average_ib;             // Average current into phase B (amperes)
+  float average_ic;             // Average current into phase C (amperes)
 
   uint16_t debug_u16;
   float debug_f;
@@ -33,8 +33,8 @@ struct Results {
   Results()
     : encoder_pos(0),
       encoder_vel(0),
-      foc_q_current_avg(0),
-      foc_d_current_avg(0),
+      foc_d_current(0),
+      foc_q_current(0),
       angle(0)  {}
 };
 
@@ -53,9 +53,9 @@ struct Calibration {
       erevs_per_mrev(1),
       winding_resistance(17.8f),// GBM110-150T
       flip_phases(false),
-      foc_kp_d(0.01f),
+      foc_kp_d(3.0f),
       foc_ki_d(100.0f),
-      foc_kp_q(0.01f),
+      foc_kp_q(3.0f),
       foc_ki_q(100.0f)
   {}
 };
@@ -94,7 +94,6 @@ extern Results results;
 
 /**
  * Calibration values
- *
  */
 extern Calibration calibration;
 

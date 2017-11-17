@@ -53,6 +53,12 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       case 0x010b: //267
         handleVarAccess(results.encoder_radian_angle, buf, index, buf_size, access_type, errors);
         break;
+      case 0x010c: //268
+        handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x010d: //269
+        handleVarAccess(results.foc_q_current, buf, index, buf_size, access_type, errors);
+        break;
       case 0x0200:
         handleVarAccess(results.average_ia, buf, index, buf_size, access_type, errors);
         break;
