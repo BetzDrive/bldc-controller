@@ -29,7 +29,8 @@ void UARTEndpoint::start() {
 void UARTEndpoint::startTransmit() {
   tx_buf_[0] = 0xff; // Sync flag
   tx_buf_[1] = 0xff; // Protocol version
-  tx_buf_[2] = (uint8_t)tx_len_;
+  tx_buf_[2] = tx_len_ & 0xff;
+  tx_buf_[3] = (tx_len_ >> 8) & 0xff;
 
   uint16_t crc = computeCRC(tx_buf_, header_len + tx_len_);
   tx_buf_[header_len + tx_len_] = crc & 0xff;
@@ -146,15 +147,21 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       /* Check protocol version */
       rx_buf_[1] = (uint8_t)c;
       if (c == 0xff) {
-        state_ = State::RECEIVING_LENGTH;
+        state_ = State::RECEIVING_LENGTH_L;
       } else {
         state_ = State::INITIALIZING;
       }
       break;
-    case State::RECEIVING_LENGTH:
-      /* Store packet length and start receiving data */
+    case State::RECEIVING_LENGTH_L:
+      /* Store lower byte of packet length */
       rx_buf_[2] = (uint8_t)c;
-      rx_len_ = (size_t)c;
+      state_ = State::RECEIVING_LENGTH_H;
+      break;
+    case State::RECEIVING_LENGTH_H:
+      /* Store upper byte of packet length and start receiving data */
+      rx_buf_[3] = (uint8_t)c;
+      rx_len_ = ((size_t)rx_buf_[3] << 8) | rx_buf_[2];
+      // TODO: what if rx_len_ is too big? add some bounds checking
       uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_ + header_len);
       gptStartOneShotI(gpt_driver_, ((1 + rx_len_ + crc_length + 4) * 2) * 10);
       state_ = State::RECEIVING;

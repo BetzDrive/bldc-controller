@@ -19,7 +19,7 @@ struct UARTEndpointGPTConfig : GPTConfig {
 
 class UARTEndpoint {
 public:
-  static constexpr size_t header_len = 3;
+  static constexpr size_t header_len = 4;
   static constexpr size_t crc_length = 2;
   static constexpr size_t max_dg_payload_len = 255;
 
@@ -70,7 +70,8 @@ private:
     INITIALIZING,                 // Waiting for bus to become idle
     IDLE,                         // Waiting for sync flag
     RECEIVING_PROTOCOL_VERSION,   // Waiting for protocol version byte
-    RECEIVING_LENGTH,             // Waiting for length byte
+    RECEIVING_LENGTH_L,           // Waiting for lower byte of length word
+    RECEIVING_LENGTH_H,           // Waiting for upper byte of length word
     RECEIVING,                    // Receiving data
     RECEIVING_ERROR,              // An error occurred while receiving data, it will be discarded
     TRANSMITTING                  // Transmitting data
