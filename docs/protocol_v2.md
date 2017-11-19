@@ -77,7 +77,7 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 
 | Address  | Description | Type |
 |----------|---------------------------|---------|
-| `0x1000` | Phase A Encoder Angle (radians) | `float` |
+| `0x1000` | Phase A Encoder Angle (rad) | `float` |
 | `0x1001` | Electrical Revolutions Per Mechanical Revolution | `uint8_t` |
 | `0x1002` | Invert Phases | `uint8_t` |
 | `0x1003` | Direct Current Controller Kp | `float` |
@@ -90,8 +90,8 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 | Address  | Description | Type |
 |----------|---------------------------|---------|
 | `0x2000` | Control Mode | `uint8_t` |
-| `0x2001` | Direct Current Command (amps) | `float` |
-| `0x2002` | Quadrature Current Command (amps) | `float` |
+| `0x2001` | Direct Current Command (A) | `float` |
+| `0x2002` | Quadrature Current Command (A) | `float` |
 | `0x2003` | Phase A Raw PWM Duty Cycle | `float` |
 | `0x2004` | Phase B Raw PWM Duty Cycle | `float` |
 | `0x2005` | Phase C Raw PWM Duty Cycle | `float` |
@@ -100,17 +100,18 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 
 | Address  | Description | Type |
 |----------|---------------------------|---------|
-| `0x3000` | Rotor Position (radians) | `float` |
+| `0x3000` | Rotor Position (rad) | `float` |
 | `0x3001` | Rotor Velocity (rad/sec) | `float` |
-| `0x3002` | Direct Current Measurement (amps) | `float` |
-| `0x3003` | Quadrature Current Measurement (amps) | `float` |
-| `0x3004` | Board Temperature (°C) | `float` |
-| `0x3005` | Accelerometer X (m/sec^2) | `float` |
-| `0x3006` | Accelerometer Y (m/sec^2) | `float` |
-| `0x3007` | Accelerometer Z (m/sec^2) | `float` |
-| `0x3008` | Gyroscope X (rad/sec) | `float` |
-| `0x3009` | Gyroscope Y (rad/sec) | `float` |
-| `0x300a` | Gyroscope Z (rad/sec) | `float` |
+| `0x3002` | Direct Current Measurement (A) | `float` |
+| `0x3003` | Quadrature Current Measurement (A) | `float` |
+| `0x3004` | DC Supply Voltage (V) | `float` |
+| `0x3005` | Board Temperature (°C) | `float` |
+| `0x3006` | Accelerometer X (m/s^2) | `float` |
+| `0x3007` | Accelerometer Y (m/s^2) | `float` |
+| `0x3008` | Accelerometer Z (m/s^2) | `float` |
+| `0x3009` | Gyroscope X (rad/s) | `float` |
+| `0x300a` | Gyroscope Y (rad/s) | `float` |
+| `0x300b` | Gyroscope Z (rad/s) | `float` |
 
 
 -------
