@@ -14,9 +14,9 @@ Setting the board ID to `0` will broadcast the request. All connected boards wil
 
 |  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Errors | Payload | CRC* |
 |--------------|------------------|-------------------------|----------------|----------|--------|--------|-----|
-| **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | n | 2 |
+| **Size (bytes)** | 1 | 1 | 2 | 1 | 2 | n | 2 |
 
-*not yet implemented
+\*not yet implemented
 
 -------
 
@@ -66,46 +66,52 @@ By incrementing the *Read Count* and *Write Count* values, registers with consec
 
 **System Registers `(0x0***)`**
 
-| Address | Description | Type |
+| Address  | Description | Type |
 |----------|---------------------------|---------|
-| `0x0000`| Board ID | `uint8_t` |
-| `0x0001`| Firmware Version | `uint16_t` |
-| `0x0002`| Bootloader Version | `uint16_t` |
+| `0x0000` | Register Map Version | `uint16_t` |
+| `0x0001` | Board ID | `uint8_t` |
+| `0x0002` | Firmware Version | `uint16_t` |
+| `0x0003` | Bootloader Version | `uint16_t` |
 
 **Calibration Registers `(0x1***)`**
 
-| Address | Description | Type |
+| Address  | Description | Type |
 |----------|---------------------------|---------|
 | `0x1000` | Phase A Encoder Angle (radians) | `float` |
-| `0x1001`| Electronic Revolutions Per Mechanical Revolutions | `uint8_t` |
-| `0x1002`| Invert Phases | `uint8_t` |
-| `0x1003`| FOC Kp (d) | `float` |
-| `0x1004`| FOC Ki (d) | `float` |
-| `0x1005`| FOC Kp (q) | `float` |
-| `0x1006`| FOC Ki (q) | `float` |
+| `0x1001` | Electrical Revolutions Per Mechanical Revolution | `uint8_t` |
+| `0x1002` | Invert Phases | `uint8_t` |
+| `0x1003` | Direct Current Controller Kp | `float` |
+| `0x1004` | Direct Current Controller Ki | `float` |
+| `0x1005` | Quadrature Current Controller Kp | `float` |
+| `0x1006` | Quadrature Current Controller Ki | `float` |
 
 **Volatile Registers `(0x2***)`**
 
-| Address | Description | Type |
+| Address  | Description | Type |
 |----------|---------------------------|---------|
-| `0x2000` | Mode | `uint8_t` |
-| `0x2001` | Current Command | `float` |
-| `0x2002` | Raw PWM A | `float` |
-| `0x2003` | Raw PWM B | `float` |
-| `0x2004` | Raw PWM C | `float` |
+| `0x2000` | Control Mode | `uint8_t` |
+| `0x2001` | Direct Current Command (amps) | `float` |
+| `0x2002` | Quadrature Current Command (amps) | `float` |
+| `0x2003` | Phase A Raw PWM Duty Cycle | `float` |
+| `0x2004` | Phase B Raw PWM Duty Cycle | `float` |
+| `0x2005` | Phase C Raw PWM Duty Cycle | `float` |
 
 **Read Only Registers `(0x3***)`**
 
-| Address | Description | Type |
+| Address  | Description | Type |
 |----------|---------------------------|---------|
 | `0x3000` | Rotor Position (radians) | `float` |
 | `0x3001` | Rotor Velocity (rad/sec) | `float` |
-| `0x3002` | Motor Current (amps) | `float` |
-| `0x3003` | Battery Current (amps) | `float` |
-| `0x3004` | Accelerometer X (m/sec^2) | `float` |
-| `0x3005` | Accelerometer Y (m/sec^2) | `float` |
-| `0x3006` | Accelerometer Z (m/sec^2) | `float` |
-| `0x3007` | Temperature (°C) | `float` |
+| `0x3002` | Direct Current Measurement (amps) | `float` |
+| `0x3003` | Quadrature Current Measurement (amps) | `float` |
+| `0x3004` | Board Temperature (°C) | `float` |
+| `0x3005` | Accelerometer X (m/sec^2) | `float` |
+| `0x3006` | Accelerometer Y (m/sec^2) | `float` |
+| `0x3007` | Accelerometer Z (m/sec^2) | `float` |
+| `0x3008` | Gyroscope X (rad/sec) | `float` |
+| `0x3009` | Gyroscope Y (rad/sec) | `float` |
+| `0x300a` | Gyroscope Z (rad/sec) | `float` |
+
 
 -------
 
