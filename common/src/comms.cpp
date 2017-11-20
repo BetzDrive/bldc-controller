@@ -26,7 +26,7 @@ void UARTEndpoint::start() {
   chSysUnlock();
 }
 
-void UARTEndpoint::startTransmit() {
+void UARTEndpoint::transmit() {
   tx_buf_[0] = 0xff; // Sync flag
   tx_buf_[1] = 0xff; // Protocol version
   tx_buf_[2] = tx_len_ & 0xff;
@@ -45,31 +45,17 @@ void UARTEndpoint::startTransmit() {
   }
 
   chSysUnlock();
+
+  chBSemWait(&tx_bsem_);
 }
 
-void UARTEndpoint::waitReceive() {
-  chBSemWait(&bsem_);
+void UARTEndpoint::receive() {
+  chBSemWait(&rx_bsem_);
 
   uint16_t computed_crc = computeCRC(rx_buf_, header_len + rx_len_);
   uint16_t expected_crc = ((uint16_t)rx_buf_[header_len + rx_len_ + 1] << 8) | (uint16_t)rx_buf_[header_len + rx_len_];
   if (computed_crc != expected_crc) {
     rx_error_ = true;
-  }
-}
-
-bool UARTEndpoint::pollReceive() {
-  msg_t result = chBSemWaitTimeout(&bsem_, TIME_INFINITE);
-
-  if (result == RDY_OK) {
-    uint16_t computed_crc = computeCRC(rx_buf_, header_len + rx_len_);
-    uint16_t expected_crc = ((uint16_t)rx_buf_[header_len + rx_len_ + 1] << 8) | (uint16_t)rx_buf_[header_len + rx_len_];
-    if (computed_crc != expected_crc) {
-      rx_error_ = true;
-    }
-
-    return true;
-  } else {
-    return false;
   }
 }
 
@@ -101,6 +87,7 @@ void UARTEndpoint::uartTransmitCompleteCallback() {
   chSysLockFromIsr();
 
   palClearPad(dir_.port, dir_.pin);
+  chBSemSignalI(&tx_bsem_);
   state_ = State::IDLE;
 
   chSysUnlockFromIsr();
@@ -115,7 +102,7 @@ void UARTEndpoint::uartReceiveCompleteCallback() {
       /* Finished receiving a datagram */
       rx_error_ = (state_ == State::RECEIVING_ERROR);
       gptStopTimerI(gpt_driver_);
-      chBSemSignalI(&bsem_);
+      chBSemSignalI(&rx_bsem_);
       state_ = State::IDLE;
       break;
     default:
@@ -682,7 +669,7 @@ void startComms() {
 }
 
 void runComms() {
-  comms_endpoint.waitReceive();
+  comms_endpoint.receive(); // Blocks until packet is received
 
   if (!comms_endpoint.hasReceiveError()) {
     /* Received valid datagram */
@@ -691,21 +678,21 @@ void runComms() {
     size_t receive_len = comms_endpoint.getReceiveLength();
     comms_protocol_fsm.handleRequest(comms_endpoint.getReceiveBufferPtr(), receive_len, errors);
 
+    size_t transmit_len;
+    comms_protocol_fsm.composeResponse(comms_endpoint.getTransmitBufferPtr(), transmit_len, comms_endpoint.getTransmitBufferSize(), errors);
+
+    if (transmit_len > 0) {
+      /* Send a response */
+      comms_endpoint.setTransmitLength(transmit_len);
+      comms_endpoint.transmit(); // Blocks until packet is fully transmitted
+    }
+
     if (jump_addr != 0) {
       /* Jump to an address if requested */
-      flashJumpApplication(jump_addr);
+      flashJumpApplication(jump_addr); // Does not return
     } else if (should_reset) {
       /* Reset system if requested */
-      NVIC_SystemReset();
-    } else {
-      size_t transmit_len;
-      comms_protocol_fsm.composeResponse(comms_endpoint.getTransmitBufferPtr(), transmit_len, comms_endpoint.getTransmitBufferSize(), errors);
-
-      if (transmit_len > 0) {
-        /* Send a response */
-        comms_endpoint.setTransmitLength(transmit_len);
-        comms_endpoint.startTransmit();
-      }
+      NVIC_SystemReset(); // Does not return
     }
   }
 }

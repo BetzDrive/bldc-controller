@@ -41,16 +41,15 @@ public:
 
     idle_time_ticks_ = 7 * 10; // 3.5 character times at 10 bits/character
 
-    chBSemInit(&bsem_, 0);
+    chBSemInit(&rx_bsem_, 0);
+    chBSemInit(&tx_bsem_, 0);
   }
 
   void start();
 
-  void startTransmit();
+  void transmit();
 
-  void waitReceive();
-
-  bool pollReceive();
+  void receive();
 
   uint8_t *getReceiveBufferPtr();
 
@@ -84,7 +83,8 @@ private:
   UARTEndpointGPTConfig gpt_config_;
   State state_;
   gptcnt_t idle_time_ticks_;
-  BinarySemaphore bsem_;
+  BinarySemaphore rx_bsem_;
+  BinarySemaphore tx_bsem_;
 
   /* Receive DMA buffer */
   uint8_t rx_buf_[header_len + max_dg_payload_len + crc_length];
