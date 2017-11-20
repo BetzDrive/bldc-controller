@@ -33,8 +33,7 @@ struct Results {
     : encoder_pos(0),
       encoder_vel(0),
       foc_q_current_avg(0),
-      foc_d_current_avg(0),
-      angle(0)  {}
+      foc_d_current_avg(0) {}
 };
 
 struct Calibration {

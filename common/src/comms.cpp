@@ -138,7 +138,7 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       /* Possible start of packet */
       rx_buf_[0] = (uint8_t)c;
       if (c == 0xff) {
-        state_ = State::RECEIVING_PROTOCOL_VERSION:
+        state_ = State::RECEIVING_PROTOCOL_VERSION;
       } else {
         state_ = State::INITIALIZING;
       }
