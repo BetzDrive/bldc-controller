@@ -260,7 +260,6 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       break;
 
     case COMM_FC_READ_REGS:
-    case COMM_FC_READ_REGS_SYNCED:
       /* Read registers */
 
       if (datagram_len - index < 3) {
@@ -278,7 +277,6 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       break;
 
     case COMM_FC_WRITE_REGS:
-    case COMM_FC_WRITE_REGS_SYNCED:
       /* Write registers */
 
       if (datagram_len - index < 3) {
@@ -294,6 +292,32 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors);
 
       state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_READ_WRITE_REGS:
+      /* Simultaneous register read/write */
+
+      if (datagram_len - index < 3) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      // Do the write first, so we can re-use the start_addr_ and reg_count_ variables for the read
+      index += 3;
+      start_addr_ = (comm_addr_t)datagram[index++];
+      start_addr_ |= (comm_addr_t)datagram[index++] << 8;
+      reg_count_ = datagram[index++];
+      server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors);
+
+      // Shift index back to perform the read
+      index -= 6;
+      start_addr_ = (comm_addr_t)datagram[index++];
+      start_addr_ |= (comm_addr_t)datagram[index++] << 8;
+      reg_count_ = datagram[index++];
+
+      state_ = State::RESPONDING_READ;
 
       break;
 
