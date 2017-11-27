@@ -2,24 +2,31 @@
 
 ## Overview
 
-#### Request Message Format:
+#### Request Packet Format
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Payload | CRC* |
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Payload | CRC |
 |--------------|------------------|-------------------------|----------------|----------|---------------|-----------------|-----|
 | **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | n | 2 |
 
-Setting the board ID to `0` will broadcast the request. All connected boards will listen a broadcasted command and attempt to respond, so this should typically only be used with a single board connected.
+The message length is the combined length of the board ID, function code, and payload.
 
-#### Response Message Format:
+Setting the board ID to `0` will broadcast the request. All connected boards will listen to a broadcasted command and attempt to respond, so this should typically only be used with a single board connected.
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Errors | Payload | CRC* |
-|--------------|------------------|-------------------------|----------------|----------|--------|--------|-----|
-| **Size (bytes)** | 1 | 1 | 2 | 1 | 2 | n | 2 |
+#### Response Packet Format
 
-\*not yet implemented
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Errors | Payload | CRC |
+|--------------|------------------|-------------------------|----------------|----------|----------|--------|--------|-----|
+| **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | 2 | n | 2 |
+
+The message length is the combined length of the board ID, function code, errors, and payload.
 
 -------
 
+## CRC
+
+Polynomial: CRC-16-IBM (x^16 + x^15 + x^2 + 1).
+
+The CRC is computed over the entire packet excluding the CRC itself.
 
 ## Function Codes
 
