@@ -26,7 +26,9 @@ Setting the board ID to `0` will broadcast the request. All connected boards wil
 | Function | Name | Description | Request Payload | Response Payload |
 |--------|-----------------------------|-------------------------------------------------------|-----------|---|
 | `0x00` | `COMM_FC_NOP` |  |  |  |
-| `0x01` | `COMM_FC_REG_RW` | Simultaneous register read/write. (see below) |  |  |
+| `0x01` | `COMM_FC_REG_READ` | Register read |  |  |
+| `0x02` | `COMM_FC_REG_WRITE` | Register write |  |  |
+| `0x03` | `COMM_FC_REG_READ_WRITE` | Simultaneous reg read/write |  |  |
 | `0x80` | `COMM_FC_SYSTEM_RESET` |  |  |  |
 | `0x81` | `COMM_FC_JUMP_TO_ADDR` |  |  |  |
 | `0x82` | `COMM_FC_FLASH_SECTOR_COUNT` |  |  |  |
@@ -52,13 +54,15 @@ These are used for things like:
 - Re-assigning board ID
 
 ### Reading/Writing
-Registers can be read from and written to using the `COMM_FC_REG_RW` command. The payload of the function request has five distinct fields:
+Registers can be read from and written to using the `COMM_FC_REG_READ_WRITE` command. The payload of the function request has five distinct fields:
 
 |  | Read Start Address | Read Count | Write Start Address | Write Count | Write Values |
 |------|------------|--------------------|-------------|---------------------|--------------|
 | **Size (bytes)** | 2 | 1 | 2 | 1 | *n* |
 
 By incrementing the *Read Count* and *Write Count* values, registers with consecutive addresses can be read from and written to in batches. Their values should be concatenated together in `Write Values` (for writes), as well as in the response payload (for reads).
+
+The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE`commands can be used in the same way, with the read fields omitted for writes and write fields omitted for reads.
 
 ### Register List
 
