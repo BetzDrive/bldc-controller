@@ -22,18 +22,14 @@ time.sleep(0.1)
 
 while True:
     try:
-        temperature = struct.unpack('<f', client.readRegisters(address, 0x010c, 1))
-        print(temperature[0])
-        # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
+        x_x, x_y, x_z = struct.unpack('<iii', client.readRegisters(address, 0x010d, 3))
+        print("x accel: ", x_x)
+        print("y accel: ", x_y)
+        print("z accel: ", x_z)
+        #debug = struct.unpack('<H', client.readRegisters(address, 0x8000, 1))
+        #print(debug[0])
     except IOError:
         print "ioerror"
         pass
-    # angle = struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
-    # print angle
-    time.sleep(0.001)
+    time.sleep(1)
 
-# try:
-#     temperature = struct.unpack('<f', client.readRegisters(address, 0x010c, 1))
-#     print(temperature[0])
-# except IOError:
-#     print "ioerror"

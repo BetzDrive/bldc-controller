@@ -648,6 +648,10 @@ template void handleVarAccess<uint16_t>(uint16_t& var, uint8_t *buf, size_t& ind
 
 template void handleVarAccess<float>(float& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
+template void handleVarAccess<int32_t>(int32_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+
+template void handleVarAccess<int16_t>(int16_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+
 void startComms() {
   comms_endpoint.start();
 }

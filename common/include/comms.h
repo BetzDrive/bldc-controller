@@ -188,6 +188,9 @@ private:
 template<typename T>
 void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
+/* template <typename T, size_t size> */
+/* void handleVarArrAccess(const T (&array)[size], uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors); */
+
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
 void startComms();
