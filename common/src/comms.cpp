@@ -246,7 +246,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_READ_REGS:
+    case COMM_FC_REG_READ:
       /* Read registers */
 
       if (datagram_len - index < 3) {
@@ -263,7 +263,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_WRITE_REGS:
+    case COMM_FC_REG_WRITE:
       /* Write registers */
 
       if (datagram_len - index < 3) {
@@ -282,7 +282,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_READ_WRITE_REGS:
+    case COMM_FC_REG_READ_WRITE:
       /* Simultaneous register read/write */
 
       if (datagram_len - index < 3) {

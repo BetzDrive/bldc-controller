@@ -20,9 +20,9 @@ constexpr comm_id_t COMM_ID_MAX = UINT8_MAX;
 
 using comm_fc_t = uint8_t;
 constexpr comm_fc_t COMM_FC_NOP = 0x00;
-constexpr comm_fc_t COMM_FC_READ_REGS = 0x01;
-constexpr comm_fc_t COMM_FC_WRITE_REGS = 0x02;
-constexpr comm_fc_t COMM_FC_READ_WRITE_REGS = 0x03;
+constexpr comm_fc_t COMM_FC_REG_READ = 0x01;
+constexpr comm_fc_t COMM_FC_REG_WRITE = 0x02;
+constexpr comm_fc_t COMM_FC_REG_READ_WRITE = 0x03;
 constexpr comm_fc_t COMM_FC_SYSTEM_RESET = 0x80;
 constexpr comm_fc_t COMM_FC_JUMP_TO_ADDR = 0x81;
 constexpr comm_fc_t COMM_FC_FLASH_SECTOR_COUNT = 0x82;
