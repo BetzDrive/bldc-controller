@@ -59,12 +59,12 @@ constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;
 constexpr float ivsense_current_per_count = ivsense_current_max / adc_max_value;
 
 /* Address of non-volatile parameters storage */
-constexpr void *nvparams_start = reinterpret_cast<void *>(0x08004000);
+/* extern const void *nvparams_start; */
 
 /* Length of non-volatile parameters storage */
 constexpr size_t nvparams_len = 1u << 14; // 16 kiB
 
-constexpr uint8_t *board_id_ptr = reinterpret_cast<uint8_t *>(nvparams_start);
+extern const uint8_t *board_id_ptr;
 
 } // namespace motor_driver
 

@@ -75,6 +75,27 @@ static msg_t commsThreadRun(void *arg) {
   return CH_SUCCESS; // Should never get here
 }
 
+/*
+ * IMU Thread
+ */
+
+static WORKING_AREA(imu_thread_wa, 128);
+static msg_t imuThreadRun(void *arg) {
+  (void)arg;
+  
+  chRegSetThreadName("imu");
+
+  while (true) {
+    int32_t xl[3];
+    acc_gyr.Get_Acc(xl);
+    results.xl_x = xl[0];
+    results.xl_y = xl[1];
+    results.xl_z = xl[2];
+  }
+
+  return CH_SUCCESS;
+}
+
 int main(void) {
   // Start RTOS
   halInit();
@@ -95,6 +116,7 @@ int main(void) {
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
   chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
+  chThdCreateStatic(imu_thread_wa, sizeof(imu_thread_wa), LOWPRIO, imuThreadRun, NULL);
 
   chThdSetPriority(HIGHPRIO);
   runInnerControlLoop();
