@@ -9,9 +9,7 @@ void LM75B::start() {
 bool LM75B::receive(uint16_t addr, uint8_t* data, size_t size) {
   systime_t tmo = MS2ST(4);
   msg_t status = RDY_OK;
-  /* i2cAcquireBus(i2c_driver_); */
   status = i2cMasterReceiveTimeout(i2c_driver_, addr, data, size, tmo);
-  /* i2cReleaseBus(i2c_driver_); */
   return status == RDY_OK;
 }
 

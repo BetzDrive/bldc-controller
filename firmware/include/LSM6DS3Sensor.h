@@ -206,18 +206,6 @@ class LSM6DS3Sensor
     uint8_t IO_Read(uint8_t* pBuffer, uint8_t RegisterAddr, uint16_t NumByteToRead)
     {
       uint8_t add = (uint8_t) ((address >> 1) & 0x7F);
-      /* dev_i2c->beginTransmission(((uint8_t)(((address) >> 1) & 0x7F))); */
-      /* dev_i2c->write(RegisterAddr); */
-      /* dev_i2c->endTransmission(false); */
-
-      /* dev_i2c->requestFrom(((uint8_t)(((address) >> 1) & 0x7F)), (byte) NumByteToRead); */
-
-      /* int i=0; */
-      /* while (dev_i2c->available()) */
-      /* { */
-      /*   pBuffer[i] = dev_i2c->read(); */
-      /*   i++; */
-      /* } */
       systime_t tmo = MS2ST(3);
       msg_t status = RDY_OK;
       status = i2cMasterTransmitTimeout(dev_i2c, add, &RegisterAddr, 1, pBuffer, NumByteToRead, tmo);
@@ -238,13 +226,6 @@ class LSM6DS3Sensor
     uint8_t IO_Write(uint8_t* pBuffer, uint8_t RegisterAddr, uint16_t NumByteToWrite)
     {
       uint8_t add = (uint8_t) ((address >> 1) & 0x7F);
-      /* dev_i2c->beginTransmission(((uint8_t)(((address) >> 1) & 0x7F))); */
-
-      /* dev_i2c->write(RegisterAddr); */
-      /* for (int i = 0 ; i < NumByteToWrite ; i++) */
-      /*   dev_i2c->write(pBuffer[i]); */
-
-      /* dev_i2c->endTransmission(true); */
       uint8_t txbuf[NumByteToWrite + 1];
       txbuf[0] = RegisterAddr;
       for (int i = 0; i < NumByteToWrite; i++) {
