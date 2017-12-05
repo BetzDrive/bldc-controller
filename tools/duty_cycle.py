@@ -21,12 +21,13 @@ client.leaveBootloader(address)
 s.flush()
 time.sleep(0.1)
 
-angle_mapping = {1: 10356, 2: 13430, 3: 12164, 4: 8132, 5: 7568} # mapping of id to joints
-flip_phase_mapping = {1: False , 2: True , 3: False , 4: False, 5: False}
+angle_mapping = {1: 10356, 2: 11349, 3: 12164, 4: 8132, 5: 7568} # mapping of id to joints
+flip_phase_mapping = {1: False , 2: False , 3: False , 4: False, 5: False}
 
 client.writeRegisters(address, 0x0101, 1, struct.pack('<H', angle_mapping[address]) )
 client.writeRegisters(address, 0x0106, 1, struct.pack('<f', duty_cycle) )
 client.writeRegisters(address, 0x0102, 1, struct.pack('<B', 0) )
+client.writeRegisters(address, 0x010a, 1, struct.pack('<B', 21) )
 client.writeRegisters(address, 0x0109, 1, struct.pack('<B', int(flip_phase_mapping[address])) )
 
 while True:
