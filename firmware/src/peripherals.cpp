@@ -133,6 +133,11 @@ static const PWMConfig adc_trigger_pwm_config = {
   0
 };
 
+LM75B temp_sensor(I2CD1);
+
+LSM6DS3Sensor acc_gyr(&I2CD1);
+
+
 void initPeripherals() {
   chBSemInit(&ivsense_adc_samples_bsem, true);
 }
@@ -161,6 +166,13 @@ void startPeripherals() {
 
   // Start encoder
   encoder.start();
+
+  // Start temperature sensor
+  temp_sensor.start();
+
+  // Start accelerometer
+  acc_gyr.start();
+  acc_gyr.Enable_X();
 
   // Start ADC
   adcStart(&ADCD1, NULL);

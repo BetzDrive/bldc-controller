@@ -267,9 +267,11 @@ class BLDCControllerClient:
         else:
             # Reached maximum number of tries
             self._ser.flushInput()
+            print "max tries"
             return False, None
 
         if lb == None or len(lb) == 0:
+            print "no data"
             return False, None
 
         message_len, = struct.unpack('B', lb)
@@ -277,12 +279,14 @@ class BLDCControllerClient:
 
         if len(message) < message_len:
             self._ser.flushInput()
+            print "not enough data"
             return False, None
 
         crc_bytes = self._ser.read(2)
 
         if len(crc_bytes) < 2:
             self._ser.flushInput()
+            print "crc not good"
             return False, None
 
         message_server_id, message_func_code, errors = struct.unpack('<BBH', message[:4])
@@ -301,20 +305,21 @@ class BLDCControllerClient:
         if (errors & ~COMM_ERRORS_OP_FAILED) != 0:
             raise ProtocolError('other error flags set', errors)
 
-        # if (errors & COMM_ERRORS_OP_FAILED) != 0:
+        if (errors & COMM_ERRORS_OP_FAILED) != 0:
         #     raise ProtocolError('operation failed')
+            print "operation failed"
 
-        # if (errors & COMM_ERRORS_MALFORMED) != 0:
-        #     raise ProtocolError('malformed request')
+        if (errors & COMM_ERRORS_MALFORMED) != 0:
+            raise ProtocolError('malformed request')
 
-        # if (errors & COMM_ERRORS_INVALID_FC) != 0:
-        #     raise ProtocolError('invalid function code')
+        if (errors & COMM_ERRORS_INVALID_FC) != 0:
+            raise ProtocolError('invalid function code')
 
-        # if (errors & COMM_ERRORS_INVALID_ARGS) != 0:
-        #     raise ProtocolError('invalid arguments')
+        if (errors & COMM_ERRORS_INVALID_ARGS) != 0:
+            raise ProtocolError('invalid arguments')
 
-        # if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
-        #     raise ProtocolError('buffer length mismatch')
+        if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
+            raise ProtocolError('buffer length mismatch')
 
         return success, message[4:]
 

@@ -5,6 +5,8 @@
 #include "hal.h"
 #include "DRV8301.h"
 #include "AS5047D.h"
+#include "LM75B.h"
+#include "LSM6DS3Sensor.h"
 #include "constants.h"
 
 extern SerialUSBDriver SDU1;
@@ -20,6 +22,10 @@ extern DRV8301 gate_driver;
 extern const PWMConfig led_pwm_config;
 
 extern AS5047D encoder;
+
+extern LM75B temp_sensor;
+
+extern LSM6DS3Sensor acc_gyr;
 
 extern BinarySemaphore ivsense_adc_samples_bsem;
 

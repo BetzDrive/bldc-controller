@@ -10,6 +10,7 @@ namespace motor_driver {
 
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   size_t index = 0;
+  float temp;
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     switch (addr) {
@@ -37,7 +38,6 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         break;
       case 0x1006: //FOC Ki (q)
         break;
-
       case 0x2000: //Mode
         handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
         break;
@@ -63,14 +63,23 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       //   break;
       // case 0x3003: //Battery Current (amps)
       //   break;
-      // case 0x3004: //Accelerometer X (m/sec^2)
-      //   break;
-      // case 0x3005: //Accelerometer Y (m/sec^2)
-      //   break;
-      // case 0x3006: //Accelerometer Z (m/sec^2)
-      //   break;
-      // case 0x3007: //Temperature
-      //   break;
+      case 0x3004: //Accelerometer X (m/sec^2)
+        handleVarAccess(results.xl_x, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x3005: //Accelerometer Y (m/sec^2)
+        handleVarAccess(results.xl_y, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x3006: //Accelerometer Z (m/sec^2)
+        handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x3007: //Temperature
+        if (temp_sensor.getTemperature(&temp)) {
+          handleVarAccess(temp, buf, index, buf_size, access_type, errors);
+        } else {
+          errors |= COMM_ERRORS_OP_FAILED;
+        }
+        break;
+        break;
       case 0x3008: //Battery Voltage
         handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
         break;
