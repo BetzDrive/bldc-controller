@@ -58,6 +58,20 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         break;
       case 0x010d: //269
         handleVarAccess(results.foc_q_current, buf, index, buf_size, access_type, errors);
+        if (temp_sensor.getTemperature(&temp)) {
+          handleVarAccess(temp, buf, index, buf_size, access_type, errors);
+        } else {
+          errors |= COMM_ERRORS_OP_FAILED;
+        }
+        break;
+      case 0x010e: //270
+        handleVarAccess(results.xl_x, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x010f: //271
+        handleVarAccess(results.xl_y, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0110: //272
+        handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
         break;
       case 0x0200:
         handleVarAccess(results.average_ia, buf, index, buf_size, access_type, errors);
