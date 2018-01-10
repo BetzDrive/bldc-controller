@@ -36,15 +36,15 @@ try:
 except:
     print "WARNING: Motor driver board does not support erevs_per_mrev, try updating the firmware."
 
-while True:
-    try:
-        # adc_averages = struct.unpack('<7f', client.readRegisters(address, 0x0200, 7))
-        # print "ia:{: > 7.3f} ib:{: > 7.3f} ic:{: > 7.3f} va:{: > 7.3f} vb:{: > 7.3f} vc:{: > 7.3f} vin:{: > 7.3f}".format(*adc_averages)
-        data = struct.unpack('<2f', client.readRegisters(address, 0x010c, 2))
-        print "id:{: > 7.3f} iq:{: > 7.3f}".format(*data)
-        # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
-    except IOError as e:
-        print e
-    # angle = struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
-    # print angle
-    time.sleep(0.5)
+# while True:
+#     try:
+#         # adc_averages = struct.unpack('<7f', client.readRegisters(address, 0x0200, 7))
+#         # print "ia:{: > 7.3f} ib:{: > 7.3f} ic:{: > 7.3f} va:{: > 7.3f} vb:{: > 7.3f} vc:{: > 7.3f} vin:{: > 7.3f}".format(*adc_averages)
+#         data = struct.unpack('<2f', client.readRegisters(address, 0x010c, 2))
+#         print "id:{: > 7.3f} iq:{: > 7.3f}".format(*data)
+#         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
+#     except IOError as e:
+#         print e
+#     # angle = struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
+#     # print angle
+#     time.sleep(0.5)
