@@ -69,6 +69,15 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       case 0x010f: //271
         handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
         break;
+      case 0x0110: //272
+        handleVarAccess(calibration.sw_endstop_min, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x0111: //273
+        handleVarAccess(calibration.sw_endstop_max, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x0112: //274
+        handleVarAccess(calibration.sw_endstop_slope, buf, index, buf_len, access_type, errors);
+        break;
       case 0x0200:
         handleVarAccess(results.average_ia, buf, index, buf_size, access_type, errors);
         break;

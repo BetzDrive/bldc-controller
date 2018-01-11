@@ -160,6 +160,24 @@ void runCurrentControl() {
     pid_id.setProcessValue(id);
     pid_id.setBias(0.0f);
 
+    float torque_command = parameters.cmd_duty_cycle;
+
+    if (calibration.sw_endstop_min < calibration.sw_endstop_max) {
+      // Software endstops are only active if they have different values
+
+      if (torque_command >= 0) {
+        // Positive torque command, only check the maximum endstop
+
+        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_radian_angle) * calibration.sw_endstop_slope);
+        torque_command = std::min(torque_command, torque_limit);
+      } else {
+        // Negative torque command, only check the minimum endstop
+
+        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_radian_angle) * calibration.sw_endstop_slope);
+        torque_command = std::max(torque_command, torque_limit);
+      }
+    }
+
     pid_iq.setSetPoint(parameters.cmd_duty_cycle);
     pid_iq.setProcessValue(iq);
     pid_iq.setBias(parameters.cmd_duty_cycle * calibration.winding_resistance);
