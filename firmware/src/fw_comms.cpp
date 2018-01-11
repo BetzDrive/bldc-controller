@@ -54,23 +54,19 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         handleVarAccess(results.encoder_radian_angle, buf, index, buf_size, access_type, errors);
         break;
       case 0x010c: //268
-        handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
-        break;
-      case 0x010d: //269
-        handleVarAccess(results.foc_q_current, buf, index, buf_size, access_type, errors);
         if (temp_sensor.getTemperature(&temp)) {
           handleVarAccess(temp, buf, index, buf_size, access_type, errors);
         } else {
           errors |= COMM_ERRORS_OP_FAILED;
         }
         break;
-      case 0x010e: //270
+      case 0x010d: //269
         handleVarAccess(results.xl_x, buf, index, buf_size, access_type, errors);
         break;
-      case 0x010f: //271
+      case 0x010e: //270
         handleVarAccess(results.xl_y, buf, index, buf_size, access_type, errors);
         break;
-      case 0x0110: //272
+      case 0x010f: //271
         handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
         break;
       case 0x0200:
@@ -93,6 +89,12 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         break;
       case 0x0206:
         handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0207:
+        handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x0208:
+        handleVarAccess(results.foc_q_current, buf, index, buf_size, access_type, errors);
         break;
       case 0x8000:
         handleVarAccess(results.debug_u16, buf, index, buf_size, access_type, errors);
