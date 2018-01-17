@@ -14,81 +14,87 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     switch (addr) {
-      case 0x0000: //Board ID
+      case 0x0000: // Register Map Version
         break;
-      case 0x0001: //Firmware version
+      case 0x0001: // Board ID
         break;
-      case 0x0002: //Bootloader version
+      case 0x0002: // Firmware Version
+        break;
+      case 0x0003: // Bootloader Version
         break;
 
-      case 0x1000: //Phase A Encoder Angle (radians)
+      case 0x1000: // Phase A Encoder Angle (rad)
         handleVarAccess(calibration.encoder_zero, buf, index, buf_len, access_type, errors);
         break;
-      case 0x1001: //Electronic Revolutions Per Mechanical Revolutions
+      case 0x1001: // Electrical Revolutions Per Mechanical Revolution
         handleVarAccess(calibration.erevs_per_mrev, buf, index, buf_len, access_type, errors);
         break;
-      case 0x1002: //Invert Phases
+      case 0x1002: // Invert Phases
         handleVarAccess(calibration.flip_phases, buf, index, buf_len, access_type, errors);
         break;
-      case 0x1003: //FOC Kp (d)
+      case 0x1003: // Direct Current Controller Kp
         break;
-      case 0x1004: //FOC Ki (d)
+      case 0x1004: // Direct Current Controller Ki
         break;
-      case 0x1005: //FOC Kp (q)
+      case 0x1005: // Quadrature Current Controller Kp
         break;
-      case 0x1006: //FOC Ki (q)
+      case 0x1006: // Quadrature Current Controller Ki
         break;
-      case 0x2000: //Mode
+      case 0x1010: // Software Endstop Minimum
+        handleVarAccess(calibration.sw_endstop_min, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x1011: // Software Endstop Maximum
+        handleVarAccess(calibration.sw_endstop_max, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x1012: // Software Endstop Slope
+        handleVarAccess(calibration.sw_endstop_slope, buf, index, buf_len, access_type, errors);
+        break;
+
+      case 0x2000: // Control Mode
         handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
         break;
-      case 0x2001: //Current Command
+      case 0x2001: // Direct Current Command (A)
+        break;
+      case 0x2002: // Quadrature Current Command (A)
         handleVarAccess(parameters.cmd_duty_cycle, buf, index, buf_len, access_type, errors);
         break;
-      case 0x2002: //Raw PWM A
+      case 0x2003: // Phase A Raw PWM Duty Cycle
         handleVarAccess(parameters.phase0, buf, index, buf_len, access_type, errors);
         break;
-      case 0x2003: //Raw PWM B
+      case 0x2004: // Phase B Raw PWM Duty Cycle
         handleVarAccess(parameters.phase1, buf, index, buf_len, access_type, errors);
         break;
-      case 0x2004: //Raw PWM C
+      case 0x2005: // Phase C Raw PWM Duty Cycle
         handleVarAccess(parameters.phase2, buf, index, buf_len, access_type, errors);
         break;
 
-      case 0x3000: //Rotor Position (radians)
+      case 0x3000: // Rotor Position (rad)
         handleVarAccess(results.encoder_radian_angle, buf, index, buf_size, access_type, errors);
         break;
-      // case 0x3001: //Rotor Velocity (rad/sec)
+      // case 0x3001: // Rotor Velocity (rad/sec)
       //   break;
-      // case 0x3002: //Motor Current (amps)
+      // case 0x3002: // Direct Current Measurement (A)
       //   break;
-      // case 0x3003: //Battery Current (amps)
+      // case 0x3003: // Quadrature Current Measurement (A)
       //   break;
-      case 0x3004: //Accelerometer X (m/sec^2)
-        handleVarAccess(results.xl_x, buf, index, buf_size, access_type, errors);
+      case 0x3004: // DC Supply Voltage (V)
+        handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
         break;
-      case 0x3005: //Accelerometer Y (m/sec^2)
-        handleVarAccess(results.xl_y, buf, index, buf_size, access_type, errors);
-        break;
-      case 0x3006: //Accelerometer Z (m/sec^2)
-        handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
-        break;
-      case 0x3007: //Temperature
+      case 0x3005: // Board Temperature (degrees C)
         if (temp_sensor.getTemperature(&temp)) {
           handleVarAccess(temp, buf, index, buf_size, access_type, errors);
         } else {
           errors |= COMM_ERRORS_OP_FAILED;
         }
         break;
+      case 0x3006: // Accelerometer X (m/s^2)
+        handleVarAccess(results.xl_x, buf, index, buf_size, access_type, errors);
         break;
-      case 0x3008: //Battery Voltage
-        handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
+      case 0x3007: // Accelerometer Y (m/s^2)
+        handleVarAccess(results.xl_y, buf, index, buf_size, access_type, errors);
         break;
-
-      case 0x8000:
-        handleVarAccess(results.debug_u16, buf, index, buf_size, access_type, errors);
-        break;
-      case 0x8001:
-        handleVarAccess(results.debug_f, buf, index, buf_size, access_type, errors);
+      case 0x3008: // Accelerometer Z (m/s^2)
+        handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
         break;
 
       default:

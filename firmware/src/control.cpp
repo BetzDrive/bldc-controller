@@ -162,8 +162,26 @@ void runCurrentControl() {
     // float vd = pid_id.compute();
     // float vq = pid_iq.compute();
 
+    float torque_command = parameters.cmd_duty_cycle;
+
+    if (calibration.sw_endstop_min < calibration.sw_endstop_max) {
+      // Software endstops are only active if they have different values
+
+      if (torque_command >= 0) {
+        // Positive torque command, only check the maximum endstop
+
+        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_radian_angle) * calibration.sw_endstop_slope);
+        torque_command = std::min(torque_command, torque_limit);
+      } else {
+        // Negative torque command, only check the minimum endstop
+
+        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_radian_angle) * calibration.sw_endstop_slope);
+        torque_command = std::max(torque_command, torque_limit);
+      }
+    }
+
     float vd = -2.0 * id;
-    float vq = -2.0 * (iq - parameters.cmd_duty_cycle) + parameters.cmd_duty_cycle * calibration.winding_resistance;
+    float vq = -2.0 * (iq - torque_command) + torque_command * calibration.winding_resistance;
 
     float vd_norm = vd / results.average_vin;
     float vq_norm = vq / results.average_vin;

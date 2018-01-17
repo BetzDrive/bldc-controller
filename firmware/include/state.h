@@ -49,6 +49,9 @@ struct Calibration {
   float foc_ki_d;               // Integral gain for FOC/d PI loop
   float foc_kp_q;               // Proportional gain for FOC/q PI loop
   float foc_ki_q;               // Integral gain for FOC/q PI loop
+  float sw_endstop_min;         // Software endstop minimum angle
+  float sw_endstop_max;         // Software endstop maximum angle
+  float sw_endstop_slope;       // Software endstop torque slope
 
   Calibration()
     : encoder_zero(0),
@@ -58,7 +61,10 @@ struct Calibration {
       foc_kp_d(0.01f),
       foc_ki_d(100.0f),
       foc_kp_q(0.01f),
-      foc_ki_q(100.0f)
+      foc_ki_q(100.0f),
+      sw_endstop_min(0.0f),
+      sw_endstop_max(0.0f),
+      sw_endstop_slope(20.0f)
   {}
 };
 
