@@ -95,6 +95,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE`commands can be used in
 | `0x1004` | Direct Current Controller Ki | `float` |
 | `0x1005` | Quadrature Current Controller Kp | `float` |
 | `0x1006` | Quadrature Current Controller Ki | `float` |
+| `0x1010` | Software Endstop Minimum | `float` |
+| `0x1011` | Software Endstop Maximum | `float` |
+| `0x1012` | Software Endstop Slope | `float` |
 
 **Volatile Registers `(0x2***)`**
 
@@ -117,9 +120,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE`commands can be used in
 | `0x3003` | Quadrature Current Measurement (A) | `float` |
 | `0x3004` | DC Supply Voltage (V) | `float` |
 | `0x3005` | Board Temperature (°C) | `float` |
-| `0x3006` | Accelerometer X (m/s^2) | `float` |
-| `0x3007` | Accelerometer Y (m/s^2) | `float` |
-| `0x3008` | Accelerometer Z (m/s^2) | `float` |
+| `0x3006` | Accelerometer X (milli-g) | `int32_t` |
+| `0x3007` | Accelerometer Y (milli-g) | `int32_t` |
+| `0x3008` | Accelerometer Z (milli-g) | `int32_t` |
 | `0x3009` | Gyroscope X (rad/s) | `float` |
 | `0x300a` | Gyroscope Y (rad/s) | `float` |
 | `0x300b` | Gyroscope Z (rad/s) | `float` |
