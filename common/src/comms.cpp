@@ -26,51 +26,41 @@ void UARTEndpoint::start() {
   chSysUnlock();
 }
 
-void UARTEndpoint::startTransmit() {
-  tx_buf_[0] = (uint8_t)tx_len_;
-  uint16_t crc = computeCRC(tx_buf_, tx_len_);
-  tx_buf_[tx_len_ + 1] = crc & 0xff;
-  tx_buf_[tx_len_ + 2] = (crc >> 8) & 0xff;
+void UARTEndpoint::transmit() {
+  tx_buf_[0] = 0xff; // Sync flag
+  tx_buf_[1] = 0xff; // Protocol version
+  tx_buf_[2] = tx_len_ & 0xff;
+  tx_buf_[3] = (tx_len_ >> 8) & 0xff;
+
+  uint16_t crc = computeCRC(tx_buf_, header_len + tx_len_);
+  tx_buf_[header_len + tx_len_] = crc & 0xff;
+  tx_buf_[header_len + tx_len_ + 1] = (crc >> 8) & 0xff;
 
   chSysLock();
 
   if (state_ == State::IDLE) {
     palSetPad(dir_.port, dir_.pin);
-    uartStartSendI(uart_driver_, 1 + tx_len_ + crc_length, tx_buf_);
+    uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length, tx_buf_);
     state_ = State::TRANSMITTING;
   }
 
   chSysUnlock();
+
+  chBSemWait(&tx_bsem_);
 }
 
-void UARTEndpoint::waitReceive() {
-  chBSemWait(&bsem_);
+void UARTEndpoint::receive() {
+  chBSemWait(&rx_bsem_);
 
-  uint16_t computed_crc = computeCRC(rx_buf_, rx_len_);
-  uint16_t expected_crc = ((uint16_t)rx_buf_[rx_len_ + 1] << 8) | (uint16_t)rx_buf_[rx_len_];
+  uint16_t computed_crc = computeCRC(rx_buf_, header_len + rx_len_);
+  uint16_t expected_crc = ((uint16_t)rx_buf_[header_len + rx_len_ + 1] << 8) | (uint16_t)rx_buf_[header_len + rx_len_];
   if (computed_crc != expected_crc) {
     rx_error_ = true;
   }
 }
 
-bool UARTEndpoint::pollReceive() {
-  msg_t result = chBSemWaitTimeout(&bsem_, TIME_INFINITE);
-
-  if (result == RDY_OK) {
-    uint16_t computed_crc = computeCRC(rx_buf_, rx_len_);
-    uint16_t expected_crc = ((uint16_t)rx_buf_[rx_len_ + 1] << 8) | (uint16_t)rx_buf_[rx_len_];
-    if (computed_crc != expected_crc) {
-      rx_error_ = true;
-    }
-
-    return true;
-  } else {
-    return false;
-  }
-}
-
 uint8_t *UARTEndpoint::getReceiveBufferPtr() {
-  return rx_buf_;
+  return rx_buf_ + header_len;
 }
 
 size_t UARTEndpoint::getReceiveLength() const {
@@ -82,7 +72,7 @@ bool UARTEndpoint::hasReceiveError() const {
 }
 
 uint8_t *UARTEndpoint::getTransmitBufferPtr() {
-  return tx_buf_ + 1;
+  return tx_buf_ + header_len;
 }
 
 void UARTEndpoint::setTransmitLength(size_t len) {
@@ -97,6 +87,7 @@ void UARTEndpoint::uartTransmitCompleteCallback() {
   chSysLockFromIsr();
 
   palClearPad(dir_.port, dir_.pin);
+  chBSemSignalI(&tx_bsem_);
   state_ = State::IDLE;
 
   chSysUnlockFromIsr();
@@ -111,7 +102,7 @@ void UARTEndpoint::uartReceiveCompleteCallback() {
       /* Finished receiving a datagram */
       rx_error_ = (state_ == State::RECEIVING_ERROR);
       gptStopTimerI(gpt_driver_);
-      chBSemSignalI(&bsem_);
+      chBSemSignalI(&rx_bsem_);
       state_ = State::IDLE;
       break;
     default:
@@ -131,9 +122,34 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       gptStartOneShotI(gpt_driver_, idle_time_ticks_);
       break;
     case State::IDLE:
-      /* Start of datagram */
-      rx_len_ = (size_t)c;
-      uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_);
+      /* Possible start of packet */
+      rx_buf_[0] = (uint8_t)c;
+      if (c == 0xff) {
+        state_ = State::RECEIVING_PROTOCOL_VERSION;
+      } else {
+        state_ = State::INITIALIZING;
+      }
+      break;
+    case State::RECEIVING_PROTOCOL_VERSION:
+      /* Check protocol version */
+      rx_buf_[1] = (uint8_t)c;
+      if (c == 0xff) {
+        state_ = State::RECEIVING_LENGTH_L;
+      } else {
+        state_ = State::INITIALIZING;
+      }
+      break;
+    case State::RECEIVING_LENGTH_L:
+      /* Store lower byte of packet length */
+      rx_buf_[2] = (uint8_t)c;
+      state_ = State::RECEIVING_LENGTH_H;
+      break;
+    case State::RECEIVING_LENGTH_H:
+      /* Store upper byte of packet length and start receiving data */
+      rx_buf_[3] = (uint8_t)c;
+      rx_len_ = ((size_t)rx_buf_[3] << 8) | rx_buf_[2];
+      // TODO: what if rx_len_ is too big? add some bounds checking
+      uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_ + header_len);
       gptStartOneShotI(gpt_driver_, ((1 + rx_len_ + crc_length + 4) * 2) * 10);
       state_ = State::RECEIVING;
       break;
@@ -230,8 +246,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_READ_REGS:
-    case COMM_FC_READ_REGS_SYNCED:
+    case COMM_FC_REG_READ:
       /* Read registers */
 
       if (datagram_len - index < 3) {
@@ -248,8 +263,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
       break;
 
-    case COMM_FC_WRITE_REGS:
-    case COMM_FC_WRITE_REGS_SYNCED:
+    case COMM_FC_REG_WRITE:
       /* Write registers */
 
       if (datagram_len - index < 3) {
@@ -265,6 +279,32 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors);
 
       state_ = State::RESPONDING;
+
+      break;
+
+    case COMM_FC_REG_READ_WRITE:
+      /* Simultaneous register read/write */
+
+      if (datagram_len - index < 3) {
+        errors |= COMM_ERRORS_MALFORMED;
+        state_ = State::RESPONDING;
+        break;
+      }
+
+      // Do the write first, so we can re-use the start_addr_ and reg_count_ variables for the read
+      index += 3;
+      start_addr_ = (comm_addr_t)datagram[index++];
+      start_addr_ |= (comm_addr_t)datagram[index++] << 8;
+      reg_count_ = datagram[index++];
+      server_->writeRegisters(start_addr_, reg_count_, &datagram[index], datagram_len - index, errors);
+
+      // Shift index back to perform the read
+      index -= 6;
+      start_addr_ = (comm_addr_t)datagram[index++];
+      start_addr_ |= (comm_addr_t)datagram[index++] << 8;
+      reg_count_ = datagram[index++];
+
+      state_ = State::RESPONDING_READ;
 
       break;
 
@@ -655,7 +695,7 @@ void startComms() {
 }
 
 void runComms() {
-  comms_endpoint.waitReceive();
+  comms_endpoint.receive(); // Blocks until packet is received
 
   if (!comms_endpoint.hasReceiveError()) {
     /* Received valid datagram */
@@ -668,18 +708,17 @@ void runComms() {
     comms_protocol_fsm.composeResponse(comms_endpoint.getTransmitBufferPtr(), transmit_len, comms_endpoint.getTransmitBufferSize(), errors);
 
     if (transmit_len > 0) {
+      /* Send a response */
       comms_endpoint.setTransmitLength(transmit_len);
-      comms_endpoint.startTransmit();
+      comms_endpoint.transmit(); // Blocks until packet is fully transmitted
     }
 
-    /* Jump to an address if requested */
     if (jump_addr != 0) {
-      flashJumpApplication(jump_addr);
-    }
-
-    /* Reset system if requested */
-    if (should_reset) {
-      NVIC_SystemReset();
+      /* Jump to an address if requested */
+      flashJumpApplication(jump_addr); // Does not return
+    } else if (should_reset) {
+      /* Reset system if requested */
+      NVIC_SystemReset(); // Does not return
     }
   }
 }

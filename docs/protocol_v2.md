@@ -2,24 +2,31 @@
 
 ## Overview
 
-#### Request Message Format:
+#### Request Packet Format
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Payload | CRC* |
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Payload | CRC |
 |--------------|------------------|-------------------------|----------------|----------|---------------|-----------------|-----|
 | **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | n | 2 |
 
-Setting the board ID to `0` will broadcast the request. All connected boards will listen a broadcasted command and attempt to respond, so this should typically only be used with a single board connected.
+The message length is the combined length of the board ID, function code, and payload.
 
-#### Response Message Format:
+Setting the board ID to `0` will broadcast the request. All connected boards will listen to a broadcasted command and attempt to respond, so this should typically only be used with a single board connected.
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Errors | Payload | CRC* |
-|--------------|------------------|-------------------------|----------------|----------|--------|--------|-----|
-| **Size (bytes)** | 1 | 1 | 2 | 1 | 2 | n | 2 |
+#### Response Packet Format
 
-\*not yet implemented
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Function | Errors | Payload | CRC |
+|--------------|------------------|-------------------------|----------------|----------|----------|--------|--------|-----|
+| **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | 2 | n | 2 |
+
+The message length is the combined length of the board ID, function code, errors, and payload.
 
 -------
 
+## CRC
+
+Polynomial: CRC-16-IBM (x^16 + x^15 + x^2 + 1).
+
+The CRC is computed over the entire packet excluding the CRC itself.
 
 ## Function Codes
 
@@ -88,6 +95,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE`commands can be used in
 | `0x1004` | Direct Current Controller Ki | `float` |
 | `0x1005` | Quadrature Current Controller Kp | `float` |
 | `0x1006` | Quadrature Current Controller Ki | `float` |
+| `0x1010` | Software Endstop Minimum | `float` |
+| `0x1011` | Software Endstop Maximum | `float` |
+| `0x1012` | Software Endstop Slope | `float` |
 
 **Volatile Registers `(0x2***)`**
 
@@ -110,9 +120,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE`commands can be used in
 | `0x3003` | Quadrature Current Measurement (A) | `float` |
 | `0x3004` | DC Supply Voltage (V) | `float` |
 | `0x3005` | Board Temperature (°C) | `float` |
-| `0x3006` | Accelerometer X (m/s^2) | `float` |
-| `0x3007` | Accelerometer Y (m/s^2) | `float` |
-| `0x3008` | Accelerometer Z (m/s^2) | `float` |
+| `0x3006` | Accelerometer X (milli-g) | `int32_t` |
+| `0x3007` | Accelerometer Y (milli-g) | `int32_t` |
+| `0x3008` | Accelerometer Z (milli-g) | `int32_t` |
 | `0x3009` | Gyroscope X (rad/s) | `float` |
 | `0x300a` | Gyroscope Y (rad/s) | `float` |
 | `0x300b` | Gyroscope Z (rad/s) | `float` |
