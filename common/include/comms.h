@@ -19,6 +19,7 @@ struct UARTEndpointGPTConfig : GPTConfig {
 
 class UARTEndpoint {
 public:
+  static constexpr size_t header_len = 4;
   static constexpr size_t crc_length = 2;
   static constexpr size_t max_dg_payload_len = 255;
 
@@ -40,16 +41,15 @@ public:
 
     idle_time_ticks_ = 7 * 10; // 3.5 character times at 10 bits/character
 
-    chBSemInit(&bsem_, 0);
+    chBSemInit(&rx_bsem_, 0);
+    chBSemInit(&tx_bsem_, 0);
   }
 
   void start();
 
-  void startTransmit();
+  void transmit();
 
-  void waitReceive();
-
-  bool pollReceive();
+  void receive();
 
   uint8_t *getReceiveBufferPtr();
 
@@ -65,12 +65,15 @@ public:
 
 private:
   enum class State {
-    STOPPED,
-    INITIALIZING,
-    IDLE,
-    RECEIVING,
-    RECEIVING_ERROR,
-    TRANSMITTING
+    STOPPED,                      // Inactive, not responding to any requests
+    INITIALIZING,                 // Waiting for bus to become idle
+    IDLE,                         // Waiting for sync flag
+    RECEIVING_PROTOCOL_VERSION,   // Waiting for protocol version byte
+    RECEIVING_LENGTH_L,           // Waiting for lower byte of length word
+    RECEIVING_LENGTH_H,           // Waiting for upper byte of length word
+    RECEIVING,                    // Receiving data
+    RECEIVING_ERROR,              // An error occurred while receiving data, it will be discarded
+    TRANSMITTING                  // Transmitting data
   };
 
   UARTDriver * const uart_driver_;
@@ -80,11 +83,16 @@ private:
   UARTEndpointGPTConfig gpt_config_;
   State state_;
   gptcnt_t idle_time_ticks_;
-  BinarySemaphore bsem_;
-  uint8_t rx_buf_[max_dg_payload_len + crc_length];
+  BinarySemaphore rx_bsem_;
+  BinarySemaphore tx_bsem_;
+
+  /* Receive DMA buffer */
+  uint8_t rx_buf_[header_len + max_dg_payload_len + crc_length];
   size_t rx_len_;
   bool rx_error_;
-  uint8_t tx_buf_[1 + max_dg_payload_len + crc_length];
+
+  /* Transmit DMA buffer */
+  uint8_t tx_buf_[header_len + max_dg_payload_len + crc_length];
   size_t tx_len_;
 
   static uint16_t computeCRC(const uint8_t *buf, size_t len);
