@@ -58,10 +58,10 @@ struct Calibration {
       erevs_per_mrev(1),
       winding_resistance(17.8f),// GBM110-150T
       flip_phases(false),
-      foc_kp_d(3.0f),
-      foc_ki_d(100.0f),
-      foc_kp_q(3.0f),
-      foc_ki_q(100.0f),
+      foc_kp_d(2.0f),
+      foc_ki_d(0.0f),
+      foc_kp_q(2.0f),
+      foc_ki_q(0.0f),
       sw_endstop_min(0.0f),
       sw_endstop_max(0.0f),
       sw_endstop_slope(20.0f)
