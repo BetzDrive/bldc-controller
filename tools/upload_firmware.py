@@ -19,7 +19,7 @@ if __name__ == '__main__':
     time.sleep(0.1)
     ser.reset_input_buffer()
 
-    client = BLDCControllerClient(ser)
+    client = BLDCControllerClient(ser, protocol_v2=True)
 
     client.enterBootloader(args.board_id)
     time.sleep(0.1) # Wait for the controller to reset
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     success = client.writeFlash(args.board_id, args.offset, firmware_image, sector_map=flash_sector_map, print_progress=True)
 
     if success:
-        client.leaveBootloader(args.board_id)
+        # client.leaveBootloader(args.board_id)
         print "Success"
     else:
         print "Failed"
