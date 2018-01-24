@@ -91,6 +91,7 @@ static msg_t imuThreadRun(void *arg) {
     results.xl_x = xl[0];
     results.xl_y = xl[1];
     results.xl_z = xl[2];
+    chThdSleepMilliseconds(100);
   }
 
   return CH_SUCCESS;
