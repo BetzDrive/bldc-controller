@@ -285,7 +285,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
     case COMM_FC_REG_READ_WRITE:
       /* Simultaneous register read/write */
 
-      if (datagram_len - index < 3) {
+      if (datagram_len - index < 6) {
         errors |= COMM_ERRORS_MALFORMED;
         state_ = State::RESPONDING;
         break;

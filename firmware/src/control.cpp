@@ -22,10 +22,7 @@ static PID pid_iq(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f, current_cont
 
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
-  pid_id.setOutputLimits(-ivsense_voltage_max, ivsense_voltage_max);
-
   pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
-  pid_iq.setOutputLimits(-ivsense_voltage_max, ivsense_voltage_max);
 }
 
 void resumeInnerControlLoop() {
@@ -47,9 +44,6 @@ void runInnerControlLoop() {
   encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
-
-  pid_id.setMode(AUTO_MODE);
-  pid_iq.setMode(AUTO_MODE);
 
   while (true) {
     /*
@@ -140,11 +134,12 @@ void runCurrentControl() {
     float ialpha, ibeta;
     transformClarke(results.average_ia, results.average_ib, results.average_ic, ialpha, ibeta);
 
-    uint16_t zeroed_encoder_angle = (raw_encoder_angle - calibration.encoder_zero + encoder_period) % encoder_period;
-    // float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * parameters.erpm_per_revolution;
-    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * calibration.erevs_per_mrev;
+    if (calibration.flip_phases) {
+      ibeta = -ibeta;
+    }
 
-    results.debug_f = elec_angle_radians;
+    uint16_t zeroed_encoder_angle = (raw_encoder_angle - calibration.encoder_zero + encoder_period) % encoder_period;
+    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * calibration.erevs_per_mrev;
 
     float cos_theta = fast_cos(elec_angle_radians);
     float sin_theta = fast_sin(elec_angle_radians);
@@ -152,15 +147,18 @@ void runCurrentControl() {
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
 
-    // pid_id.setSetPoint(0.0f);
-    // pid_id.setProcessValue(id);
+    pid_id.setMode(AUTO_MODE);
+    pid_iq.setMode(AUTO_MODE);
 
-    // pid_iq.setSetPoint(parameters.cmd_duty_cycle);
-    // pid_iq.setProcessValue(iq);
-    // pid_iq.setBias(parameters.cmd_duty_cycle * calibration.winding_resistance);
+    pid_id.setTunings(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
+    pid_iq.setTunings(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
 
-    // float vd = pid_id.compute();
-    // float vq = pid_iq.compute();
+    pid_id.setOutputLimits(-results.average_vin, results.average_vin);
+    pid_iq.setOutputLimits(-results.average_vin, results.average_vin);
+
+    pid_id.setSetPoint(0.0f);
+    pid_id.setProcessValue(id);
+    pid_id.setBias(0.0f);
 
     float torque_command = parameters.cmd_duty_cycle;
 
@@ -180,8 +178,12 @@ void runCurrentControl() {
       }
     }
 
-    float vd = -2.0 * id;
-    float vq = -2.0 * (iq - torque_command) + torque_command * calibration.winding_resistance;
+    pid_iq.setSetPoint(parameters.cmd_duty_cycle);
+    pid_iq.setProcessValue(iq);
+    pid_iq.setBias(parameters.cmd_duty_cycle * calibration.winding_resistance);
+
+    float vd = pid_id.compute();
+    float vq = pid_iq.compute();
 
     float vd_norm = vd / results.average_vin;
     float vq_norm = vq / results.average_vin;
@@ -199,6 +201,9 @@ void runCurrentControl() {
     gate_driver.setPWMDutyCycle(0, duty0);
     gate_driver.setPWMDutyCycle(1, duty1);
     gate_driver.setPWMDutyCycle(2, duty2);
+
+    results.foc_d_current = id;
+    results.foc_q_current = iq;
   }
 
   palSetPad(GPIOA, GPIOA_LED_Y);

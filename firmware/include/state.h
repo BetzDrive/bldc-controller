@@ -7,92 +7,62 @@
 namespace motor_driver {
 
 struct Results {
-  int32_t encoder_pos;          // Encoder position in encoder units
-  float encoder_vel;            // Encoder velocity in encoder units/second
-  float foc_q_current_avg;      // Average FOC quadrature current in amperes
-  float foc_d_current_avg;      // Average FOC direct current in amperes
+  int32_t encoder_pos = 0;      // Encoder position (encoder units)
+  float encoder_vel = 0;        // Encoder velocity (encoder units/second)
+  float foc_d_current = 0;      // Measured FOC direct current (amperes)
+  float foc_q_current = 0;      // Measured FOC quadrature current (amperes)
 
-  uint16_t encoder_angle;       // Encoder angle, wraps around
-  uint16_t encoder_diag;
+  uint16_t encoder_angle = 0;   // Encoder angle, wraps around
+  uint16_t encoder_diag = 0;
 
-  float encoder_radian_angle;
-  int16_t encoder_revs;
+  float encoder_radian_angle = 0;
+  int16_t encoder_revs = 0;
 
-  float average_va;             // Average voltage on phase A, volts
-  float average_vb;             // Average voltage on phase B, volts
-  float average_vc;             // Average voltage on phase C, volts
-  float average_vin;            // Average supply voltage, volts
-  float average_ia;             // Average current into phase A, amperes
-  float average_ib;             // Average current into phase B, amperes
-  float average_ic;             // Average current into phase C, amperes
+  float average_va = 0;         // Average voltage on phase A (volts)
+  float average_vb = 0;         // Average voltage on phase B (volts)
+  float average_vc = 0;         // Average voltage on phase C (volts)
+  float average_vin = 0;        // Average supply voltage (volts)
+  float average_ia = 0;         // Average current into phase A (amperes)
+  float average_ib = 0;         // Average current into phase B (amperes)
+  float average_ic = 0;         // Average current into phase C (amperes)
 
-  int32_t xl_x;                 // X-acceleration in milli-g's
-  int32_t xl_y;                 // Y-acceleration in milli-g's
-  int32_t xl_z;                 // Z-acceleration in milli-g's
+  int32_t xl_x = 0;             // X-acceleration in milli-g's
+  int32_t xl_y = 0;             // Y-acceleration in milli-g's
+  int32_t xl_z = 0;             // Z-acceleration in milli-g's
 
-  uint16_t debug_u16;
-  float debug_f;
-
-  Results()
-    : encoder_pos(0),
-      encoder_vel(0),
-      foc_q_current_avg(0),
-      foc_d_current_avg(0) {}
+  Results() {}
 };
 
 struct Calibration {
-  uint16_t encoder_zero;        // Phase-aligned encoder zero position
-  uint8_t erevs_per_mrev;       // Electrical revolutions per mechanical revolution
-  float winding_resistance;     // Motor winding resistance in ohms
-  uint8_t flip_phases;          // Phases A, B, C are arranged in clockwise instead of ccw order
-  float foc_kp_d;               // Proportional gain for FOC/d PI loop
-  float foc_ki_d;               // Integral gain for FOC/d PI loop
-  float foc_kp_q;               // Proportional gain for FOC/q PI loop
-  float foc_ki_q;               // Integral gain for FOC/q PI loop
-  float sw_endstop_min;         // Software endstop minimum angle
-  float sw_endstop_max;         // Software endstop maximum angle
-  float sw_endstop_slope;       // Software endstop torque slope
+  uint16_t encoder_zero = 0;          // Phase-aligned encoder zero position
+  uint8_t erevs_per_mrev = 1;         // Electrical revolutions per mechanical revolution
+  float winding_resistance = 17.8f;   // Motor winding resistance in ohms
+  uint8_t flip_phases = false;        // Phases A, B, C are arranged in clockwise instead of ccw order
+  float foc_kp_d = 2.0f;              // Proportional gain for FOC/d PI loop
+  float foc_ki_d = 0.0f;              // Integral gain for FOC/d PI loop
+  float foc_kp_q = 2.0f;              // Proportional gain for FOC/q PI loop
+  float foc_ki_q = 0.0f;              // Integral gain for FOC/q PI loop
+  float sw_endstop_min = 0.0f;        // Software endstop minimum angle
+  float sw_endstop_max = 0.0f;        // Software endstop maximum angle
+  float sw_endstop_slope = 20.0f;     // Software endstop torque slope
 
-  Calibration()
-    : encoder_zero(0),
-      erevs_per_mrev(1),
-      winding_resistance(17.8f),// GBM110-150T
-      flip_phases(false),
-      foc_kp_d(0.01f),
-      foc_ki_d(100.0f),
-      foc_kp_q(0.01f),
-      foc_ki_q(100.0f),
-      sw_endstop_min(0.0f),
-      sw_endstop_max(0.0f),
-      sw_endstop_slope(20.0f)
-  {}
+  Calibration() {}
 };
 
 struct Parameters {
-  float foc_q_current_sp;       // FOC quadrature current setpoint in amperes
-  float foc_d_current_sp;       // FOC direct current setpoint in amperes
-  bool override_led_color;      // Override normal status LED behavior
-  uint8_t led_red_intensity;    // Status LED red intensity
-  uint8_t led_green_intensity;  // Status LED green intensity
-  uint8_t led_blue_intensity;   // Status LED blue intensity
-  float cmd_duty_cycle;         // Duty cycle command
-  uint8_t raw_pwm_mode;
-  float phase0;
-  float phase1;
-  float phase2;
+  float foc_q_current_sp = 0;         // FOC quadrature current setpoint in amperes
+  float foc_d_current_sp = 0;         // FOC direct current setpoint in amperes
+  bool override_led_color = false;    // Override normal status LED behavior
+  uint8_t led_red_intensity = 0;      // Status LED red intensity
+  uint8_t led_green_intensity = 0;    // Status LED green intensity
+  uint8_t led_blue_intensity = 0;     // Status LED blue intensity
+  float cmd_duty_cycle = 0;           // Duty cycle command
+  uint8_t raw_pwm_mode = 1;
+  float phase0 = 0;
+  float phase1 = 0;
+  float phase2 = 0;
 
-  Parameters()
-    : foc_q_current_sp(0),
-      foc_d_current_sp(0),
-      override_led_color(false),
-      led_red_intensity(0),
-      led_green_intensity(0),
-      led_blue_intensity(0),
-      cmd_duty_cycle(0),
-      raw_pwm_mode(1),
-      phase0(0),
-      phase1(0),
-      phase2(0){}
+  Parameters() {}
 };
 
 /**
@@ -102,7 +72,6 @@ extern Results results;
 
 /**
  * Calibration values
- *
  */
 extern Calibration calibration;
 

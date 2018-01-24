@@ -35,8 +35,8 @@ PWMConfig motor_pwm_config = {
     {PWM_OUTPUT_ACTIVE_HIGH | PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
   },
-  0,  // CR2
-  0,  // BDTR
+  TIM_CR2_MMS_0,                                // CR2 (select enable signal as TRGO output)
+  0,                                            // BDTR
   0
 };
 
@@ -108,7 +108,7 @@ static const ADCConversionGroup ivsense_adc_group = {
   ivsenseADCEndCallback,
   ivsenseADCErrorCallback,
   0,                                        // CR1
-  ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2
+  ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
   ADC_SMPR1_SMP_AN10(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_144)
       | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_480) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_480), // SMPR1
   ADC_SMPR2_SMP_AN8(ADC_SAMPLE_480),        // SMPR2
@@ -128,7 +128,7 @@ static const PWMConfig adc_trigger_pwm_config = {
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
   },
-  TIM_CR2_MMS_1,                                          // CR2
+  TIM_CR2_MMS_1,                                          // CR2 (select update signal as TRGO output)
   0,                                                      // BDTR
   0
 };
@@ -152,14 +152,13 @@ void startPeripherals() {
   usbStart(serial_usb_config.usbp, &usb_config);
   usbConnectBus(serial_usb_config.usbp);
 
-  // Start LED PWM
+  // Start LED PWM timer
   pwmStart(&PWMD5, &led_pwm_config);
 
-  // Start motor PWM
+  // Configure motor PWM timer and pause it
   pwmStart(&PWMD1, &motor_pwm_config);
   PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
   PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS) | TIM_CR1_CMS_0 | TIM_CR1_CMS_1; // Enable center-aligned PWM
-  PWMD1.tim->CR1 |= TIM_CR1_CEN;
 
   // Start gate driver
   gate_driver.start();
@@ -178,9 +177,15 @@ void startPeripherals() {
   adcStart(&ADCD1, NULL);
   adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, ivsense_sample_buf_depth);
 
-  // Start ADC trigger timer
+  // Configure ADC trigger timer and pause it
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
+  PWMD3.tim->CR1 &= ~TIM_CR1_CEN;
+  // Enable counter on TIM1 (motor PWM) TRGO rising edge
+  PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS) | TIM_SMCR_SMS_1 | TIM_SMCR_SMS_2;
+
+  // Start motor PWM timer, which also starts the ADC trigger timer
+  PWMD1.tim->CR1 |= TIM_CR1_CEN;
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
