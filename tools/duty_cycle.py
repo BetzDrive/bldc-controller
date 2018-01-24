@@ -5,6 +5,8 @@ import serial
 import sys
 import time
 
+PROTOCOL_V2 = True
+
 if len(sys.argv) != 4:
         print("give me a serial port, address, and duty cycle")
         exit()
@@ -15,7 +17,7 @@ s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.01)
 address = int(sys.argv[2])
 duty_cycle = float(sys.argv[3])
 
-client = BLDCControllerClient(s)
+client = BLDCControllerClient(s, protocol_v2=PROTOCOL_V2)
 
 client.leaveBootloader(address)
 s.flush()
@@ -27,20 +29,36 @@ needs_flip_phase = [2, 3, 13, 17, 22, 23]
 
 has_21_erevs_per_mrev = [18, 19, 20, 21]
 
-client.writeRegisters(address, 0x0101, 1, struct.pack('<H', angle_mapping[address]) )
-client.writeRegisters(address, 0x0102, 1, struct.pack('<B', 0) )
-client.writeRegisters(address, 0x0109, 1, struct.pack('<B', int(address in needs_flip_phase)) )
-try:
-    client.writeRegisters(address, 0x010a, 1, struct.pack('<B', 21 if (address in has_21_erevs_per_mrev) else 14))
-except:
-    print "WARNING: Motor driver board does not support erevs_per_mrev, try updating the firmware."
+if PROTOCOL_V2:
+    client.writeRegisters(address, 0x1000, 1, struct.pack('<H', angle_mapping[address]) )
+    client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 0) )
+    client.writeRegisters(address, 0x1002, 1, struct.pack('<B', int(address in needs_flip_phase)) )
+    try:
+        client.writeRegisters(address, 0x1001, 1, struct.pack('<B', 21 if (address in has_21_erevs_per_mrev) else 14))
+    except:
+        print "WARNING: Motor driver board does not support erevs_per_mrev, try updating the firmware."
 
-start_angle = struct.unpack('<f', client.readRegisters(address, 0x010b, 1))[0]
-client.writeRegisters(address, 0x0110, 1, struct.pack('<f', start_angle - 0.5))
-client.writeRegisters(address, 0x0111, 1, struct.pack('<f', start_angle))
-client.writeRegisters(address, 0x0112, 1, struct.pack('<f', 20.0))
+    # start_angle = struct.unpack('<f', client.readRegisters(address, 0x010b, 1))[0]
+    # client.writeRegisters(address, 0x0110, 1, struct.pack('<f', start_angle - 0.5))
+    # client.writeRegisters(address, 0x0111, 1, struct.pack('<f', start_angle))
+    # client.writeRegisters(address, 0x0112, 1, struct.pack('<f', 20.0))
 
-client.writeRegisters(address, 0x0106, 1, struct.pack('<f', duty_cycle))
+    client.writeRegisters(address, 0x2002, 1, struct.pack('<f', duty_cycle))
+else:
+    client.writeRegisters(address, 0x1010, 1, struct.pack('<H', angle_mapping[address]) )
+    client.writeRegisters(address, 0x1011, 1, struct.pack('<B', 0) )
+    client.writeRegisters(address, 0x1012, 1, struct.pack('<B', int(address in needs_flip_phase)) )
+    try:
+        client.writeRegisters(address, 0x010a, 1, struct.pack('<B', 21 if (address in has_21_erevs_per_mrev) else 14))
+    except:
+        print "WARNING: Motor driver board does not support erevs_per_mrev, try updating the firmware."
+
+    # start_angle = struct.unpack('<f', client.readRegisters(address, 0x010b, 1))[0]
+    # client.writeRegisters(address, 0x0110, 1, struct.pack('<f', start_angle - 0.5))
+    # client.writeRegisters(address, 0x0111, 1, struct.pack('<f', start_angle))
+    # client.writeRegisters(address, 0x0112, 1, struct.pack('<f', 20.0))
+
+    client.writeRegisters(address, 0x0106, 1, struct.pack('<f', duty_cycle))
 
 # while True:
 #     client.writeRegisters(address, 0x0106, 1, struct.pack('<f', duty_cycle))

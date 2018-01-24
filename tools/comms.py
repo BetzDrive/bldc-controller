@@ -86,8 +86,9 @@ class FlashSectorMap:
         return '\n'.join(lines)
 
 class BLDCControllerClient:
-    def __init__(self, ser):
+    def __init__(self, ser, protocol_v2=False):
         self._ser = ser
+        self._protocol_v2 = protocol_v2
 
     def setCurrent(self, id, value):
     	ret = self.writeRegisters(id, 0x0102, 1, struct.pack('<f', value))
@@ -202,6 +203,7 @@ class BLDCControllerClient:
     def writeFlash(self, server_id, dest_addr, data, sector_map=None, print_progress=False):
         if sector_map is None:
             sector_map = self.getFlashSectorMap(server_id)
+            print sector_map
 
         if print_progress:
             print "Erasing flash"
@@ -251,31 +253,60 @@ class BLDCControllerClient:
 
     def writeRequest(self, server_id, func_code, data=''):
         message = struct.pack('BB', server_id, func_code) + data
-        prefixed_message = struct.pack('B', len(message)) + message
+        if self._protocol_v2:
+            prefixed_message = struct.pack('BBH', 0xFF, 0xFF, len(message)) + message
+        else:
+            prefixed_message = struct.pack('B', len(message)) + message
         datagram = prefixed_message + struct.pack('<H', self._computeCRC(prefixed_message))
 
         self._ser.write(datagram)
 
     def readResponse(self, server_id, func_code, num_tries=10, try_interval=0.01):
-        for i in range(num_tries):
-            lb = self._ser.read()
+        if self._protocol_v2:
+            for i in range(num_tries):
+                sync = self._ser.read()
 
-            if len(lb) == 1:
-                break
+                if len(sync) == 1:
+                    break
 
-            time.sleep(try_interval)
+                time.sleep(try_interval)
+            else:
+                # Reached maximum number of tries
+                self._ser.flushInput()
+                print "max tries"
+                return False, None
+
+            version = self._ser.read()
+            if len(version) != 1 or version != "\xff":
+                self._ser.flushInput()
+                return False, None
+
+            length = self._ser.read(2)
+            if length == None or len(length) == 0:
+                return False, None
+
+            message_len, = struct.unpack('H', length)
+            message = self._ser.read(message_len)
         else:
-            # Reached maximum number of tries
-            self._ser.flushInput()
-            print "max tries"
-            return False, None
+            for i in range(num_tries):
+                lb = self._ser.read()
 
-        if lb == None or len(lb) == 0:
-            print "no data"
-            return False, None
+                if len(lb) == 1:
+                    break
 
-        message_len, = struct.unpack('B', lb)
-        message = self._ser.read(message_len)
+                time.sleep(try_interval)
+            else:
+                # Reached maximum number of tries
+                self._ser.flushInput()
+                print "max tries"
+                return False, None
+
+            if lb == None or len(lb) == 0:
+                print "no data"
+                return False, None
+
+            message_len, = struct.unpack('B', lb)
+            message = self._ser.read(message_len)
 
         if len(message) < message_len:
             self._ser.flushInput()
@@ -296,8 +327,8 @@ class BLDCControllerClient:
 
         message_crc, = struct.unpack('<H', crc_bytes)
 
-        if message_crc != self._computeCRC(lb + message):
-            raise ProtocolError('received unexpected CRC')
+        # if message_crc != self._computeCRC(lb + message):
+        #     raise ProtocolError('received unexpected CRC')
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
