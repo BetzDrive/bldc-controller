@@ -5,6 +5,7 @@ from comms import *
 import serial
 import time
 import json
+import struct
 
 def is_int(i):
     try:
@@ -23,19 +24,19 @@ def flash_board(client, board_id, data):
 
     success = client.eraseFlash(board_id, COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
 
-    buf = old_board_id + chr(len(data)) + data
+    buf = old_board_id + struct.pack('<H', len(data)) + data
+    print(len(data))
 
     success = success and client.programFlash(board_id, COMM_NVPARAMS_OFFSET, buf)
 
-    l = client.readFlash(board_id, COMM_NVPARAMS_OFFSET+1, 1)
-    d = client.readFlash(board_id, COMM_NVPARAMS_OFFSET+2, ord(l))
-    print(d)
+    l = struct.unpack('<H', client.readFlash(board_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
+    d = client.readFlash(board_id, COMM_NVPARAMS_OFFSET+3, l)
 
     if success and d == data:
         client.resetSystem(board_id)
-        print "Success " + board_id
+        print("Success", board_id)
     else:
-        print "Failed " + board_id
+        print("Failed ", board_id)
 
 calibrations = {}
 
@@ -57,11 +58,13 @@ if __name__ == '__main__':
     time.sleep(0.1)
     ser.reset_input_buffer()
 
-    client = BLDCControllerClient(ser)
-    client = {}
+    client = BLDCControllerClient(ser, protocol_v2=True)
     if args.board_id == 'all':
         for id in calibrations:
-            flash_board(client, int(id), json.dumps(calibrations[id], separators=(',', ':')))
+            try:
+                flash_board(client, int(id), json.dumps(calibrations[id], separators=(',', ':')))
+            except TypeError:
+                print("Failed %s" % id)
     elif is_int(args.board_id):
         flash_board(client, int(args.board_id), json.dumps(calibrations[args.board_id], separators=(',', ':')))
 
