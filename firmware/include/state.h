@@ -36,7 +36,6 @@ struct Results {
 struct Calibration {
   uint16_t encoder_zero = 0;          // Phase-aligned encoder zero position
   uint8_t erevs_per_mrev = 1;         // Electrical revolutions per mechanical revolution
-  float winding_resistance = 17.8f;   // Motor winding resistance in ohms
   uint8_t flip_phases = false;        // Phases A, B, C are arranged in clockwise instead of ccw order
   float foc_kp_d = 2.0f;              // Proportional gain for FOC/d PI loop
   float foc_ki_d = 0.0f;              // Integral gain for FOC/d PI loop
@@ -45,6 +44,9 @@ struct Calibration {
   float sw_endstop_min = 0.0f;        // Software endstop minimum angle
   float sw_endstop_max = 0.0f;        // Software endstop maximum angle
   float sw_endstop_slope = 20.0f;     // Software endstop torque slope
+  float motor_resistance = 17.8f;     // Motor resistance (ohm)
+  float motor_inductance = 0.0f;      // Motor inductance (henries)
+  float motor_vel_const = 1e3f;       // Motor velocity constant (rad/s/V)
 
   Calibration() {}
 };

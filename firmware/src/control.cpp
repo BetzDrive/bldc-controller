@@ -180,7 +180,7 @@ void runCurrentControl() {
 
     pid_iq.setSetPoint(parameters.cmd_duty_cycle);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(parameters.cmd_duty_cycle * calibration.winding_resistance);
+    pid_iq.setBias(parameters.cmd_duty_cycle * calibration.motor_resistance);
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();

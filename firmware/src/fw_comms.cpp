@@ -49,6 +49,15 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       case 0x1012: // Software Endstop Slope
         handleVarAccess(calibration.sw_endstop_slope, buf, index, buf_len, access_type, errors);
         break;
+      case 0x1020: // Motor Resistance (ohm)
+        handleVarAccess(calibration.motor_resistance, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x1021: // Motor Inductance (H)
+        handleVarAccess(calibration.motor_inductance, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x1022: // Motor Velocity Constant (rad/s/V)
+        handleVarAccess(calibration.motor_vel_const, buf, index, buf_len, access_type, errors);
+        break;
 
       case 0x2000: // Control Mode
         handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
