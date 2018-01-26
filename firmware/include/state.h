@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <ch.h>
+#include "Recorder.h"
 
 namespace motor_driver {
 
@@ -81,6 +82,11 @@ extern Calibration calibration;
  * Parameter values written by the comms thread
  */
 extern Parameters parameters;
+
+/**
+ * Recorder
+ */
+extern Recorder recorder;
 
 /**
  * Results synchronization was requested

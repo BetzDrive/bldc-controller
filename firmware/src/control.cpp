@@ -115,6 +115,23 @@ void runCurrentControl() {
   results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
 
   /*
+   * Record data
+   */
+
+  float recorder_new_data[recorder_channel_count];
+
+  recorder_new_data[recorder_channel_ia] = ivsense_adc_samples_ptr[ivsense_channel_ia];
+  recorder_new_data[recorder_channel_ib] = ivsense_adc_samples_ptr[ivsense_channel_ib];
+  recorder_new_data[recorder_channel_ib] = ivsense_adc_samples_ptr[ivsense_channel_ic];
+  recorder_new_data[recorder_channel_va] = ivsense_adc_samples_ptr[ivsense_channel_va];
+  recorder_new_data[recorder_channel_vb] = ivsense_adc_samples_ptr[ivsense_channel_vb];
+  recorder_new_data[recorder_channel_vc] = ivsense_adc_samples_ptr[ivsense_channel_vc];
+  recorder_new_data[recorder_channel_vin] = ivsense_adc_samples_ptr[ivsense_channel_vin];
+  recorder_new_data[recorder_channel_rotor_pos] = results.encoder_radian_angle;
+
+  
+
+  /*
    * Compute phase duty cycles
    */
 
