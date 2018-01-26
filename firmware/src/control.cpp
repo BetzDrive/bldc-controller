@@ -14,7 +14,7 @@ namespace motor_driver {
 
 static Thread *control_thread_ptr;
 
-static SVM modulator(SVMStrategy::TOP_BOTTOM_CLAMP);
+static SVM modulator(SVMStrategy::MIDPOINT_CLAMP);
 
 static PID pid_id(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f, current_control_interval);
 
