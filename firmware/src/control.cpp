@@ -128,6 +128,7 @@ void runCurrentControl() {
   recorder_new_data[recorder_channel_vc] = ivsense_adc_samples_ptr[ivsense_channel_vc];
   recorder_new_data[recorder_channel_vin] = ivsense_adc_samples_ptr[ivsense_channel_vin];
   recorder_new_data[recorder_channel_rotor_pos] = results.encoder_radian_angle;
+  recorder.recordSample(recorder_new_data);
 
   
 

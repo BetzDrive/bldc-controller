@@ -11,6 +11,7 @@ namespace motor_driver {
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   size_t index = 0;
   float temp;
+  uint8_t flag;
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     switch (addr) {
@@ -104,6 +105,19 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         break;
       case 0x3008: // Accelerometer Z (m/s^2)
         handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
+        break;
+
+      case 0x3009: // Recorder start
+        flag = (uint8_t) recorder.startRecord();
+        handleVarAccess(flag, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x300a: // Recorder ready
+        flag = (uint8_t) recorder.readyToRead();
+        handleVarAccess(flag, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x300b: // Recorder read
+        // buffer = recorder.read();
+        // handleVarAccess(buffer, buf, index, buf_size, access_type, errors);
         break;
 
       default:
