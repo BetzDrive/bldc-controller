@@ -3,7 +3,7 @@
 
 namespace motor_driver {
 
-constexpr size_t RECORD_BUF_SIZE = 1000;
+constexpr unsigned int RECORD_BUF_SIZE = 1000;
 
 class Recorder {
 public:
@@ -13,14 +13,14 @@ public:
     index = 0;
   }
   bool readyToRead();
-  void startRecord();
-  void recordSample();
+  bool startRecord();
+  void recordSample(float* recorder_new_data);
   float *read();
 
 private:
   bool readReady;
   bool recording;
-  size_t index;
+  unsigned int index;
   float buf[RECORD_BUF_SIZE * 8];
 };
 

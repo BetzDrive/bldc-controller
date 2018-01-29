@@ -6,9 +6,13 @@ bool Recorder::readyToRead() {
   return readReady;
 }
 
-void Recorder::startRecord() {
+bool Recorder::startRecord() {
   // TODO: start another record as soon as it is over, if already recording
-  if (!readReady) recording = true;
+  if (!readReady) {
+    recording = true;
+    return true;
+  }
+  return false;
 }
 
 void Recorder::recordSample(float *recorder_new_data) {
@@ -31,7 +35,7 @@ float *Recorder::read() {
     readReady = false;
     return buf;
   } else {
-    return NULL;
+    return nullptr;
   }
 }
 
