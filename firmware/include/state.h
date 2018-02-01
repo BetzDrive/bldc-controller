@@ -16,6 +16,7 @@ struct Results {
 
   int16_t encoder_revs = 0;       // Total number of encoder revolutions
   float encoder_pos_radians = 0;  // Encoder position (radians)
+  float encoder_vel_radians = 0;  // Encoder velocity (radians/second)
 
   float average_va = 0;           // Average voltage on phase A (volts)
   float average_vb = 0;           // Average voltage on phase B (volts)
