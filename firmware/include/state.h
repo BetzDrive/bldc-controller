@@ -3,32 +3,32 @@
 
 #include <stdint.h>
 #include <ch.h>
+#include "Recorder.h"
 
 namespace motor_driver {
 
 struct Results {
-  int32_t encoder_pos = 0;      // Encoder position (encoder units)
-  float encoder_vel = 0;        // Encoder velocity (encoder units/second)
-  float foc_d_current = 0;      // Measured FOC direct current (amperes)
-  float foc_q_current = 0;      // Measured FOC quadrature current (amperes)
+  float foc_d_current = 0;        // Measured FOC direct current (amperes)
+  float foc_q_current = 0;        // Measured FOC quadrature current (amperes)
 
-  uint16_t encoder_angle = 0;   // Encoder angle, wraps around
+  uint16_t raw_encoder_pos = 0;   // Encoder position, wraps around
   uint16_t encoder_diag = 0;
 
-  float encoder_radian_angle = 0;
-  int16_t encoder_revs = 0;
+  int16_t encoder_revs = 0;       // Total number of encoder revolutions
+  float encoder_pos_radians = 0;  // Encoder position (radians)
+  float encoder_vel_radians = 0;  // Encoder velocity (radians/second)
 
-  float average_va = 0;         // Average voltage on phase A (volts)
-  float average_vb = 0;         // Average voltage on phase B (volts)
-  float average_vc = 0;         // Average voltage on phase C (volts)
-  float average_vin = 0;        // Average supply voltage (volts)
-  float average_ia = 0;         // Average current into phase A (amperes)
-  float average_ib = 0;         // Average current into phase B (amperes)
-  float average_ic = 0;         // Average current into phase C (amperes)
+  float average_va = 0;           // Average voltage on phase A (volts)
+  float average_vb = 0;           // Average voltage on phase B (volts)
+  float average_vc = 0;           // Average voltage on phase C (volts)
+  float average_vin = 0;          // Average supply voltage (volts)
+  float average_ia = 0;           // Average current into phase A (amperes)
+  float average_ib = 0;           // Average current into phase B (amperes)
+  float average_ic = 0;           // Average current into phase C (amperes)
 
-  int32_t xl_x = 0;             // X-acceleration in milli-g's
-  int32_t xl_y = 0;             // Y-acceleration in milli-g's
-  int32_t xl_z = 0;             // Z-acceleration in milli-g's
+  int32_t xl_x = 0;               // X-acceleration in milli-g's
+  int32_t xl_y = 0;               // Y-acceleration in milli-g's
+  int32_t xl_z = 0;               // Z-acceleration in milli-g's
 
   Results() {}
 };
@@ -36,15 +36,17 @@ struct Results {
 struct Calibration {
   uint16_t encoder_zero = 0;          // Phase-aligned encoder zero position
   uint8_t erevs_per_mrev = 1;         // Electrical revolutions per mechanical revolution
-  float winding_resistance = 17.8f;   // Motor winding resistance in ohms
   uint8_t flip_phases = false;        // Phases A, B, C are arranged in clockwise instead of ccw order
   float foc_kp_d = 2.0f;              // Proportional gain for FOC/d PI loop
   float foc_ki_d = 0.0f;              // Integral gain for FOC/d PI loop
   float foc_kp_q = 2.0f;              // Proportional gain for FOC/q PI loop
   float foc_ki_q = 0.0f;              // Integral gain for FOC/q PI loop
-  float sw_endstop_min = 0.0f;        // Software endstop minimum angle
-  float sw_endstop_max = 0.0f;        // Software endstop maximum angle
+  float sw_endstop_min = 0.0f;        // Software endstop minimum position
+  float sw_endstop_max = 0.0f;        // Software endstop maximum position
   float sw_endstop_slope = 20.0f;     // Software endstop torque slope
+  float motor_resistance = 17.8f;     // Motor resistance (ohm)
+  float motor_inductance = 0.0f;      // Motor inductance (henries)
+  float motor_torque_const = 0.0f;    // Motor torque constant (newton-meters per ampere)
 
   Calibration() {}
 };
@@ -79,6 +81,11 @@ extern Calibration calibration;
  * Parameter values written by the comms thread
  */
 extern Parameters parameters;
+
+/**
+ * Recorder
+ */
+extern Recorder recorder;
 
 /**
  * Results synchronization was requested

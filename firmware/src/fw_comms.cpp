@@ -11,6 +11,7 @@ namespace motor_driver {
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   size_t index = 0;
   float temp;
+  uint8_t flag;
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     switch (addr) {
@@ -49,6 +50,15 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       case 0x1012: // Software Endstop Slope
         handleVarAccess(calibration.sw_endstop_slope, buf, index, buf_len, access_type, errors);
         break;
+      case 0x1020: // Motor Resistance (ohm)
+        handleVarAccess(calibration.motor_resistance, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x1021: // Motor Inductance (H)
+        handleVarAccess(calibration.motor_inductance, buf, index, buf_len, access_type, errors);
+        break;
+      case 0x1022: // Motor Torque Constant (N*m/A)
+        handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
+        break;
 
       case 0x2000: // Control Mode
         handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
@@ -69,14 +79,17 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         break;
 
       case 0x3000: // Rotor Position (rad)
-        handleVarAccess(results.encoder_radian_angle, buf, index, buf_size, access_type, errors);
+        handleVarAccess(results.encoder_pos_radians, buf, index, buf_size, access_type, errors);
         break;
-      // case 0x3001: // Rotor Velocity (rad/sec)
-      //   break;
-      // case 0x3002: // Direct Current Measurement (A)
-      //   break;
-      // case 0x3003: // Quadrature Current Measurement (A)
-      //   break;
+      case 0x3001: // Rotor Velocity (rad/sec)
+        handleVarAccess(results.encoder_vel_radians, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x3002: // Direct Current Measurement (A)
+        handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x3003: // Quadrature Current Measurement (A)
+        handleVarAccess(results.foc_q_current, buf, index, buf_size, access_type, errors);
+        break;
       case 0x3004: // DC Supply Voltage (V)
         handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
         break;
@@ -95,6 +108,19 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         break;
       case 0x3008: // Accelerometer Z (m/s^2)
         handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
+        break;
+
+      case 0x3009: // Recorder start
+        flag = (uint8_t) recorder.startRecord();
+        handleVarAccess(flag, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x300a: // Recorder ready
+        flag = (uint8_t) recorder.readyToRead();
+        handleVarAccess(flag, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x300b: // Recorder read
+        // buffer = recorder.read();
+        // handleVarAccess(buffer, buf, index, buf_size, access_type, errors);
         break;
 
       default:

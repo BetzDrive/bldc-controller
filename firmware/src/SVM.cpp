@@ -7,9 +7,9 @@
 namespace motor_driver {
 
 void SVM::computeDutyCycles(float v_alpha, float v_beta, float& dc_a, float& dc_b, float& dc_c) {
-  dc_a = (v_alpha) * one_by_sqrt3 + 0.5f;
-  dc_b = (-0.5f * v_alpha + sqrt3_by_2 * v_beta) * one_by_sqrt3 + 0.5f;
-  dc_c = (-0.5f * v_alpha - sqrt3_by_2 * v_beta) * one_by_sqrt3 + 0.5f;
+  dc_a = (v_alpha) * one_div_sqrt3 + 0.5f;
+  dc_b = (-0.5f * v_alpha + sqrt3_div_2 * v_beta) * one_div_sqrt3 + 0.5f;
+  dc_c = (-0.5f * v_alpha - sqrt3_div_2 * v_beta) * one_div_sqrt3 + 0.5f;
 
   switch (strategy_) {
     case SVMStrategy::SINUSOIDAL:
@@ -28,7 +28,7 @@ void SVM::computeDutyCycles(float v_alpha, float v_beta, float& dc_a, float& dc_
        */
 
       {
-        float top_shift = 1.0 - std::max({dc_a, dc_b, dc_c});
+        float top_shift = 1.0f - std::max({dc_a, dc_b, dc_c});
         float bottom_shift = std::min({dc_a, dc_b, dc_c});
 
         if (top_shift < bottom_shift) {
@@ -40,6 +40,21 @@ void SVM::computeDutyCycles(float v_alpha, float v_beta, float& dc_a, float& dc_
           dc_b -= bottom_shift;
           dc_c -= bottom_shift;
         }
+      }
+
+      break;
+
+    case SVMStrategy::MIDPOINT_CLAMP:
+      /*
+       * Midpoint clamping ZSM
+       */
+
+      {
+        float shift = 0.5f * (1.0f - std::min({dc_a, dc_b, dc_c}) - std::max({dc_a, dc_b, dc_c}));
+
+        dc_a += shift;
+        dc_b += shift;
+        dc_c += shift;
       }
 
       break;
