@@ -7,9 +7,9 @@
 namespace motor_driver {
 
 constexpr float pi = 3.1415927410125732421875f;
-constexpr float sqrt3_by_2 = 0.866025388240814208984375f;
-constexpr float one_by_sqrt3 = 0.57735025882720947265625f;
-constexpr float two_by_sqrt3 = 1.1547005176544189453125f;
+constexpr float sqrt3_div_2 = 0.866025388240814208984375f;
+constexpr float one_div_sqrt3 = 0.57735025882720947265625f;
+constexpr float two_div_sqrt3 = 1.1547005176544189453125f;
 
 extern const uint16_t led_gamma_table[];
 

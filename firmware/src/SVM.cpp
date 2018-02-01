@@ -7,9 +7,9 @@
 namespace motor_driver {
 
 void SVM::computeDutyCycles(float v_alpha, float v_beta, float& dc_a, float& dc_b, float& dc_c) {
-  dc_a = (v_alpha) * one_by_sqrt3 + 0.5f;
-  dc_b = (-0.5f * v_alpha + sqrt3_by_2 * v_beta) * one_by_sqrt3 + 0.5f;
-  dc_c = (-0.5f * v_alpha - sqrt3_by_2 * v_beta) * one_by_sqrt3 + 0.5f;
+  dc_a = (v_alpha) * one_div_sqrt3 + 0.5f;
+  dc_b = (-0.5f * v_alpha + sqrt3_div_2 * v_beta) * one_div_sqrt3 + 0.5f;
+  dc_c = (-0.5f * v_alpha - sqrt3_div_2 * v_beta) * one_div_sqrt3 + 0.5f;
 
   switch (strategy_) {
     case SVMStrategy::SINUSOIDAL:
@@ -50,7 +50,7 @@ void SVM::computeDutyCycles(float v_alpha, float v_beta, float& dc_a, float& dc_
        */
 
       {
-        float shift = 0.5f * (1 - std::min({dc_a, dc_b, dc_c}) - std::max({dc_a, dc_b, dc_c}));
+        float shift = 0.5f * (1.0f - std::min({dc_a, dc_b, dc_c}) - std::max({dc_a, dc_b, dc_c}));
 
         dc_a += shift;
         dc_b += shift;
