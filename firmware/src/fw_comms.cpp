@@ -84,10 +84,12 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       case 0x3001: // Rotor Velocity (rad/sec)
         handleVarAccess(results.encoder_vel_radians, buf, index, buf_size, access_type, errors);
         break;
-      // case 0x3002: // Direct Current Measurement (A)
-      //   break;
-      // case 0x3003: // Quadrature Current Measurement (A)
-      //   break;
+      case 0x3002: // Direct Current Measurement (A)
+        handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
+        break;
+      case 0x3003: // Quadrature Current Measurement (A)
+        handleVarAccess(results.foc_q_current, buf, index, buf_size, access_type, errors);
+        break;
       case 0x3004: // DC Supply Voltage (V)
         handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
         break;
