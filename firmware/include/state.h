@@ -46,7 +46,7 @@ struct Calibration {
   float sw_endstop_slope = 20.0f;     // Software endstop torque slope
   float motor_resistance = 17.8f;     // Motor resistance (ohm)
   float motor_inductance = 0.0f;      // Motor inductance (henries)
-  float motor_vel_const = 1e3f;       // Motor velocity constant (rad/s/V)
+  float motor_torque_const = 0.0f;    // Motor torque constant (newton-meters per ampere)
 
   Calibration() {}
 };

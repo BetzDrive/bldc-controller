@@ -56,8 +56,8 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       case 0x1021: // Motor Inductance (H)
         handleVarAccess(calibration.motor_inductance, buf, index, buf_len, access_type, errors);
         break;
-      case 0x1022: // Motor Velocity Constant (rad/s/V)
-        handleVarAccess(calibration.motor_vel_const, buf, index, buf_len, access_type, errors);
+      case 0x1022: // Motor Torque Constant (N*m/A)
+        handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
         break;
 
       case 0x2000: // Control Mode
