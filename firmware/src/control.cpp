@@ -79,7 +79,7 @@ void runCurrentControl() {
   } else if (diff < -threshold) {
     results.encoder_revs -= 1;
   }
-  results.encoder_radian_angle = raw_encoder_angle * encoder_angle_to_radians + results.encoder_revs * 2 * pi;
+  results.encoder_angle_radians = raw_encoder_angle * encoder_angle_to_radians + results.encoder_revs * 2 * pi;
   results.encoder_angle = raw_encoder_angle;
 
   /*
@@ -127,7 +127,7 @@ void runCurrentControl() {
   recorder_new_data[recorder_channel_vb] = ivsense_adc_samples_ptr[ivsense_channel_vb];
   recorder_new_data[recorder_channel_vc] = ivsense_adc_samples_ptr[ivsense_channel_vc];
   recorder_new_data[recorder_channel_vin] = ivsense_adc_samples_ptr[ivsense_channel_vin];
-  recorder_new_data[recorder_channel_rotor_pos] = results.encoder_radian_angle;
+  recorder_new_data[recorder_channel_rotor_pos] = results.encoder_angle_radians;
   recorder.recordSample(recorder_new_data);
 
   
@@ -186,12 +186,12 @@ void runCurrentControl() {
       if (torque_command >= 0) {
         // Positive torque command, only check the maximum endstop
 
-        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_radian_angle) * calibration.sw_endstop_slope);
+        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_angle_radians) * calibration.sw_endstop_slope);
         torque_command = std::min(torque_command, torque_limit);
       } else {
         // Negative torque command, only check the minimum endstop
 
-        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_radian_angle) * calibration.sw_endstop_slope);
+        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_angle_radians) * calibration.sw_endstop_slope);
         torque_command = std::max(torque_command, torque_limit);
       }
     }

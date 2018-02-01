@@ -16,7 +16,7 @@ struct Results {
   uint16_t encoder_angle = 0;   // Encoder angle, wraps around
   uint16_t encoder_diag = 0;
 
-  float encoder_radian_angle = 0;
+  float encoder_angle_radians = 0;
   int16_t encoder_revs = 0;
 
   float average_va = 0;         // Average voltage on phase A (volts)
