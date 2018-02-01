@@ -333,8 +333,8 @@ class BLDCControllerClient:
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
         # Raise an exception if another type of error occurred
-        if (errors & ~COMM_ERRORS_OP_FAILED) != 0:
-            raise ProtocolError('other error flags set', errors)
+        # if (errors & ~COMM_ERRORS_OP_FAILED) != 0:
+        #     raise ProtocolError('other error flags set', errors)
 
         if (errors & COMM_ERRORS_OP_FAILED) != 0:
         #     raise ProtocolError('operation failed')
