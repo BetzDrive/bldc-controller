@@ -59,28 +59,28 @@ void runCurrentControl() {
   palClearPad(GPIOA, GPIOA_LED_Y);
 
   /*
-   * Get current encoder angle
+   * Get current encoder position
    */
 
-  uint16_t raw_encoder_angle;
+  uint16_t raw_encoder_pos;
 
   chSysLock(); // Required for function calls with "I" suffix
 
-  raw_encoder_angle = encoder.getPipelinedRegisterReadResultI();
+  raw_encoder_pos = encoder.getPipelinedRegisterReadResultI();
   encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
 
-  uint16_t prev_raw_encoder_angle = results.encoder_angle;
+  uint16_t prev_raw_encoder_pos = results.raw_encoder_pos;
   float threshold = pi;
-  float diff = ((int16_t)prev_raw_encoder_angle - (int16_t)raw_encoder_angle) * encoder_angle_to_radians;
+  float diff = ((int16_t)prev_raw_encoder_pos - (int16_t)raw_encoder_pos) * encoder_pos_to_radians;
   if (diff > threshold) {
     results.encoder_revs += 1;
   } else if (diff < -threshold) {
     results.encoder_revs -= 1;
   }
-  results.encoder_angle_radians = raw_encoder_angle * encoder_angle_to_radians + results.encoder_revs * 2 * pi;
-  results.encoder_angle = raw_encoder_angle;
+  results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi;
+  results.raw_encoder_pos = raw_encoder_pos;
 
   /*
    * Calculate average voltages and currents
@@ -127,7 +127,7 @@ void runCurrentControl() {
   recorder_new_data[recorder_channel_vb] = ivsense_adc_samples_ptr[ivsense_channel_vb];
   recorder_new_data[recorder_channel_vc] = ivsense_adc_samples_ptr[ivsense_channel_vc];
   recorder_new_data[recorder_channel_vin] = ivsense_adc_samples_ptr[ivsense_channel_vin];
-  recorder_new_data[recorder_channel_rotor_pos] = results.encoder_angle_radians;
+  recorder_new_data[recorder_channel_rotor_pos] = results.encoder_pos_radians;
   recorder.recordSample(recorder_new_data);
 
   
@@ -156,11 +156,11 @@ void runCurrentControl() {
       ibeta = -ibeta;
     }
 
-    uint16_t zeroed_encoder_angle = (raw_encoder_angle - calibration.encoder_zero + encoder_period) % encoder_period;
-    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * calibration.erevs_per_mrev;
+    uint16_t zeroed_encoder_pos = (raw_encoder_pos - calibration.encoder_zero + encoder_period) % encoder_period;
+    float elec_pos_radians = zeroed_encoder_pos * encoder_pos_to_radians * calibration.erevs_per_mrev;
 
-    float cos_theta = fast_cos(elec_angle_radians);
-    float sin_theta = fast_sin(elec_angle_radians);
+    float cos_theta = fast_cos(elec_pos_radians);
+    float sin_theta = fast_sin(elec_pos_radians);
 
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
@@ -186,12 +186,12 @@ void runCurrentControl() {
       if (torque_command >= 0) {
         // Positive torque command, only check the maximum endstop
 
-        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_angle_radians) * calibration.sw_endstop_slope);
+        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_pos_radians) * calibration.sw_endstop_slope);
         torque_command = std::min(torque_command, torque_limit);
       } else {
         // Negative torque command, only check the minimum endstop
 
-        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_angle_radians) * calibration.sw_endstop_slope);
+        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_pos_radians) * calibration.sw_endstop_slope);
         torque_command = std::max(torque_command, torque_limit);
       }
     }

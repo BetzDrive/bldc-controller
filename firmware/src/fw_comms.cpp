@@ -79,7 +79,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         break;
 
       case 0x3000: // Rotor Position (rad)
-        handleVarAccess(results.encoder_angle_radians, buf, index, buf_size, access_type, errors);
+        handleVarAccess(results.encoder_pos_radians, buf, index, buf_size, access_type, errors);
         break;
       // case 0x3001: // Rotor Velocity (rad/sec)
       //   break;
