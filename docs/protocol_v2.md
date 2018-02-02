@@ -100,7 +100,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE`commands can be used in
 | `0x1012` | Software Endstop Slope | `float` |
 | `0x1020` | Motor Resistance (ohm) | `float` |
 | `0x1021` | Motor Inductance (H) | `float` |
-| `0x1022` | Motor Velocity Constant (rad/s/V) | `float` |
+| `0x1022` | Motor Torque Constant (N*m/A) | `float` |
 
 **Volatile Registers `(0x2***)`**
 
