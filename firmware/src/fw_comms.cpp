@@ -10,7 +10,6 @@ namespace motor_driver {
 
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   size_t index = 0;
-  float temp;
   uint8_t flag;
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
@@ -94,11 +93,12 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
         break;
       case 0x3005: // Board Temperature (degrees C)
-        if (temp_sensor.getTemperature(&temp)) {
-          handleVarAccess(temp, buf, index, buf_size, access_type, errors);
-        } else {
-          errors |= COMM_ERRORS_OP_FAILED;
-        }
+        handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
+        // if (temp_sensor.getTemperature(&temp)) {
+        //   handleVarAccess(temp, buf, index, buf_size, access_type, errors);
+        // } else {
+        //   errors |= COMM_ERRORS_OP_FAILED;
+        // }
         break;
       case 0x3006: // Accelerometer X (m/s^2)
         handleVarAccess(results.xl_x, buf, index, buf_size, access_type, errors);
