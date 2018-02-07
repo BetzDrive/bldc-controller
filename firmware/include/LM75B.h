@@ -1,11 +1,7 @@
 #ifndef _LM75B_H_
 #define _LM75B_H_
 
-/* #include <algorithm> */
-/* #include <cmath> */
-/* #include "ch.h" */
 #include "hal.h"
-/* #include "utils.h" */
 
 namespace motor_driver {
 

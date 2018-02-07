@@ -18,7 +18,7 @@ client = BLDCControllerClient(s, True)
 
 client.leaveBootloader(address)
 s.reset_input_buffer()
-time.sleep(0.1)
+time.sleep(1)
 
 while True:
     try:

@@ -31,6 +31,8 @@ struct Results {
   int32_t xl_y = 0;             // Y-acceleration in milli-g's
   int32_t xl_z = 0;             // Z-acceleration in milli-g's
 
+  float temp = 0;               // Temperature in degrees Celsius
+
   Results() {}
 };
 
