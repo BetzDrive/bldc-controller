@@ -18,17 +18,17 @@ void transformInversePark(float d, float q, float cos_theta, float sin_theta, fl
 
 void transformClarke(float a, float b, float c, float& alpha, float& beta) {
   alpha = (2.0f * a - b - c) / 3.0f;
-  beta = one_by_sqrt3 * (b - c);
+  beta = one_div_sqrt3 * (b - c);
 }
 
 void transformInverseClarke(float alpha, float beta, float& a, float& b, float& c) {
   a = alpha;
-  b = -alpha / 2.0 + (sqrt3_by_2 * beta);
-  c = -alpha / 2.0 - (sqrt3_by_2 * beta);
+  b = -alpha / 2.0f + (sqrt3_div_2 * beta);
+  c = -alpha / 2.0f - (sqrt3_div_2 * beta);
   // Multiply by 1/sqrt(3) because phase voltages have amplitude 1/sqrt(3) of bus voltage
-  a *= one_by_sqrt3;
-  b *= one_by_sqrt3;
-  c *= one_by_sqrt3;
+  a *= one_div_sqrt3;
+  b *= one_div_sqrt3;
+  c *= one_div_sqrt3;
 }
 
 } // namespace motor_driver

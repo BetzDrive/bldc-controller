@@ -59,28 +59,33 @@ void runCurrentControl() {
   palClearPad(GPIOA, GPIOA_LED_Y);
 
   /*
-   * Get current encoder angle
+   * Get current encoder position and velocity
    */
 
-  uint16_t raw_encoder_angle;
+  uint16_t raw_encoder_pos;
 
   chSysLock(); // Required for function calls with "I" suffix
 
-  raw_encoder_angle = encoder.getPipelinedRegisterReadResultI();
+  raw_encoder_pos = encoder.getPipelinedRegisterReadResultI();
   encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
 
-  uint16_t prev_raw_encoder_angle = results.encoder_angle;
+  uint16_t prev_raw_encoder_pos = results.raw_encoder_pos;
+  float prev_encoder_pos_radians = results.encoder_pos_radians;
   float threshold = pi;
-  float diff = ((int16_t)prev_raw_encoder_angle - (int16_t)raw_encoder_angle) * encoder_angle_to_radians;
+  float diff = ((int16_t)prev_raw_encoder_pos - (int16_t)raw_encoder_pos) * encoder_pos_to_radians;
   if (diff > threshold) {
     results.encoder_revs += 1;
   } else if (diff < -threshold) {
     results.encoder_revs -= 1;
   }
-  results.encoder_radian_angle = raw_encoder_angle * encoder_angle_to_radians + results.encoder_revs * 2 * pi;
-  results.encoder_angle = raw_encoder_angle;
+  results.raw_encoder_pos = raw_encoder_pos;
+  results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi;
+
+  float encoder_vel_radians_update = (results.encoder_pos_radians - prev_encoder_pos_radians) * current_control_freq;
+  float alpha = 0.01f; // IIR filter parameter
+  results.encoder_vel_radians = alpha * encoder_vel_radians_update + (1.0f - alpha) * results.encoder_vel_radians;
 
   /*
    * Calculate average voltages and currents
@@ -127,7 +132,7 @@ void runCurrentControl() {
   recorder_new_data[recorder_channel_vb] = results.average_vb;
   recorder_new_data[recorder_channel_vc] = results.average_vc;
   recorder_new_data[recorder_channel_vin] = results.average_vin;
-  recorder_new_data[recorder_channel_rotor_pos] = results.encoder_radian_angle;
+  recorder_new_data[recorder_channel_rotor_pos] = results.encoder_pos_radians;
   recorder.recordSample(recorder_new_data);
 
   
@@ -156,11 +161,11 @@ void runCurrentControl() {
       ibeta = -ibeta;
     }
 
-    uint16_t zeroed_encoder_angle = (raw_encoder_angle - calibration.encoder_zero + encoder_period) % encoder_period;
-    float elec_angle_radians = zeroed_encoder_angle * encoder_angle_to_radians * calibration.erevs_per_mrev;
+    uint16_t zeroed_encoder_pos = (raw_encoder_pos - calibration.encoder_zero + encoder_period) % encoder_period;
+    float elec_pos_radians = zeroed_encoder_pos * encoder_pos_to_radians * calibration.erevs_per_mrev;
 
-    float cos_theta = fast_cos(elec_angle_radians);
-    float sin_theta = fast_sin(elec_angle_radians);
+    float cos_theta = fast_cos(elec_pos_radians);
+    float sin_theta = fast_sin(elec_pos_radians);
 
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
@@ -186,19 +191,19 @@ void runCurrentControl() {
       if (torque_command >= 0) {
         // Positive torque command, only check the maximum endstop
 
-        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_radian_angle) * calibration.sw_endstop_slope);
+        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_pos_radians) * calibration.sw_endstop_slope);
         torque_command = std::min(torque_command, torque_limit);
       } else {
         // Negative torque command, only check the minimum endstop
 
-        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_radian_angle) * calibration.sw_endstop_slope);
+        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_pos_radians) * calibration.sw_endstop_slope);
         torque_command = std::max(torque_command, torque_limit);
       }
     }
 
     pid_iq.setSetPoint(parameters.cmd_duty_cycle);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(parameters.cmd_duty_cycle * calibration.motor_resistance);
+    pid_iq.setBias(parameters.cmd_duty_cycle * calibration.motor_resistance + results.encoder_vel_radians * calibration.motor_torque_const);
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();

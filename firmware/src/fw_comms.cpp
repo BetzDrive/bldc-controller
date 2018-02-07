@@ -18,7 +18,6 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
   if (start_addr >= 0x8000) { // Recordings address
     recordings = recorder.read();
   }
-
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     if (addr >= 0x8000) {
       if (recordings != nullptr) {
@@ -73,10 +72,9 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1021: // Motor Inductance (H)
           handleVarAccess(calibration.motor_inductance, buf, index, buf_len, access_type, errors);
           break;
-        case 0x1022: // Motor Velocity Constant (rad/s/V)
-          handleVarAccess(calibration.motor_vel_const, buf, index, buf_len, access_type, errors);
+        case 0x1022: // Motor Torque Constant (N*m/A)
+          handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
           break;
-
         case 0x2000: // Control Mode
           handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
           break;
@@ -94,16 +92,18 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x2005: // Phase C Raw PWM Duty Cycle
           handleVarAccess(parameters.phase2, buf, index, buf_len, access_type, errors);
           break;
-
         case 0x3000: // Rotor Position (rad)
-          handleVarAccess(results.encoder_radian_angle, buf, index, buf_size, access_type, errors);
+          handleVarAccess(results.encoder_pos_radians, buf, index, buf_size, access_type, errors);
           break;
-        // case 0x3001: // Rotor Velocity (rad/sec)
-        //   break;
-        // case 0x3002: // Direct Current Measurement (A)
-        //   break;
-        // case 0x3003: // Quadrature Current Measurement (A)
-        //   break;
+        case 0x3001: // Rotor Velocity (rad/sec)
+          handleVarAccess(results.encoder_vel_radians, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x3002: // Direct Current Measurement (A)
+          handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x3003: // Quadrature Current Measurement (A)
+          handleVarAccess(results.foc_q_current, buf, index, buf_size, access_type, errors);
+          break;
         case 0x3004: // DC Supply Voltage (V)
           handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
           break;

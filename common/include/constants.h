@@ -7,9 +7,9 @@
 namespace motor_driver {
 
 constexpr float pi = 3.1415927410125732421875f;
-constexpr float sqrt3_by_2 = 0.866025388240814208984375f;
-constexpr float one_by_sqrt3 = 0.57735025882720947265625f;
-constexpr float two_by_sqrt3 = 1.1547005176544189453125f;
+constexpr float sqrt3_div_2 = 0.866025388240814208984375f;
+constexpr float one_div_sqrt3 = 0.57735025882720947265625f;
+constexpr float two_div_sqrt3 = 1.1547005176544189453125f;
 
 extern const uint16_t led_gamma_table[];
 
@@ -17,14 +17,15 @@ constexpr uint32_t rs485_baud = 1000000;
 
 constexpr uint16_t encoder_period = 1U << 14;
 
-/* Need to flip the sign because encoder angle increases clockwise */
-constexpr float encoder_angle_to_radians = -2.0f * pi / encoder_period;
+/* Need to flip the sign because encoder position increases clockwise */
+constexpr float encoder_pos_to_radians = -2.0f * pi / encoder_period;
 
 constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
 
 constexpr unsigned int motor_pwm_cycle_freq = 40000; // Hz
 
-constexpr float current_control_interval = 2.0f / motor_pwm_cycle_freq; // Current control runs every two PWM cycles
+constexpr float current_control_freq = motor_pwm_cycle_freq / 2.0f; // Current control runs every two PWM cycles
+constexpr float current_control_interval = 1.0f / current_control_freq;
 
 constexpr unsigned int ivsense_samples_per_cycle = 30;
 
