@@ -96,27 +96,27 @@ void runCurrentControl() {
   unsigned int adc_ia_sum = 0;
   unsigned int adc_ib_sum = 0;
   unsigned int adc_ic_sum = 0;
-  // unsigned int adc_va_sum = 0;
-  // unsigned int adc_vb_sum = 0;
-  // unsigned int adc_vc_sum = 0;
+  unsigned int adc_va_sum = 0;
+  unsigned int adc_vb_sum = 0;
+  unsigned int adc_vc_sum = 0;
   unsigned int adc_vin_sum = 0;
 
   for (size_t i = 0; i < ivsense_samples_per_cycle; i++) {
     adc_ia_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ia];
     adc_ib_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ib];
     adc_ic_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ic];
-    // adc_va_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_va];
-    // adc_vb_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vb];
-    // adc_vc_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vc];
+    adc_va_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_va];
+    adc_vb_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vb];
+    adc_vc_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vc];
     adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
   }
 
   results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
   results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
   results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
-  // results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
-  // results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
-  // results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
+  results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
+  results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
+  results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
   results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
 
   /*
@@ -125,13 +125,13 @@ void runCurrentControl() {
 
   float recorder_new_data[recorder_channel_count];
 
-  recorder_new_data[recorder_channel_ia] = ivsense_adc_samples_ptr[ivsense_channel_ia];
-  recorder_new_data[recorder_channel_ib] = ivsense_adc_samples_ptr[ivsense_channel_ib];
-  recorder_new_data[recorder_channel_ib] = ivsense_adc_samples_ptr[ivsense_channel_ic];
-  recorder_new_data[recorder_channel_va] = ivsense_adc_samples_ptr[ivsense_channel_va];
-  recorder_new_data[recorder_channel_vb] = ivsense_adc_samples_ptr[ivsense_channel_vb];
-  recorder_new_data[recorder_channel_vc] = ivsense_adc_samples_ptr[ivsense_channel_vc];
-  recorder_new_data[recorder_channel_vin] = ivsense_adc_samples_ptr[ivsense_channel_vin];
+  recorder_new_data[recorder_channel_ia] = results.average_ia;
+  recorder_new_data[recorder_channel_ib] = results.average_ib;
+  recorder_new_data[recorder_channel_ic] = results.average_ic;
+  recorder_new_data[recorder_channel_va] = results.average_va;
+  recorder_new_data[recorder_channel_vb] = results.average_vb;
+  recorder_new_data[recorder_channel_vc] = results.average_vc;
+  recorder_new_data[recorder_channel_vin] = results.average_vin;
   recorder_new_data[recorder_channel_rotor_pos] = results.encoder_pos_radians;
   recorder.recordSample(recorder_new_data);
 

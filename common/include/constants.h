@@ -70,6 +70,8 @@ constexpr size_t recorder_channel_vc = 5;           // Phase C voltage channel i
 constexpr size_t recorder_channel_vin = 6;          // Supply voltage channel index
 constexpr size_t recorder_channel_rotor_pos = 7;    // Rotor position channel index
 
+constexpr size_t recorder_max_samples = 1000;
+
 /* Address of non-volatile parameters storage */
 /* extern const void *nvparams_start; */
 

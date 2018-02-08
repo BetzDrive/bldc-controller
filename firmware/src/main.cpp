@@ -76,21 +76,24 @@ static msg_t commsThreadRun(void *arg) {
 }
 
 /*
- * IMU Thread
+ * Sensor thread
  */
 
-static WORKING_AREA(imu_thread_wa, 128);
-static msg_t imuThreadRun(void *arg) {
+static WORKING_AREA(sensor_thread_wa, 128);
+static msg_t sensorThreadRun(void *arg) {
   (void)arg;
   
-  chRegSetThreadName("imu");
+  chRegSetThreadName("sensor");
 
   while (true) {
     int32_t xl[3];
+    float temperature;
     acc_gyr.Get_Acc(xl);
+    temp_sensor.getTemperature(&temperature);
     results.xl_x = xl[0];
     results.xl_y = xl[1];
     results.xl_z = xl[2];
+    results.temperature = temperature;
     chThdSleepMilliseconds(100);
   }
 
@@ -117,7 +120,7 @@ int main(void) {
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
   chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
-  chThdCreateStatic(imu_thread_wa, sizeof(imu_thread_wa), LOWPRIO, imuThreadRun, NULL);
+  chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO, sensorThreadRun, NULL);
 
   chThdSetPriority(HIGHPRIO);
   runInnerControlLoop();

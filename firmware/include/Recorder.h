@@ -1,27 +1,35 @@
 #ifndef _RECORDER_H_
 #define _RECORDER_H_
 
-namespace motor_driver {
+#include <stddef.h>
+#include "constants.h"
 
-constexpr unsigned int RECORD_BUF_SIZE = 1000;
+namespace motor_driver {
 
 class Recorder {
 public:
-  Recorder() {
-    readReady = false;
-    recording = false;
-    index = 0;
-  }
-  bool readyToRead();
+  Recorder() : state_(State::READY), index_(0) {}
+
   bool startRecord();
+
   void recordSample(float* recorder_new_data);
-  float *read();
+
+  float* read();
+
+  void reset();
+
+  uint16_t size();
 
 private:
-  bool readReady;
-  bool recording;
-  unsigned int index;
-  float buf[RECORD_BUF_SIZE * 8];
+  enum class State {
+    READY,
+    RECORDING,
+    FINISHED
+  };
+
+  State state_;
+  size_t index_;
+  float record_buf_[recorder_max_samples * recorder_channel_count];
 };
 
 } // namespace motor_driver

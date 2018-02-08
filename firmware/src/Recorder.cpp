@@ -2,40 +2,44 @@
 
 namespace motor_driver {
 
-bool Recorder::readyToRead() {
-  return readReady;
-}
-
 bool Recorder::startRecord() {
   // TODO: start another record as soon as it is over, if already recording
-  if (!readReady) {
-    recording = true;
+  if (state_ == State::READY) {
+    state_ = State::RECORDING;
     return true;
   }
   return false;
 }
 
 void Recorder::recordSample(float *recorder_new_data) {
-  if (recording && !readReady) {
-    for (int j = 0; j < 8; j++) {
-      // bad caching?
-      buf[j*RECORD_BUF_SIZE + index] = recorder_new_data[j];
+  if (state_ == State::RECORDING) {
+    for (size_t j = 0; j < recorder_channel_count; j++) {
+      record_buf_[index_ + j] = recorder_new_data[j];
     }
-    index++;
-    if (index >= RECORD_BUF_SIZE) {
-      index = 0;
-      readReady = true;
-      recording = false;
+    index_ += recorder_channel_count;
+    if (index_ >= recorder_max_samples * recorder_channel_count) {
+      state_ = State::FINISHED;
     }
   }
 }
 
 float *Recorder::read() {
-  if (readReady) {
-    readReady = false;
-    return buf;
+  if (state_ == State::FINISHED) {
+    return record_buf_;
   } else {
     return nullptr;
+  }
+}
+
+void Recorder::reset() {
+  state_ = State::READY;
+}
+
+uint16_t Recorder::size() {
+  if (state_ == State::FINISHED) {
+    return recorder_max_samples * recorder_channel_count;
+  } else {
+    return 0;
   }
 }
 
