@@ -69,7 +69,7 @@ Registers can be read from and written to using the `COMM_FC_REG_READ_WRITE` com
 
 By incrementing the *Read Count* and *Write Count* values, registers with consecutive addresses can be read from and written to in batches. Their values should be concatenated together in `Write Values` (for writes), as well as in the response payload (for reads).
 
-The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE`commands can be used in the same way, with the read fields omitted for writes and write fields omitted for reads.
+The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used in the same way, with the read fields omitted for writes and write fields omitted for reads.
 
 ### Register List
 
@@ -101,6 +101,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE`commands can be used in
 | `0x1020` | Motor Resistance (ohm) | `float` |
 | `0x1021` | Motor Inductance (H) | `float` |
 | `0x1022` | Motor Torque Constant (N*m/A) | `float` |
+| `0x1030` | Keep-Alive Timeout (ms) | `uint16_t` |
 
 **Volatile Registers `(0x2***)`**
 
