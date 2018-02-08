@@ -106,7 +106,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           handleVarAccess(results.average_vin, buf, index, buf_size, access_type, errors);
           break;
         case 0x3005: // Board Temperature (degrees C)
-          handleVarAccess(results.temp, buf, index, buf_size, access_type, errors);
+          handleVarAccess(results.temperature, buf, index, buf_size, access_type, errors);
           break;
         case 0x3006: // Accelerometer X (m/s^2)
           handleVarAccess(results.xl_x, buf, index, buf_size, access_type, errors);

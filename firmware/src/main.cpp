@@ -87,13 +87,13 @@ static msg_t imuThreadRun(void *arg) {
 
   while (true) {
     int32_t xl[3];
-    float temp;
+    float temperature;
     acc_gyr.Get_Acc(xl);
-    temp_sensor.getTemperature(&temp);
+    temp_sensor.getTemperature(&temperature);
     results.xl_x = xl[0];
     results.xl_y = xl[1];
     results.xl_z = xl[2];
-    results.temp = temp;
+    results.temperature = temperature;
     chThdSleepMilliseconds(100);
   }
 
