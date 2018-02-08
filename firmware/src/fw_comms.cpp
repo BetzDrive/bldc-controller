@@ -10,8 +10,6 @@ namespace motor_driver {
 
 void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   size_t index = 0;
-  uint8_t flag;
-  uint16_t rec_size;
 
   float *recordings = nullptr;
 
@@ -22,7 +20,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
     if (addr >= 0x8000) {
       if (recordings != nullptr) {
         uint16_t i = addr - 0x8000;
-        rec_size = recorder.size();
+        uint16_t rec_size = recorder.size();
         if (i < rec_size) {
           handleVarAccess(recordings[i], buf, index, buf_size, access_type, errors);
         } else {
@@ -119,20 +117,22 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x3008: // Accelerometer Z (m/s^2)
           handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
           break;
-        case 0x3009: // Recorder start
-          flag = (uint8_t) recorder.startRecord();
-          handleVarAccess(flag, buf, index, buf_size, access_type, errors);
+        case 0x3009: { // Recorder start
+          uint8_t success = (uint8_t)recorder.startRecord();
+          handleVarAccess(success, buf, index, buf_size, access_type, errors);
           break;
-        case 0x300a: // Recorder buffer length / ready
-          rec_size = recorder.size();
+        }
+        case 0x300a: { // Recorder buffer length / ready
+          uint16_t rec_size = recorder.size();
           handleVarAccess(rec_size, buf, index, buf_size, access_type, errors);
           break;
-        case 0x300b: // Recorder reset
+        }
+        case 0x300b: { // Recorder reset
           recorder.reset();
-          flag = (uint8_t) 1;
-          handleVarAccess(flag, buf, index, buf_size, access_type, errors);
+          uint8_t dummy = 1;
+          handleVarAccess(dummy, buf, index, buf_size, access_type, errors);
           break;
-
+        }
         default:
           errors |= COMM_ERRORS_INVALID_ARGS;
           return;
