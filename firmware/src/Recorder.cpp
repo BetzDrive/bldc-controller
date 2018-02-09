@@ -32,6 +32,7 @@ float *Recorder::read() {
 }
 
 void Recorder::reset() {
+  index_ = 0;
   state_ = State::READY;
 }
 
