@@ -84,7 +84,7 @@ void runCurrentControl() {
   results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi;
 
   float encoder_vel_radians_update = (results.encoder_pos_radians - prev_encoder_pos_radians) * current_control_freq;
-  float alpha = 0.01f; // IIR filter parameter
+  float alpha = 0.005f; // IIR filter parameter
   results.encoder_vel_radians = alpha * encoder_vel_radians_update + (1.0f - alpha) * results.encoder_vel_radians;
 
   /*
