@@ -101,7 +101,7 @@ void runCurrentControl() {
   unsigned int adc_vc_sum = 0;
   unsigned int adc_vin_sum = 0;
 
-  for (size_t i = 0; i < ivsense_samples_per_cycle; i++) {
+  for (size_t i = 0; i < ivsense_adc_samples_count; i++) {
     adc_ia_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ia];
     adc_ib_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ib];
     adc_ic_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ic];

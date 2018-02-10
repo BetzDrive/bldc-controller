@@ -27,7 +27,7 @@ constexpr unsigned int motor_pwm_cycle_freq = 40000; // Hz
 constexpr float current_control_freq = motor_pwm_cycle_freq / 2.0f; // Current control runs every two PWM cycles
 constexpr float current_control_interval = 1.0f / current_control_freq;
 
-constexpr unsigned int ivsense_samples_per_cycle = 4;
+constexpr unsigned int ivsense_samples_per_cycle = 1;
 
 constexpr size_t ivsense_sample_buf_depth = ivsense_samples_per_cycle * 2; // "double-buffering"
 
