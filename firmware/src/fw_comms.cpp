@@ -48,12 +48,16 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           handleVarAccess(calibration.flip_phases, buf, index, buf_len, access_type, errors);
           break;
         case 0x1003: // Direct Current Controller Kp
+          handleVarAccess(calibration.foc_kp_d, buf, index, buf_len, access_type, errors);
           break;
         case 0x1004: // Direct Current Controller Ki
+          handleVarAccess(calibration.foc_ki_d, buf, index, buf_len, access_type, errors);
           break;
         case 0x1005: // Quadrature Current Controller Kp
+          handleVarAccess(calibration.foc_kp_q, buf, index, buf_len, access_type, errors);
           break;
         case 0x1006: // Quadrature Current Controller Ki
+          handleVarAccess(calibration.foc_ki_q, buf, index, buf_len, access_type, errors);
           break;
         case 0x1010: // Software Endstop Minimum
           handleVarAccess(calibration.sw_endstop_min, buf, index, buf_len, access_type, errors);
