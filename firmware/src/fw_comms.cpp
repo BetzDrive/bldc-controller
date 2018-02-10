@@ -77,6 +77,10 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1022: // Motor Torque Constant (N*m/A)
           handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
           break;
+        case 0x1040: // Velocity Filter Parameter
+          handleVarAccess(calibration.velocity_filter_param, buf, index, buf_len, access_type, errors);
+          break;
+
         case 0x2000: // Control Mode
           handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
           break;
