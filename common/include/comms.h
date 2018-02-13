@@ -35,11 +35,11 @@ public:
     uart_config_.speed = baud;
     uart_config_.endpoint = this;
 
-    gpt_config_.frequency = baud * 2;
+    gpt_config_.frequency = 1000000; // Timeouts are measured in microseconds
     gpt_config_.callback = gptCallbackStatic;
     gpt_config_.endpoint = this;
 
-    idle_time_ticks_ = 7 * 10; // 3.5 character times at 10 bits/character
+    idle_time_ticks_ = 1000; // 1 ms
 
     chBSemInit(&rx_bsem_, 0);
     chBSemInit(&tx_bsem_, 0);
