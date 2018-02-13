@@ -95,9 +95,15 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x1004` | Direct Current Controller Ki | `float` |
 | `0x1005` | Quadrature Current Controller Kp | `float` |
 | `0x1006` | Quadrature Current Controller Ki | `float` |
-| `0x1010` | Software Endstop Minimum | `float` |
-| `0x1011` | Software Endstop Maximum | `float` |
-| `0x1012` | Software Endstop Slope | `float` |
+| `0x1007` | Velocity Controller Kp | `float` |
+| `0x1008` | Velocity Controller Ki | `float` |
+| `0x1009` | Position Controller Kp | `float` |
+| `0x100a` | Position Controller Ki | `float` |
+| `0x1010` | Current Limit (A) | `float` |
+| `0x1011` | Torque Limit (N*m) | `float` |
+| `0x1012` | Velocity Limit (rad/s) | `float` |
+| `0x1013` | Position Lower Limit (rad) | `float` |
+| `0x1014` | Position Upper Limit (rad) | `float` |
 | `0x1020` | Motor Resistance (ohm) | `float` |
 | `0x1021` | Motor Inductance (H) | `float` |
 | `0x1022` | Motor Torque Constant (N*m/A) | `float` |
@@ -114,6 +120,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x2003` | Phase A Raw PWM Duty Cycle | `float` |
 | `0x2004` | Phase B Raw PWM Duty Cycle | `float` |
 | `0x2005` | Phase C Raw PWM Duty Cycle | `float` |
+| `0x2006` | Torque Setpoint (N*m) | `float` |
+| `0x2007` | Velocity Setpoint (rad/s) | `float` |
+| `0x2008` | Position Setpoint (rad) | `float` |
 
 **Read Only Registers `(0x3***)`**
 
@@ -132,6 +141,17 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x300a` | Gyroscope Y (rad/s) | `float` |
 | `0x300b` | Gyroscope Z (rad/s) | `float` |
 
+-------
+
+## Control Modes
+
+| ID | Description | Relevant Registers |
+|----|-------------|--------------------|
+| 0 | FOC Current Control | Direct Current Command, Quadrature Current Command |
+| 1 | Raw Phase PWM | Phase A/B/C Raw PWM Duty Cycle |
+| 2 | Torque Control | Torque Setpoint |
+| 3 | Velocity Control | Velocity Setpoint |
+| 4 | Position Control | Position Setpoint |
 
 -------
 
