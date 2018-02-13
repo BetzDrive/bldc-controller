@@ -179,11 +179,11 @@ void runCurrentControl() {
     pid_id.setOutputLimits(-results.average_vin, results.average_vin);
     pid_iq.setOutputLimits(-results.average_vin, results.average_vin);
 
-    pid_id.setSetPoint(0.0f);
+    pid_id.setSetPoint(parameters.foc_d_current_sp);
     pid_id.setProcessValue(id);
     pid_id.setBias(0.0f);
 
-    float torque_command = parameters.cmd_duty_cycle;
+    float torque_command = parameters.foc_q_current_sp;
 
     if (calibration.sw_endstop_min < calibration.sw_endstop_max) {
       // Software endstops are only active if they have different values
@@ -201,9 +201,9 @@ void runCurrentControl() {
       }
     }
 
-    pid_iq.setSetPoint(parameters.cmd_duty_cycle);
+    pid_iq.setSetPoint(torque_command);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(parameters.cmd_duty_cycle * calibration.motor_resistance + results.encoder_vel_radians * calibration.motor_torque_const);
+    pid_iq.setBias(torque_command * calibration.motor_resistance + results.encoder_vel_radians * calibration.motor_torque_const);
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();

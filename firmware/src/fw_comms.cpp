@@ -85,9 +85,10 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           handleVarAccess(parameters.raw_pwm_mode, buf, index, buf_len, access_type, errors);
           break;
         case 0x2001: // Direct Current Command (A)
+          handleVarAccess(parameters.foc_d_current_sp, buf, index, buf_len, access_type, errors);
           break;
         case 0x2002: // Quadrature Current Command (A)
-          handleVarAccess(parameters.cmd_duty_cycle, buf, index, buf_len, access_type, errors);
+          handleVarAccess(parameters.foc_q_current_sp, buf, index, buf_len, access_type, errors);
           break;
         case 0x2003: // Phase A Raw PWM Duty Cycle
           handleVarAccess(parameters.phase0, buf, index, buf_len, access_type, errors);

@@ -61,7 +61,6 @@ struct Parameters {
   uint8_t led_red_intensity = 0;      // Status LED red intensity
   uint8_t led_green_intensity = 0;    // Status LED green intensity
   uint8_t led_blue_intensity = 0;     // Status LED blue intensity
-  float cmd_duty_cycle = 0;           // Duty cycle command
   uint8_t raw_pwm_mode = 1;
   float phase0 = 0;
   float phase1 = 0;
