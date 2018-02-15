@@ -59,6 +59,18 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1006: // Quadrature Current Controller Ki
           handleVarAccess(calibration.foc_ki_q, buf, index, buf_len, access_type, errors);
           break;
+        case 0x1007: // Velocity Controller Kp
+          handleVarAccess(calibration.velocity_kp, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x1008: // Velocity Controller Ki
+          handleVarAccess(calibration.velocity_ki, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x1009: // Position Controller Kp
+          handleVarAccess(calibration.position_kp, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x100a: // Position Controller Ki
+          handleVarAccess(calibration.position_ki, buf, index, buf_len, access_type, errors);
+          break;
         case 0x1010: // Current Limit (A)
           handleVarAccess(calibration.current_limit, buf, index, buf_len, access_type, errors);
           break;
