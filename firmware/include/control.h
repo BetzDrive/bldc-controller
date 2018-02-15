@@ -11,6 +11,8 @@ void runInnerControlLoop();
 
 void estimateState();
 
+void runPositionControl();
+
 void runVelocityControl();
 
 void runCurrentControl();

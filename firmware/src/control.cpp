@@ -22,6 +22,8 @@ static PID pid_iq(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f, current_cont
 
 static PID pid_velocity(calibration.velocity_kp, calibration.velocity_ki, 0.0f, velocity_control_interval);
 
+static PID pid_position(calibration.position_kp, calibration.position_ki, 0.0f, position_control_interval);
+
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
   pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
@@ -54,6 +56,8 @@ void runInnerControlLoop() {
     chEvtWaitAny((flagsmask_t)1);
 
     estimateState();
+
+    runPositionControl();
 
     runVelocityControl();
 
@@ -138,6 +142,21 @@ void estimateState() {
   recorder_new_data[recorder_channel_vin] = results.average_vin;
   recorder_new_data[recorder_channel_rotor_pos] = results.encoder_pos_radians;
   recorder.recordSample(recorder_new_data);
+}
+
+void runPositionControl() {
+  if (parameters.control_mode == control_mode_position) {
+    pid_position.setMode(AUTO_MODE);
+    pid_position.setTunings(calibration.position_kp, calibration.position_ki, 0.0f);
+    float position_max = 1.0f;
+    pid_position.setInputLimits(-position_max, position_max);
+    pid_position.setOutputLimits(-calibration.velocity_limit, calibration.velocity_limit);
+    pid_position.setSetPoint(0.0f);
+    pid_position.setProcessValue(results.encoder_pos_radians - parameters.position_sp);
+    parameters.velocity_sp = pid_position.compute();
+  } else {
+    pid_position.setMode(MANUAL_MODE);
+  }
 }
 
 void runVelocityControl() {
