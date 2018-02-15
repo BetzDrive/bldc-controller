@@ -51,8 +51,16 @@ void runInnerControlLoop() {
      */
     chEvtWaitAny((flagsmask_t)1);
 
+    if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position) {
+      runVelocityControl();
+    }
+
     runCurrentControl();
   }
+}
+
+void runVelocityControl() {
+
 }
 
 void runCurrentControl() {
@@ -141,7 +149,7 @@ void runCurrentControl() {
    * Compute phase duty cycles
    */
 
-  if (parameters.raw_pwm_mode) {
+  if (parameters.control_mode == control_mode_raw_phase_pwm) {
     /*
      * Directly set PWM duty cycles
      */

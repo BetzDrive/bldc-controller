@@ -9,6 +9,8 @@ void resumeInnerControlLoop();
 
 void runInnerControlLoop();
 
+void runVelocityControl();
+
 void runCurrentControl();
 
 } // namespace motor_driver

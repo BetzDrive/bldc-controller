@@ -61,19 +61,19 @@ struct Calibration {
 };
 
 struct Parameters {
-  float foc_q_current_sp = 0.0f;      // FOC quadrature current setpoint in amperes
-  float foc_d_current_sp = 0.0f;      // FOC direct current setpoint in amperes
-  bool override_led_color = false;    // Override normal status LED behavior
-  uint8_t led_red_intensity = 0;      // Status LED red intensity
-  uint8_t led_green_intensity = 0;    // Status LED green intensity
-  uint8_t led_blue_intensity = 0;     // Status LED blue intensity
-  uint8_t raw_pwm_mode = 1;
+  uint8_t control_mode = control_mode_raw_phase_pwm;  // Control mode
+  float foc_q_current_sp = 0.0f;                      // FOC quadrature current setpoint in amperes
+  float foc_d_current_sp = 0.0f;                      // FOC direct current setpoint in amperes
+  bool override_led_color = false;                    // Override normal status LED behavior
+  uint8_t led_red_intensity = 0;                      // Status LED red intensity
+  uint8_t led_green_intensity = 0;                    // Status LED green intensity
+  uint8_t led_blue_intensity = 0;                     // Status LED blue intensity
   float phase0 = 0.0f;
   float phase1 = 0.0f;
   float phase2 = 0.0f;
-  float torque_sp = 0.0f;             // Torque control setpoint (N*m)
-  float velocity_sp = 0.0f;           // Velocity control setpoint (rad/s)
-  float position_sp = 0.0f;           // Position control setpoint (rad)
+  float torque_sp = 0.0f;                             // Torque control setpoint (N*m)
+  float velocity_sp = 0.0f;                           // Velocity control setpoint (rad/s)
+  float position_sp = 0.0f;                           // Position control setpoint (rad)
 
   Parameters() {}
 };

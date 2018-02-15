@@ -72,6 +72,13 @@ constexpr size_t recorder_channel_rotor_pos = 7;    // Rotor position channel in
 
 constexpr size_t recorder_max_samples = 1000;
 
+/* Control modes */
+constexpr uint8_t control_mode_foc_current = 0;
+constexpr uint8_t control_mode_raw_phase_pwm = 1;
+constexpr uint8_t control_mode_torque = 2;
+constexpr uint8_t control_mode_velocity = 3;
+constexpr uint8_t control_mode_position = 4;
+
 /* Address of non-volatile parameters storage */
 /* extern const void *nvparams_start; */
 
