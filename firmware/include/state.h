@@ -47,9 +47,9 @@ struct Calibration {
   float velocity_ki = 0.0f;             // Integral gain for velocity PI loop
   float position_kp = 2.0f;             // Proportional gain for position PI loop
   float position_ki = 0.0f;             // Integral gain for position PI loop
-  float current_limit = 0.0f;           // Current limit (A)
-  float torque_limit = 0.0f;            // Torque limit (N*m)
-  float velocity_limit = 0.0f;          // Velocity limit (rad/s)
+  float current_limit = 2.0f;           // Current limit (A)
+  float torque_limit = 3.0f;            // Torque limit (N*m)
+  float velocity_limit = 100.0f;        // Velocity limit (rad/s)
   float position_lower_limit = 0.0f;    // Position lower limit (rad)
   float position_upper_limit = 0.0f;    // Position upper limit (rad)
   float motor_resistance = 17.8f;       // Motor resistance (ohm)

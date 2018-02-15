@@ -9,6 +9,8 @@ void resumeInnerControlLoop();
 
 void runInnerControlLoop();
 
+void estimateState();
+
 void runVelocityControl();
 
 void runCurrentControl();

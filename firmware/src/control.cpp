@@ -20,9 +20,12 @@ static PID pid_id(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f, current_cont
 
 static PID pid_iq(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f, current_control_interval);
 
+static PID pid_velocity(calibration.velocity_kp, calibration.velocity_ki, 0.0f, velocity_control_interval);
+
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
   pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
+  pid_velocity.setInputLimits(-velocity_max, velocity_max);
 }
 
 void resumeInnerControlLoop() {
@@ -51,21 +54,15 @@ void runInnerControlLoop() {
      */
     chEvtWaitAny((flagsmask_t)1);
 
-    if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position) {
-      runVelocityControl();
-    }
+    estimateState();
+
+    runVelocityControl();
 
     runCurrentControl();
   }
 }
 
-void runVelocityControl() {
-
-}
-
-void runCurrentControl() {
-  palClearPad(GPIOA, GPIOA_LED_Y);
-
+void estimateState() {
   /*
    * Get current encoder position and velocity
    */
@@ -142,8 +139,23 @@ void runCurrentControl() {
   recorder_new_data[recorder_channel_vin] = results.average_vin;
   recorder_new_data[recorder_channel_rotor_pos] = results.encoder_pos_radians;
   recorder.recordSample(recorder_new_data);
+}
 
-  
+void runVelocityControl() {
+  if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position) {
+    pid_velocity.setMode(AUTO_MODE);
+    pid_velocity.setTunings(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
+    pid_velocity.setOutputLimits(-calibration.torque_limit, calibration.torque_limit);
+    pid_velocity.setSetPoint(parameters.velocity_sp);
+    pid_velocity.setProcessValue(results.encoder_vel_radians);
+    parameters.torque_sp = pid_velocity.compute();
+  } else {
+    pid_velocity.setMode(MANUAL_MODE);
+  }
+}
+
+void runCurrentControl() {
+  palClearPad(GPIOA, GPIOA_LED_Y);
 
   /*
    * Compute phase duty cycles
@@ -169,7 +181,7 @@ void runCurrentControl() {
       ibeta = -ibeta;
     }
 
-    uint16_t zeroed_encoder_pos = (raw_encoder_pos - calibration.encoder_zero + encoder_period) % encoder_period;
+    uint16_t zeroed_encoder_pos = (results.raw_encoder_pos - calibration.encoder_zero + encoder_period) % encoder_period;
     float elec_pos_radians = zeroed_encoder_pos * encoder_pos_to_radians * calibration.erevs_per_mrev;
 
     float cos_theta = fast_cos(elec_pos_radians);
@@ -187,13 +199,26 @@ void runCurrentControl() {
     pid_id.setOutputLimits(-results.average_vin, results.average_vin);
     pid_iq.setOutputLimits(-results.average_vin, results.average_vin);
 
-    pid_id.setSetPoint(parameters.foc_d_current_sp);
-    pid_id.setProcessValue(id);
-    pid_id.setBias(parameters.foc_d_current_sp * calibration.motor_resistance);
+    float id_sp, iq_sp;
+    if (parameters.control_mode == control_mode_foc_current) {
+      // Use the provided FOC current setpoints
 
-    pid_iq.setSetPoint(parameters.foc_q_current_sp);
+      id_sp = parameters.foc_d_current_sp;
+      iq_sp = parameters.foc_q_current_sp;
+    } else {
+      // Generate FOC current setpoints from the reference torque
+
+      id_sp = 0.0f;
+      iq_sp = parameters.torque_sp / calibration.motor_torque_const;
+    }
+
+    pid_id.setSetPoint(id_sp);
+    pid_id.setProcessValue(id);
+    pid_id.setBias(id_sp * calibration.motor_resistance);
+
+    pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(parameters.foc_q_current_sp * calibration.motor_resistance + results.encoder_vel_radians * calibration.motor_torque_const);
+    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.encoder_vel_radians * calibration.motor_torque_const);
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();
