@@ -60,9 +60,6 @@ constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;
 /* Actual current per ADC count */
 constexpr float ivsense_current_per_count = ivsense_current_max / adc_max_value;
 
-/* Maximum expected velocity */
-constexpr float velocity_max = 100.0f; // Arbitrary value
-
 constexpr size_t recorder_channel_count = 8;
 
 constexpr size_t recorder_channel_ia = 0;           // Phase A current channel index

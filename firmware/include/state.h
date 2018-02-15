@@ -43,8 +43,8 @@ struct Calibration {
   float foc_ki_d = 0.0f;                // Integral gain for FOC/d PI loop
   float foc_kp_q = 2.0f;                // Proportional gain for FOC/q PI loop
   float foc_ki_q = 0.0f;                // Integral gain for FOC/q PI loop
-  float velocity_kp = 2.0f;             // Proportional gain for velocity PI loop
-  float velocity_ki = 0.0f;             // Integral gain for velocity PI loop
+  float velocity_kp = 1.0f;             // Proportional gain for velocity PI loop
+  float velocity_ki = 0.01f;             // Integral gain for velocity PI loop
   float position_kp = 2.0f;             // Proportional gain for position PI loop
   float position_ki = 0.0f;             // Integral gain for position PI loop
   float current_limit = 2.0f;           // Current limit (A)

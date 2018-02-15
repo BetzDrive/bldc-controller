@@ -25,7 +25,6 @@ static PID pid_velocity(calibration.velocity_kp, calibration.velocity_ki, 0.0f, 
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
   pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
-  pid_velocity.setInputLimits(-velocity_max, velocity_max);
 }
 
 void resumeInnerControlLoop() {
@@ -145,6 +144,9 @@ void runVelocityControl() {
   if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position) {
     pid_velocity.setMode(AUTO_MODE);
     pid_velocity.setTunings(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
+    // float velocity_max = results.average_vin / calibration.motor_torque_const;
+    float velocity_max = 10.0f;
+    pid_velocity.setInputLimits(-velocity_max, velocity_max);
     pid_velocity.setOutputLimits(-calibration.torque_limit, calibration.torque_limit);
     pid_velocity.setSetPoint(parameters.velocity_sp);
     pid_velocity.setProcessValue(results.encoder_vel_radians);
