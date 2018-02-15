@@ -181,29 +181,11 @@ void runCurrentControl() {
 
     pid_id.setSetPoint(parameters.foc_d_current_sp);
     pid_id.setProcessValue(id);
-    pid_id.setBias(0.0f);
+    pid_id.setBias(parameters.foc_d_current_sp * calibration.motor_resistance);
 
-    float torque_command = parameters.foc_q_current_sp;
-
-    if (calibration.sw_endstop_min < calibration.sw_endstop_max) {
-      // Software endstops are only active if they have different values
-
-      if (torque_command >= 0) {
-        // Positive torque command, only check the maximum endstop
-
-        float torque_limit = std::max(0.0f, (calibration.sw_endstop_max - results.encoder_pos_radians) * calibration.sw_endstop_slope);
-        torque_command = std::min(torque_command, torque_limit);
-      } else {
-        // Negative torque command, only check the minimum endstop
-
-        float torque_limit = std::min(0.0f, (calibration.sw_endstop_min - results.encoder_pos_radians) * calibration.sw_endstop_slope);
-        torque_command = std::max(torque_command, torque_limit);
-      }
-    }
-
-    pid_iq.setSetPoint(torque_command);
+    pid_iq.setSetPoint(parameters.foc_q_current_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(torque_command * calibration.motor_resistance + results.encoder_vel_radians * calibration.motor_torque_const);
+    pid_iq.setBias(parameters.foc_q_current_sp * calibration.motor_resistance + results.encoder_vel_radians * calibration.motor_torque_const);
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();
