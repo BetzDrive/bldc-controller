@@ -59,14 +59,20 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1006: // Quadrature Current Controller Ki
           handleVarAccess(calibration.foc_ki_q, buf, index, buf_len, access_type, errors);
           break;
-        case 0x1010: // Software Endstop Minimum
-          handleVarAccess(calibration.sw_endstop_min, buf, index, buf_len, access_type, errors);
+        case 0x1010: // Current Limit (A)
+          handleVarAccess(calibration.current_limit, buf, index, buf_len, access_type, errors);
           break;
-        case 0x1011: // Software Endstop Maximum
-          handleVarAccess(calibration.sw_endstop_max, buf, index, buf_len, access_type, errors);
+        case 0x1011: // Torque Limit (N*m)
+          handleVarAccess(calibration.torque_limit, buf, index, buf_len, access_type, errors);
           break;
-        case 0x1012: // Software Endstop Slope
-          handleVarAccess(calibration.sw_endstop_slope, buf, index, buf_len, access_type, errors);
+        case 0x1012: // Velocity Limit (rad/s)
+          handleVarAccess(calibration.velocity_limit, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x1013: // Position Lower Limit (rad)
+          handleVarAccess(calibration.position_lower_limit, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x1014: // Position Upper Limit (rad)
+          handleVarAccess(calibration.position_upper_limit, buf, index, buf_len, access_type, errors);
           break;
         case 0x1020: // Motor Resistance (ohm)
           handleVarAccess(calibration.motor_resistance, buf, index, buf_len, access_type, errors);
@@ -99,6 +105,16 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x2005: // Phase C Raw PWM Duty Cycle
           handleVarAccess(parameters.phase2, buf, index, buf_len, access_type, errors);
           break;
+        case 0x2006: // Torque Setpoint (N*m)
+          handleVarAccess(parameters.torque_sp, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x2007: // Velocity Setpoint (rad/s)
+          handleVarAccess(parameters.velocity_sp, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x2008: // Position Setpoint (rad)
+          handleVarAccess(parameters.position_sp, buf, index, buf_len, access_type, errors);
+          break;
+
         case 0x3000: // Rotor Position (rad)
           handleVarAccess(results.encoder_pos_radians, buf, index, buf_size, access_type, errors);
           break;

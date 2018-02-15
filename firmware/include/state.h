@@ -43,9 +43,11 @@ struct Calibration {
   float foc_ki_d = 0.0f;                // Integral gain for FOC/d PI loop
   float foc_kp_q = 2.0f;                // Proportional gain for FOC/q PI loop
   float foc_ki_q = 0.0f;                // Integral gain for FOC/q PI loop
-  float sw_endstop_min = 0.0f;          // Software endstop minimum position
-  float sw_endstop_max = 0.0f;          // Software endstop maximum position
-  float sw_endstop_slope = 20.0f;       // Software endstop torque slope
+  float current_limit = 0.0f;           // Current limit (A)
+  float torque_limit = 0.0f;            // Torque limit (N*m)
+  float velocity_limit = 0.0f;          // Velocity limit (rad/s)
+  float position_lower_limit = 0.0f;    // Position lower limit (rad)
+  float position_upper_limit = 0.0f;    // Position upper limit (rad)
   float motor_resistance = 17.8f;       // Motor resistance (ohm)
   float motor_inductance = 0.0f;        // Motor inductance (henries)
   float motor_torque_const = 0.0f;      // Motor torque constant (newton-meters per ampere)
@@ -55,16 +57,19 @@ struct Calibration {
 };
 
 struct Parameters {
-  float foc_q_current_sp = 0;         // FOC quadrature current setpoint in amperes
-  float foc_d_current_sp = 0;         // FOC direct current setpoint in amperes
+  float foc_q_current_sp = 0.0f;      // FOC quadrature current setpoint in amperes
+  float foc_d_current_sp = 0.0f;      // FOC direct current setpoint in amperes
   bool override_led_color = false;    // Override normal status LED behavior
   uint8_t led_red_intensity = 0;      // Status LED red intensity
   uint8_t led_green_intensity = 0;    // Status LED green intensity
   uint8_t led_blue_intensity = 0;     // Status LED blue intensity
   uint8_t raw_pwm_mode = 1;
-  float phase0 = 0;
-  float phase1 = 0;
-  float phase2 = 0;
+  float phase0 = 0.0f;
+  float phase1 = 0.0f;
+  float phase2 = 0.0f;
+  float torque_sp = 0.0f;             // Torque control setpoint (N*m)
+  float velocity_sp = 0.0f;           // Velocity control setpoint (rad/s)
+  float position_sp = 0.0f;           // Position control setpoint (rad)
 
   Parameters() {}
 };
