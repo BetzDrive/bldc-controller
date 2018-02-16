@@ -80,6 +80,7 @@ constexpr uint8_t control_mode_raw_phase_pwm = 1;
 constexpr uint8_t control_mode_torque = 2;
 constexpr uint8_t control_mode_velocity = 3;
 constexpr uint8_t control_mode_position = 4;
+constexpr uint8_t control_mode_position_velocity = 5;
 
 /* Address of non-volatile parameters storage */
 /* extern const void *nvparams_start; */

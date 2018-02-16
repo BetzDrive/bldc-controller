@@ -145,11 +145,10 @@ void estimateState() {
 }
 
 void runPositionControl() {
-  if (parameters.control_mode == control_mode_position) {
+  if (parameters.control_mode == control_mode_position || parameters.control_mode == control_mode_position_velocity) {
     pid_position.setMode(AUTO_MODE);
     pid_position.setTunings(calibration.position_kp, calibration.position_ki, 0.0f);
-    float position_max = 1.0f;
-    pid_position.setInputLimits(-position_max, position_max);
+    pid_position.setInputLimits(-1.0f, 1.0f);
     pid_position.setOutputLimits(-calibration.velocity_limit, calibration.velocity_limit);
     pid_position.setSetPoint(0.0f);
     pid_position.setProcessValue(results.encoder_pos_radians - parameters.position_sp);
@@ -160,11 +159,11 @@ void runPositionControl() {
 }
 
 void runVelocityControl() {
-  if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position) {
+  if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position || parameters.control_mode == control_mode_position_velocity) {
     pid_velocity.setMode(AUTO_MODE);
     pid_velocity.setTunings(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
     // float velocity_max = results.average_vin / calibration.motor_torque_const;
-    float velocity_max = 10.0f;
+    float velocity_max = 20.0f;
     pid_velocity.setInputLimits(-velocity_max, velocity_max);
     pid_velocity.setOutputLimits(-calibration.torque_limit, calibration.torque_limit);
     pid_velocity.setSetPoint(parameters.velocity_sp);
