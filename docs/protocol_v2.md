@@ -107,7 +107,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x1020` | Motor Resistance (ohm) | `float` |
 | `0x1021` | Motor Inductance (H) | `float` |
 | `0x1022` | Motor Torque Constant (N*m/A) | `float` |
-| `0x1030` | Keep-Alive Timeout (ms) | `uint16_t` |
+| `0x1030` | Control Watchdog Timeout (ms) | `uint16_t` |
 | `0x1040` | Velocity Filter Parameter | `float` |
 
 **Volatile Registers `(0x2***)`**

@@ -13,6 +13,11 @@
 
 namespace motor_driver {
 
+static void comms_activity_callback() {
+  palTogglePad(GPIOA, GPIOA_LED_Y);
+  resetControlWatchdog();
+}
+
 /*
  * LED blinker thread
  */
@@ -116,6 +121,9 @@ int main(void) {
 
   // Start peripherals
   startPeripherals();
+
+  // Set comms activity callback
+  comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
 
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);

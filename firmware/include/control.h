@@ -17,6 +17,10 @@ void runVelocityControl();
 
 void runCurrentControl();
 
+void resetControlWatchdog();
+
+void enterSafeState();
+
 } // namespace motor_driver
 
 #endif /* _CONTROL_H_ */

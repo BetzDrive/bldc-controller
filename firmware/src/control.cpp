@@ -24,9 +24,12 @@ static PID pid_velocity(calibration.velocity_kp, calibration.velocity_ki, 0.0f, 
 
 static PID pid_position(calibration.position_kp, calibration.position_ki, 0.0f, position_control_interval);
 
+static systime_t last_control_watchdog_reset;
+
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
   pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
+  last_control_watchdog_reset = chTimeNow();
 }
 
 void resumeInnerControlLoop() {
@@ -54,6 +57,10 @@ void runInnerControlLoop() {
      * Wait for resumeInnerControlLoop to be called
      */
     chEvtWaitAny((flagsmask_t)1);
+
+    if (calibration.control_watchdog_timeout != 0 && (chTimeNow() - last_control_watchdog_reset) >= MS2ST(calibration.control_watchdog_timeout)) {
+      enterSafeState();
+    }
 
     estimateState();
 
@@ -175,8 +182,6 @@ void runVelocityControl() {
 }
 
 void runCurrentControl() {
-  palClearPad(GPIOA, GPIOA_LED_Y);
-
   /*
    * Compute phase duty cycles
    */
@@ -263,8 +268,17 @@ void runCurrentControl() {
     results.foc_d_current = id;
     results.foc_q_current = iq;
   }
+}
 
-  palSetPad(GPIOA, GPIOA_LED_Y);
+void resetControlWatchdog() {
+  last_control_watchdog_reset = chTimeNow();
+}
+
+void enterSafeState() {
+  parameters.foc_d_current_sp = 0.0f;
+  parameters.foc_q_current_sp = 0.0f;
+  calibration.motor_torque_const = 0.0f; // Damps the motor to prevent a voltage spike
+  parameters.control_mode = control_mode_foc_current;
 }
 
 } // namespace motor_driver

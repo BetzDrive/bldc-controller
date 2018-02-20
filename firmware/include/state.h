@@ -36,26 +36,27 @@ struct Results {
 };
 
 struct Calibration {
-  uint16_t encoder_zero = 0;            // Phase-aligned encoder zero position
-  uint8_t erevs_per_mrev = 1;           // Electrical revolutions per mechanical revolution
-  uint8_t flip_phases = false;          // Phases A, B, C are arranged in clockwise instead of ccw order
-  float foc_kp_d = 2.0f;                // Proportional gain for FOC/d PI loop
-  float foc_ki_d = 0.0f;                // Integral gain for FOC/d PI loop
-  float foc_kp_q = 2.0f;                // Proportional gain for FOC/q PI loop
-  float foc_ki_q = 0.0f;                // Integral gain for FOC/q PI loop
-  float velocity_kp = 1.0f;             // Proportional gain for velocity PI loop
-  float velocity_ki = 0.01f;            // Integral gain for velocity PI loop
-  float position_kp = 5.0f;             // Proportional gain for position PI loop
-  float position_ki = 0.01f;             // Integral gain for position PI loop
-  float current_limit = 2.0f;           // Current limit (A)
-  float torque_limit = 3.0f;            // Torque limit (N*m)
-  float velocity_limit = 10.0f;          // Velocity limit (rad/s)
-  float position_lower_limit = 0.0f;    // Position lower limit (rad)
-  float position_upper_limit = 0.0f;    // Position upper limit (rad)
-  float motor_resistance = 17.8f;       // Motor resistance (ohm)
-  float motor_inductance = 0.0f;        // Motor inductance (henries)
-  float motor_torque_const = 0.0f;      // Motor torque constant (newton-meters per ampere)
-  float velocity_filter_param = 1e-2f;  // Parameter for velocity filter
+  uint16_t encoder_zero = 0;              // Phase-aligned encoder zero position
+  uint8_t erevs_per_mrev = 1;             // Electrical revolutions per mechanical revolution
+  uint8_t flip_phases = false;            // Phases A, B, C are arranged in clockwise instead of ccw order
+  float foc_kp_d = 2.0f;                  // Proportional gain for FOC/d PI loop
+  float foc_ki_d = 0.0f;                  // Integral gain for FOC/d PI loop
+  float foc_kp_q = 2.0f;                  // Proportional gain for FOC/q PI loop
+  float foc_ki_q = 0.0f;                  // Integral gain for FOC/q PI loop
+  float velocity_kp = 1.0f;               // Proportional gain for velocity PI loop
+  float velocity_ki = 0.01f;              // Integral gain for velocity PI loop
+  float position_kp = 5.0f;               // Proportional gain for position PI loop
+  float position_ki = 0.01f;              // Integral gain for position PI loop
+  float current_limit = 2.0f;             // Current limit (A)
+  float torque_limit = 3.0f;              // Torque limit (N*m)
+  float velocity_limit = 10.0f;           // Velocity limit (rad/s)
+  float position_lower_limit = 0.0f;      // Position lower limit (rad)
+  float position_upper_limit = 0.0f;      // Position upper limit (rad)
+  float motor_resistance = 17.8f;         // Motor resistance (ohm)
+  float motor_inductance = 0.0f;          // Motor inductance (henries)
+  float motor_torque_const = 0.0f;        // Motor torque constant (newton-meters per ampere)
+  uint16_t control_watchdog_timeout = 0;  // Control watchdog timeout (ms)
+  float velocity_filter_param = 1e-2f;    // Parameter for velocity filter
 
   Calibration() {}
 };

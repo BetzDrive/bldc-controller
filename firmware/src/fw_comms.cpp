@@ -95,6 +95,9 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1022: // Motor Torque Constant (N*m/A)
           handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
           break;
+        case 0x1030: // Control Watchdog Timeout (ms)
+          handleVarAccess(calibration.control_watchdog_timeout, buf, index, buf_len, access_type, errors);
+          break;
         case 0x1040: // Velocity Filter Parameter
           handleVarAccess(calibration.velocity_filter_param, buf, index, buf_len, access_type, errors);
           break;

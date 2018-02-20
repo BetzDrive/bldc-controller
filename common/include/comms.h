@@ -170,6 +170,10 @@ public:
 
   void composeResponse(uint8_t *datagram, size_t& datagram_len, size_t max_datagram_len, comm_errors_t errors);
 
+  void setActivityCallback(void (*activity_callback)()) {
+    activity_callback_ = activity_callback;
+  }
+
 private:
   enum class State {
     IDLE,
@@ -191,6 +195,7 @@ private:
   uint32_t src_addr_;
   size_t src_len_;
   bool broadcast_;
+  void (*activity_callback_)() = nullptr;
 };
 
 template<typename T>

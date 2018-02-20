@@ -230,6 +230,10 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
   broadcast_ = (id == 0);
 
+  if (activity_callback_ != nullptr) {
+    activity_callback_();
+  }
+
   /* Clear errors */
   errors = 0;
 
