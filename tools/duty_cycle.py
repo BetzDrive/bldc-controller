@@ -4,6 +4,7 @@ from comms import *
 import serial
 import sys
 import time
+from math import sin, cos, pi
 
 PROTOCOL_V2 = True
 
@@ -31,7 +32,6 @@ has_21_erevs_per_mrev = [18, 19, 20, 21]
 
 if PROTOCOL_V2:
     client.writeRegisters(address, 0x1000, 1, struct.pack('<H', angle_mapping[address]) )
-    client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 0) )
     client.writeRegisters(address, 0x1002, 1, struct.pack('<B', int(address in needs_flip_phase)) )
     try:
         client.writeRegisters(address, 0x1001, 1, struct.pack('<B', 21 if (address in has_21_erevs_per_mrev) else 14))
@@ -43,7 +43,28 @@ if PROTOCOL_V2:
     # client.writeRegisters(address, 0x0111, 1, struct.pack('<f', start_angle))
     # client.writeRegisters(address, 0x0112, 1, struct.pack('<f', 20.0))
 
-    client.writeRegisters(address, 0x2002, 1, struct.pack('<f', duty_cycle))
+    client.writeRegisters(address, 0x1022, 1, struct.pack('<f', 1.45)) # Motor torque constant
+    client.writeRegisters(address, 0x1003, 1, struct.pack('<f', 2.0)) # FOC direct current Kp
+    client.writeRegisters(address, 0x1005, 1, struct.pack('<f', 2.0)) # FOC quadrature current Kp
+    client.writeRegisters(address, 0x1040, 1, struct.pack('<f', 5e-3)) # Velocity filter parameter
+    client.writeRegisters(address, 0x1030, 1, struct.pack('<H', 500)) # Control watchdog timeout
+
+    client.writeRegisters(address, 0x2006, 1, struct.pack('<f', duty_cycle))
+    client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 2) ) # Torque control
+
+    # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 1.0))
+    # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.01))
+    # client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 2.0))
+    # client.writeRegisters(address, 0x2007, 1, struct.pack('<f', duty_cycle))
+    # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 3) ) # Velocity control
+
+    # client.writeRegisters(address, 0x1009, 1, struct.pack('<f', 10.0))
+    # client.writeRegisters(address, 0x100a, 1, struct.pack('<f', 0.01))
+    # client.writeRegisters(address, 0x1012, 1, struct.pack('<f', 5.0))
+    # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
+    # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 4) ) # Position control
+
+    # print struct.unpack('<f', client.readRegisters(address, 0x1003, 1))
 else:
     client.writeRegisters(address, 0x1010, 1, struct.pack('<H', angle_mapping[address]) )
     client.writeRegisters(address, 0x1011, 1, struct.pack('<B', 0) )
@@ -60,11 +81,31 @@ else:
 
     client.writeRegisters(address, 0x0106, 1, struct.pack('<f', duty_cycle))
 
+while True:
+    data = struct.unpack('<ff', client.readRegisters(address, 0x3000, 2))
+    print(data)
+    time.sleep(0.01)
+
+# t = 0
+# ts = 0.01
+# amplitude = 0.5
+# frequency = 0.5
+# offset, = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))
 # while True:
-#     client.writeRegisters(address, 0x0106, 1, struct.pack('<f', duty_cycle))
-#     time.sleep(5)
-#     client.writeRegisters(address, 0x0106, 1, struct.pack('<f', -duty_cycle))
-#     time.sleep(5)
+#     position_sp = offset + amplitude * (1 - cos(2 * pi * frequency * t))
+#     velocity_sp = amplitude * sin(2 * pi * frequency * t) * 2 * pi * frequency
+#     # client.writeRegisters(address, 0x1012, 1, struct.pack('<f', abs(velocity_sp)))
+#     # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', position_sp))
+#     # position, = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))
+#     client.writeRegisters(address, 0x2007, 1, struct.pack('<f', velocity_sp))
+#     time.sleep(ts)
+#     t += ts
+
+# while True:
+#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
+#     time.sleep(2)
+#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', -duty_cycle))
+#     time.sleep(2)
 
 # while True:
 #     try:
