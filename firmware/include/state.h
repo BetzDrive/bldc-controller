@@ -57,6 +57,7 @@ struct Calibration {
   float motor_torque_const = 0.0f;        // Motor torque constant (newton-meters per ampere)
   uint16_t control_watchdog_timeout = 0;  // Control watchdog timeout (ms)
   float velocity_filter_param = 1e-2f;    // Parameter for velocity filter
+  float encoder_angle_offset = 0.0;       // Offset for encoder angle readings
 
   Calibration() {}
 };

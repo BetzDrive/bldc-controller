@@ -96,7 +96,7 @@ void estimateState() {
     results.encoder_revs -= 1;
   }
   results.raw_encoder_pos = raw_encoder_pos;
-  results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi;
+  results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi - calibration.encoder_angle_offset;
 
   float encoder_vel_radians_update = (results.encoder_pos_radians - prev_encoder_pos_radians) * current_control_freq;
   float alpha = calibration.velocity_filter_param;

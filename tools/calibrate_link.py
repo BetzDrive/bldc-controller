@@ -81,3 +81,9 @@ writeAngle(address1, 0)
 writeAngle(address2, 0)
 print("board %d average at %f" % (address1, sum(angle1s)/len(angle1s)))
 print("board %d average at %f" % (address2, sum(angle2s)/len(angle2s)))
+
+# On-board control calibration:
+# Set control constants (0x1003 - 0x1022)
+# Turn on control
+# Read angle/velocity
+# Write position/Torque/Velocity setpoint (0x2006 - 0x2008)

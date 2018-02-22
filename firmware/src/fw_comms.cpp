@@ -95,6 +95,9 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1022: // Motor Torque Constant (N*m/A)
           handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
           break;
+        case 0x1023: // Encoder Angle Offset
+          handleVarAccess(calibration.encoder_angle_offset, buf, index, buf_len, access_type, errors);
+          break;
         case 0x1030: // Control Watchdog Timeout (ms)
           handleVarAccess(calibration.control_watchdog_timeout, buf, index, buf_len, access_type, errors);
           break;
@@ -158,7 +161,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
           break;
         case 0x3009: { // Recorder start
-          uint8_t success = (uint8_t)recorder.startRecord();
+          uint8_t success = (uint8_t) recorder.startRecord();
           handleVarAccess(success, buf, index, buf_size, access_type, errors);
           break;
         }
