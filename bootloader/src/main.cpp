@@ -6,8 +6,15 @@
 #include "stdbool.h"
 #include "peripherals.h"
 #include "comms.h"
+#include "constants.h"
 
 namespace motor_driver {
+
+static systime_t last_comms_activity_time = 0;
+
+static void comms_activity_callback() {
+  last_comms_activity_time = chTimeNow();
+}
 
 /*
  * LED blinker thread
@@ -21,7 +28,7 @@ static msg_t blinkerThreadRun(void *arg) {
 
   int t = 0;
 
-  // setStatusLEDColor(0, 255, 128);
+  setCommsActivityLED(false);
 
   while (true) {
 
@@ -41,6 +48,11 @@ static msg_t blinkerThreadRun(void *arg) {
 
     uint8_t g = ::abs(t - 255);
     setStatusLEDColor(0, 0, g);
+
+    systime_t time_now = chTimeNow();
+
+    setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(comms_activity_led_duration));
+
     t = (t + 10) % 510;
     chThdSleepMilliseconds(10);
   }
@@ -74,6 +86,9 @@ int main(void) {
 
   // Start peripherals
   startPeripherals();
+
+  // Set comms activity callback
+  comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
 
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);

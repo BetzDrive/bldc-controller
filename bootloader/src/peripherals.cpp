@@ -40,6 +40,10 @@ void setStatusLEDColor(uint32_t color) {
   setStatusLEDColor(color >> 16, color >> 8, color);
 }
 
+void setCommsActivityLED(bool on) {
+  palWritePad(GPIOA, GPIOA_LED_Y, !on);
+}
+
 void setRS485TransmitMode(bool transmit) {
   palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);
 }

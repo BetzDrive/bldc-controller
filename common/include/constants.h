@@ -13,6 +13,8 @@ constexpr float two_div_sqrt3 = 1.1547005176544189453125f;
 
 extern const uint16_t led_gamma_table[];
 
+constexpr unsigned int comms_activity_led_duration = 50; // How long the comms activity LED stays lit after a packet, in milliseconds
+
 constexpr uint32_t rs485_baud = 1000000;
 
 constexpr uint16_t encoder_period = 1U << 14;

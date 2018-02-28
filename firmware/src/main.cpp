@@ -10,12 +10,15 @@
 #include "comms.h"
 #include "fast_math.h"
 #include "state.h"
+#include "constants.h"
 
 namespace motor_driver {
 
+static systime_t last_comms_activity_time = 0;
+
 static void comms_activity_callback() {
-  palTogglePad(GPIOA, GPIOA_LED_Y);
   resetControlWatchdog();
+  last_comms_activity_time = chTimeNow();
 }
 
 /*
@@ -30,7 +33,7 @@ static msg_t blinkerThreadRun(void *arg) {
 
   int t = 0;
 
-  // setStatusLEDColor(0, 255, 128);
+  setCommsActivityLED(false);
 
   while (true) {
 
@@ -54,6 +57,11 @@ static msg_t blinkerThreadRun(void *arg) {
     } else {
       setStatusLEDColor(0, g, 0);
     }
+
+    systime_t time_now = chTimeNow();
+
+    setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(comms_activity_led_duration));
+
     t = (t + 10) % 510;
     chThdSleepMilliseconds(10);
   }
