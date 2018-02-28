@@ -22,7 +22,7 @@ static void comms_activity_callback() {
  * LED blinker thread
  */
 
-static WORKING_AREA(blinker_thread_wa, 128);
+static WORKING_AREA(blinker_thread_wa, 512);
 static msg_t blinkerThreadRun(void *arg) {
   (void)arg;
 
@@ -65,7 +65,7 @@ static msg_t blinkerThreadRun(void *arg) {
  * Communications thread
  */
 
-static WORKING_AREA(comms_thread_wa, 128);
+static WORKING_AREA(comms_thread_wa, 512);
 static msg_t commsThreadRun(void *arg) {
   (void)arg;
 
@@ -84,7 +84,7 @@ static msg_t commsThreadRun(void *arg) {
  * Sensor thread
  */
 
-static WORKING_AREA(sensor_thread_wa, 128);
+static WORKING_AREA(sensor_thread_wa, 512);
 static msg_t sensorThreadRun(void *arg) {
   (void)arg;
   
@@ -103,6 +103,21 @@ static msg_t sensorThreadRun(void *arg) {
   }
 
   return CH_SUCCESS;
+}
+
+/*
+ * Control thread
+ */
+
+static WORKING_AREA(control_thread_wa, 512);
+static msg_t controlThreadRun(void *arg) {
+  (void)arg;
+
+  chRegSetThreadName("control");
+
+  runInnerControlLoop();
+
+  return CH_SUCCESS; // Should never get here
 }
 
 int main(void) {
@@ -129,11 +144,12 @@ int main(void) {
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
   chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
   chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO, sensorThreadRun, NULL);
+  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), HIGHPRIO, controlThreadRun, NULL);
 
-  chThdSetPriority(HIGHPRIO);
-  runInnerControlLoop();
-
-  // chThdSleepMilliseconds(3000);
+  // Wait forever
+  while (true) {
+    chThdSleepMilliseconds(1000);
+  }
 
   // float d = 0.5f;
   // int u = 0;

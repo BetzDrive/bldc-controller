@@ -13,7 +13,7 @@ namespace motor_driver {
  * LED blinker thread
  */
 
-static WORKING_AREA(blinker_thread_wa, 128);
+static WORKING_AREA(blinker_thread_wa, 512);
 static msg_t blinkerThreadRun(void *arg) {
   (void)arg;
 
@@ -52,7 +52,7 @@ static msg_t blinkerThreadRun(void *arg) {
  * Communications thread
  */
 
-static WORKING_AREA(comms_thread_wa, 128);
+static WORKING_AREA(comms_thread_wa, 512);
 static msg_t commsThreadRun(void *arg) {
   (void)arg;
 
@@ -79,6 +79,7 @@ int main(void) {
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
   chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
 
+  // Wait forever
   while (true) {
     chThdSleepMilliseconds(1000);
   }
