@@ -233,4 +233,11 @@ include $(RULESPATH)/rules.mk
 .PHONY: upload
 
 upload: build/$(PROJECT).bin
-	openocd
+	openocd -f openocd.cfg -c "\
+		init;\
+		reset halt;\
+		flash probe 0;\
+		flash write_image erase build/mc_bootloader.bin 0x08000000;\
+		verify_image build/mc_bootloader.bin 0x08000000;\
+		reset run;\
+		shutdown"
