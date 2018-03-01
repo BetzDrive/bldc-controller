@@ -170,7 +170,7 @@ void runVelocityControl() {
     pid_velocity.setMode(AUTO_MODE);
     pid_velocity.setTunings(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
     // float velocity_max = results.average_vin / calibration.motor_torque_const;
-    float velocity_max = 20.0f;
+    float velocity_max = 40.0f;
     pid_velocity.setInputLimits(-velocity_max, velocity_max);
     pid_velocity.setOutputLimits(-calibration.torque_limit, calibration.torque_limit);
     pid_velocity.setSetPoint(parameters.velocity_sp);
