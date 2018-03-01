@@ -19,7 +19,7 @@ void runCurrentControl();
 
 void resetControlWatchdog();
 
-void enterSafeState();
+void brakeMotor();
 
 } // namespace motor_driver
 

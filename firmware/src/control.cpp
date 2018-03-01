@@ -59,7 +59,7 @@ void runInnerControlLoop() {
     chEvtWaitAny((flagsmask_t)1);
 
     if (calibration.control_watchdog_timeout != 0 && (chTimeNow() - last_control_watchdog_reset) >= MS2ST(calibration.control_watchdog_timeout)) {
-      enterSafeState();
+      brakeMotor();
     }
 
     estimateState();
@@ -274,7 +274,7 @@ void resetControlWatchdog() {
   last_control_watchdog_reset = chTimeNow();
 }
 
-void enterSafeState() {
+void brakeMotor() {
   parameters.foc_d_current_sp = 0.0f;
   parameters.foc_q_current_sp = 0.0f;
   calibration.motor_torque_const = 0.0f; // Damps the motor to prevent a voltage spike
