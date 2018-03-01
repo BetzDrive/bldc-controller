@@ -88,7 +88,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 
 | Address  | Description | Type |
 |----------|---------------------------|---------|
-| `0x1000` | Phase A Encoder Angle (rad) | `float` |
+| `0x1000` | Electrical Revolution Start | `uint16_t` |
 | `0x1001` | Electrical Revolutions Per Mechanical Revolution | `uint8_t` |
 | `0x1002` | Invert Phases | `uint8_t` |
 | `0x1003` | Direct Current Controller Kp | `float` |
@@ -104,6 +104,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x1012` | Velocity Limit (rad/s) | `float` |
 | `0x1013` | Position Lower Limit (rad) | `float` |
 | `0x1014` | Position Upper Limit (rad) | `float` |
+| `0x1015` | Position Offset (rad) | `float` |
 | `0x1020` | Motor Resistance (ohm) | `float` |
 | `0x1021` | Motor Inductance (H) | `float` |
 | `0x1022` | Motor Torque Constant (N*m/A) | `float` |
