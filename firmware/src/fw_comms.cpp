@@ -86,6 +86,9 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1014: // Position Upper Limit (rad)
           handleVarAccess(calibration.position_upper_limit, buf, index, buf_len, access_type, errors);
           break;
+        case 0x1015: // Position Offset
+          handleVarAccess(calibration.position_offset, buf, index, buf_len, access_type, errors);
+          break;
         case 0x1020: // Motor Resistance (ohm)
           handleVarAccess(calibration.motor_resistance, buf, index, buf_len, access_type, errors);
           break;
@@ -94,9 +97,6 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           break;
         case 0x1022: // Motor Torque Constant (N*m/A)
           handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
-          break;
-        case 0x1023: // Position Offset
-          handleVarAccess(calibration.position_offset, buf, index, buf_len, access_type, errors);
           break;
         case 0x1030: // Control Watchdog Timeout (ms)
           handleVarAccess(calibration.control_watchdog_timeout, buf, index, buf_len, access_type, errors);
