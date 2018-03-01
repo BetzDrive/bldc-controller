@@ -96,7 +96,7 @@ void estimateState() {
     results.encoder_revs -= 1;
   }
   results.raw_encoder_pos = raw_encoder_pos;
-  results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi - calibration.encoder_angle_offset;
+  results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi - calibration.position_offset;
 
   float encoder_vel_radians_update = (results.encoder_pos_radians - prev_encoder_pos_radians) * current_control_freq;
   float alpha = calibration.velocity_filter_param;
@@ -206,7 +206,7 @@ void runCurrentControl() {
       ibeta = -ibeta;
     }
 
-    uint16_t zeroed_encoder_pos = (results.raw_encoder_pos - calibration.encoder_zero + encoder_period) % encoder_period;
+    uint16_t zeroed_encoder_pos = (results.raw_encoder_pos - calibration.erev_start + encoder_period) % encoder_period;
     float elec_pos_radians = zeroed_encoder_pos * encoder_pos_to_radians * calibration.erevs_per_mrev;
 
     float cos_theta = fast_cos(elec_pos_radians);

@@ -38,8 +38,8 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x0003: // Bootloader Version
           break;
 
-        case 0x1000: // Phase A Encoder Angle (rad)
-          handleVarAccess(calibration.encoder_zero, buf, index, buf_len, access_type, errors);
+        case 0x1000: // Electrical Revolution Start
+          handleVarAccess(calibration.erev_start, buf, index, buf_len, access_type, errors);
           break;
         case 0x1001: // Electrical Revolutions Per Mechanical Revolution
           handleVarAccess(calibration.erevs_per_mrev, buf, index, buf_len, access_type, errors);
@@ -95,8 +95,8 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1022: // Motor Torque Constant (N*m/A)
           handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
           break;
-        case 0x1023: // Encoder Angle Offset
-          handleVarAccess(calibration.encoder_angle_offset, buf, index, buf_len, access_type, errors);
+        case 0x1023: // Position Offset
+          handleVarAccess(calibration.position_offset, buf, index, buf_len, access_type, errors);
           break;
         case 0x1030: // Control Watchdog Timeout (ms)
           handleVarAccess(calibration.control_watchdog_timeout, buf, index, buf_len, access_type, errors);
