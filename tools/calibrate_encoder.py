@@ -18,7 +18,7 @@ if __name__ == '__main__':
     time.sleep(0.1)
     ser.reset_input_buffer()
 
-    client = BLDCControllerClient(ser)
+    client = BLDCControllerClient(ser, protocol_v2=True)
 
     client.leaveBootloader(args.board_id)
     time.sleep(0.1) # Wait for the controller to reset
@@ -32,11 +32,12 @@ if __name__ == '__main__':
     while True:
         a, b, c = phase_state_list[count % 6]
 
-        client.writeRegisters(args.board_id, 0x0102, 4, struct.pack('<Bfff', 1, a * duty_cycle, b * duty_cycle, c * duty_cycle))
+        client.writeRegisters(args.board_id, 0x2000, 1, struct.pack('<B', 1))
+        client.writeRegisters(args.board_id, 0x2003, 3, struct.pack('<fff', a * duty_cycle, b * duty_cycle, c * duty_cycle))
 
         time.sleep(2 if count == 0 else 0.1)
 
-        angle = struct.unpack('<H', client.readRegisters(args.board_id, 0x100, 1))[0]
+        angle = struct.unpack('<H', client.readRegisters(args.board_id, 0x300c, 1))[0]
         angles.append(angle)
 
         if count > 4 and abs(angles[0] - angle) < abs(angles[1] - angles[0]) / 3.0:
@@ -44,7 +45,8 @@ if __name__ == '__main__':
 
         count += 1
 
-    client.writeRegisters(args.board_id, 0x0102, 4, struct.pack('<Bfff', 1, 0, 0, 0))
+    client.writeRegisters(args.board_id, 0x2000, 1, struct.pack('<B', 1))
+    client.writeRegisters(args.board_id, 0x2003, 3, struct.pack('<fff', 0, 0, 0))
 
     erpm_per_revolution = count / 6
     phase_aligned_angle = angles[0]
