@@ -138,9 +138,10 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x3006` | Accelerometer X (milli-g) | `int32_t` |
 | `0x3007` | Accelerometer Y (milli-g) | `int32_t` |
 | `0x3008` | Accelerometer Z (milli-g) | `int32_t` |
-| `0x3009` | Gyroscope X (rad/s) | `float` |
-| `0x300a` | Gyroscope Y (rad/s) | `float` |
-| `0x300b` | Gyroscope Z (rad/s) | `float` |
+| `0x3009` | Recorder start | `bool` |
+| `0x300a` | Recorder ready/length | `uint16_t` |
+| `0x300b` | Recorder reset | `bool` |
+| `0x300c` | Rotor Position (raw) | `uint16_t` |
 
 -------
 

@@ -172,8 +172,8 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         }
         case 0x300b: { // Recorder reset
           recorder.reset();
-          uint8_t dummy = 1;
-          handleVarAccess(dummy, buf, index, buf_size, access_type, errors);
+          uint8_t flag = 1;
+          handleVarAccess(flag, buf, index, buf_size, access_type, errors);
           break;
         }
         case 0x3010: // Raw Encoder Position
