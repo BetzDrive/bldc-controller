@@ -39,7 +39,7 @@ public:
     gpt_config_.callback = gptCallbackStatic;
     gpt_config_.endpoint = this;
 
-    idle_time_ticks_ = 1000; // 1 ms
+    idle_time_ticks_ = 10000; // 10 ms
 
     chBSemInit(&rx_bsem_, 0);
     chBSemInit(&tx_bsem_, 0);

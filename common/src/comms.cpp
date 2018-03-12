@@ -83,12 +83,13 @@ size_t UARTEndpoint::getTransmitBufferSize() const {
 }
 
 void UARTEndpoint::changeStateI(State new_state) {
+  gptStopTimerI(gpt_driver_);
+
   if (new_state == State::INITIALIZING ||
       new_state == State::RECEIVING_PROTOCOL_VERSION ||
       new_state == State::RECEIVING_LENGTH_L ||
       new_state == State::RECEIVING_LENGTH_H ||
       new_state == State::RECEIVING) {
-    gptStopTimerI(gpt_driver_);
     gptStartOneShotI(gpt_driver_, idle_time_ticks_);
   }
 
