@@ -72,7 +72,6 @@ private:
     RECEIVING_LENGTH_L,           // Waiting for lower byte of length word
     RECEIVING_LENGTH_H,           // Waiting for upper byte of length word
     RECEIVING,                    // Receiving data
-    RECEIVING_ERROR,              // An error occurred while receiving data, it will be discarded
     TRANSMITTING                  // Transmitting data
   };
 
@@ -116,6 +115,8 @@ private:
   static void gptCallbackStatic(GPTDriver *gptp) {
     ((UARTEndpointGPTConfig *)gptp->config)->endpoint->gptCallback();
   }
+
+  void changeStateI(State new_state);
 
   void uartTransmitCompleteCallback();
 

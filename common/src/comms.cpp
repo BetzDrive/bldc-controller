@@ -20,8 +20,7 @@ void UARTEndpoint::start() {
 
   chSysLock();
 
-  state_ = State::INITIALIZING;
-  gptStartOneShotI(gpt_driver_, idle_time_ticks_);
+  changeStateI(State::INITIALIZING);
 
   chSysUnlock();
 }
@@ -41,7 +40,7 @@ void UARTEndpoint::transmit() {
   if (state_ == State::IDLE) {
     palSetPad(dir_.port, dir_.pin);
     uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length, tx_buf_);
-    state_ = State::TRANSMITTING;
+    changeStateI(State::TRANSMITTING);
   }
 
   chSysUnlock();
@@ -83,12 +82,29 @@ size_t UARTEndpoint::getTransmitBufferSize() const {
   return max_dg_payload_len;
 }
 
+void UARTEndpoint::changeStateI(State new_state) {
+  if (new_state == State::INITIALIZING ||
+      new_state == State::RECEIVING_PROTOCOL_VERSION ||
+      new_state == State::RECEIVING_LENGTH_L ||
+      new_state == State::RECEIVING_LENGTH_H ||
+      new_state == State::RECEIVING) {
+    gptStopTimerI(gpt_driver_);
+    gptStartOneShotI(gpt_driver_, idle_time_ticks_);
+  }
+
+  if (new_state == State::RECEIVING_PROTOCOL_VERSION) {
+    rx_error_ = false; // Clear receive error flag
+  }
+
+  state_ = new_state;
+}
+
 void UARTEndpoint::uartTransmitCompleteCallback() {
   chSysLockFromIsr();
 
   palClearPad(dir_.port, dir_.pin);
   chBSemSignalI(&tx_bsem_);
-  state_ = State::IDLE;
+  changeStateI(State::IDLE);
 
   chSysUnlockFromIsr();
 }
@@ -98,12 +114,10 @@ void UARTEndpoint::uartReceiveCompleteCallback() {
 
   switch (state_) {
     case State::RECEIVING:
-    case State::RECEIVING_ERROR:
       /* Finished receiving a datagram */
-      rx_error_ = (state_ == State::RECEIVING_ERROR);
       gptStopTimerI(gpt_driver_);
       chBSemSignalI(&rx_bsem_);
-      state_ = State::IDLE;
+      changeStateI(State::IDLE);
       break;
     default:
       break;
@@ -125,24 +139,24 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       /* Possible start of packet */
       rx_buf_[0] = (uint8_t)c;
       if (c == 0xff) {
-        state_ = State::RECEIVING_PROTOCOL_VERSION;
+        changeStateI(State::RECEIVING_PROTOCOL_VERSION);
       } else {
-        state_ = State::INITIALIZING;
+        changeStateI(State::INITIALIZING);
       }
       break;
     case State::RECEIVING_PROTOCOL_VERSION:
       /* Check protocol version */
       rx_buf_[1] = (uint8_t)c;
       if (c == 0xff) {
-        state_ = State::RECEIVING_LENGTH_L;
+        changeStateI(State::RECEIVING_LENGTH_L);
       } else {
-        state_ = State::INITIALIZING;
+        changeStateI(State::INITIALIZING);
       }
       break;
     case State::RECEIVING_LENGTH_L:
       /* Store lower byte of packet length */
       rx_buf_[2] = (uint8_t)c;
-      state_ = State::RECEIVING_LENGTH_H;
+      changeStateI(State::RECEIVING_LENGTH_H);
       break;
     case State::RECEIVING_LENGTH_H:
       /* Store upper byte of packet length and start receiving data */
@@ -150,8 +164,7 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       rx_len_ = ((size_t)rx_buf_[3] << 8) | rx_buf_[2];
       // TODO: what if rx_len_ is too big? add some bounds checking
       uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_ + header_len);
-      gptStartOneShotI(gpt_driver_, ((1 + rx_len_ + crc_length + 4) * 2) * 10);
-      state_ = State::RECEIVING;
+      changeStateI(State::RECEIVING);
       break;
     default:
       break;
@@ -165,13 +178,8 @@ void UARTEndpoint::uartReceiveErrorCallback(uartflags_t e) {
 
   chSysLockFromIsr();
 
-  switch (state_) {
-    case State::RECEIVING:
-      state_ = State::RECEIVING_ERROR;
-      break;
-    default:
-      break;
-  }
+  rx_error_ = true;
+  changeStateI(State::INITIALIZING);
 
   chSysUnlockFromIsr();
 }
@@ -179,20 +187,8 @@ void UARTEndpoint::uartReceiveErrorCallback(uartflags_t e) {
 void UARTEndpoint::gptCallback() {
   chSysLockFromIsr();
 
-  switch (state_) {
-    case State::INITIALIZING:
-      /* Bus has been idle for the required period of time */
-      state_ = State::IDLE;
-      break;
-    case State::RECEIVING:
-    case State::RECEIVING_ERROR:
-      /* Timed out before receiving the expected number of bytes */
-      uartStopReceiveI(uart_driver_);
-      state_ = State::IDLE;
-      break;
-    default:
-      break;
-  }
+  uartStopReceiveI(uart_driver_);
+  changeStateI(State::IDLE);
 
   chSysUnlockFromIsr();
 }
