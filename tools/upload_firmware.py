@@ -17,12 +17,13 @@ if __name__ == '__main__':
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
     time.sleep(0.1)
-    ser.reset_input_buffer()
+    # ser.reset_input_buffer()
 
     client = BLDCControllerClient(ser, protocol_v2=True)
 
     client.enterBootloader(args.board_id)
-    time.sleep(0.1) # Wait for the controller to reset
+    time.sleep(0.2) # Wait for the controller to reset
+    ser.reset_input_buffer()
 
     flash_sector_map = client.getFlashSectorMap(args.board_id)
 

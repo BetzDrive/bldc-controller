@@ -16,7 +16,8 @@ def is_int(i):
 
 def flash_board(client, board_id, data):
     client.resetSystem(board_id)
-    time.sleep(0.1) # Wait for the controller to reset
+    time.sleep(0.2) # Wait for the controller to reset
+    ser.reset_input_buffer()
 
     old_board_id = client.readFlash(board_id, COMM_NVPARAMS_OFFSET, 1)
 
@@ -36,7 +37,8 @@ def flash_board(client, board_id, data):
         client.resetSystem(board_id)
         print("Success", board_id)
         print("Wrote:")
-        time.sleep(0.1)
+        time.sleep(0.2)
+        ser.reset_input_buffer()
         l = struct.unpack('<H', client.readFlash(board_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
         print(json.loads(client.readFlash(board_id, COMM_NVPARAMS_OFFSET+3, l)))
     else:
@@ -59,7 +61,7 @@ if __name__ == '__main__':
     calibrations = json.loads(data)
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
-    time.sleep(0.1)
+    time.sleep(0.2)
     ser.reset_input_buffer()
 
     client = BLDCControllerClient(ser, protocol_v2=True)

@@ -248,7 +248,6 @@ class BLDCControllerClient:
 
     def doTransaction(self, server_id, func_code, data):
         self.writeRequest(server_id, func_code, data)
-        self._ser.flushInput()
         return self.readResponse(server_id, func_code)
 
     def writeRequest(self, server_id, func_code, data=''):
@@ -260,6 +259,7 @@ class BLDCControllerClient:
         datagram = prefixed_message + struct.pack('<H', self._computeCRC(prefixed_message))
 
         self._ser.write(datagram)
+        self._ser.flush()
 
     def readResponse(self, server_id, func_code, num_tries=10, try_interval=0.01):
         if self._protocol_v2:
@@ -272,13 +272,13 @@ class BLDCControllerClient:
                 time.sleep(try_interval)
             else:
                 # Reached maximum number of tries
-                self._ser.flushInput()
+                # self._ser.reset_input_buffer()
                 print "max tries"
                 return False, None
 
             version = self._ser.read()
             if len(version) != 1 or version != "\xff":
-                self._ser.flushInput()
+                # self._ser.reset_input_buffer()
                 return False, None
 
             length = self._ser.read(2)
@@ -297,7 +297,7 @@ class BLDCControllerClient:
                 time.sleep(try_interval)
             else:
                 # Reached maximum number of tries
-                self._ser.flushInput()
+                # self._ser.reset_input_buffer()
                 print "max tries"
                 return False, None
 
@@ -309,14 +309,14 @@ class BLDCControllerClient:
             message = self._ser.read(message_len)
 
         if len(message) < message_len:
-            self._ser.flushInput()
+            # self._ser.reset_input_buffer()
             print "not enough data"
             return False, None
 
         crc_bytes = self._ser.read(2)
 
         if len(crc_bytes) < 2:
-            self._ser.flushInput()
+            # self._ser.reset_input_buffer()
             print "crc not good"
             return False, None
 

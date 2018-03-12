@@ -9,7 +9,7 @@ s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE)
 
 print s.BAUDRATES
 
-client = BLDCControllerClient(s)
+client = BLDCControllerClient(s, protocol_v2=True)
 
-client.leaveBootloader(0x01)
+client.leaveBootloader(17)
 s.flush()
