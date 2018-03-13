@@ -21,8 +21,8 @@ duty_cycle = float(sys.argv[3])
 client = BLDCControllerClient(s, protocol_v2=PROTOCOL_V2)
 
 client.leaveBootloader(address)
-s.flush()
 time.sleep(0.2)
+s.reset_input_buffer()
 
 angle_mapping = {1: 10356, 2: 11213, 3: 2827, 4: 8132, 5: 7568, 10: 11067, 11: 16015, 12: 8710, 13: 10054, 14: 4484, 15: 13002, 16: 2373, 17: 3136, 18: 284, 19: 2668, 20: 3839, 21: 5899, 22: 6985, 23: 6262, 24: 13382} # mapping of id to joints
 
