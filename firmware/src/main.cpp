@@ -60,7 +60,8 @@ static msg_t blinkerThreadRun(void *arg) {
 
     systime_t time_now = chTimeNow();
 
-    setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(comms_activity_led_duration));
+    setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(comms_activity_led_duration) &&
+                        last_comms_activity_time != 0);
 
     t = (t + 10) % 510;
     chThdSleepMilliseconds(10);
