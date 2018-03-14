@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import numpy as np
 from comms import *
 import serial
 import sys
