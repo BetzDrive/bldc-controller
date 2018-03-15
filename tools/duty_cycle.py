@@ -23,7 +23,7 @@ client.leaveBootloader(address)
 time.sleep(0.2)
 s.reset_input_buffer()
 
-angle_mapping = {1: 10356, 2: 11213, 3: 2827, 4: 8132, 5: 7568, 10: 11067, 11: 16015, 12: 8710, 13: 10054, 14: 4484, 15: 13002, 16: 2373, 17: 3136, 18: 284, 19: 2668, 20: 3839, 21: 5899, 22: 6985, 23: 6262, 24: 13382} # mapping of id to joints
+angle_mapping = {1: 10356, 2: 11213, 3: 2827, 4: 8132, 5: 7568, 10: 11067, 11: 16015, 12: 8710, 13: 10054, 14: 4484, 15: 13002, 16: 2373, 17: 3136, 18: 284, 19: 2668, 20: 3839, 21: 5899, 22: 6985, 23: 6262, 24: 518} # mapping of id to joints
 
 needs_flip_phase = [3, 11, 17, 22, 23, 24]
 
@@ -42,7 +42,7 @@ if PROTOCOL_V2:
     # client.writeRegisters(address, 0x0111, 1, struct.pack('<f', start_angle))
     # client.writeRegisters(address, 0x0112, 1, struct.pack('<f', 20.0))
 
-    client.writeRegisters(address, 0x1022, 1, struct.pack('<f', 0.6 if (address in has_21_erevs_per_mrev) else 1.45)) # Motor torque constant
+    client.writeRegisters(address, 0x1022, 1, struct.pack('<f', 0.55 if (address in has_21_erevs_per_mrev) else 1.45)) # Motor torque constant
     client.writeRegisters(address, 0x1003, 1, struct.pack('<f', 1.0)) # FOC direct current Kp
     client.writeRegisters(address, 0x1005, 1, struct.pack('<f', 1.0)) # FOC quadrature current Kp
     client.writeRegisters(address, 0x1040, 1, struct.pack('<f', 1e-2)) # Velocity filter parameter
@@ -84,7 +84,7 @@ else:
 while True:
     data = struct.unpack('<ff', client.readRegisters(address, 0x3002, 2))
     print(data)
-    time.sleep(0.5)
+    time.sleep(0.01)
 
 # t = 0
 # ts = 0.01
