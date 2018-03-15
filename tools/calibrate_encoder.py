@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('duty_cycle', type=float, help='Duty cycle')
     parser.add_argument('--max_steps', type=int, help='Maximum number of steps')
     parser.add_argument('--delay', type=float, help='Delay between steps')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=24, delay=0.1)
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=126, delay=0.1)
     args = parser.parse_args()
 
     #
@@ -92,14 +92,18 @@ if __name__ == '__main__':
     forward_raw_angles = np.array(forward_raw_angles)
     backward_raw_angles = np.array(backward_raw_angles)
 
-    raw_angles = (forward_raw_angles + backward_raw_angles) / 2
-
     # raw_angles = np.array([14532, 14718, 14912, 15106, 15298, 15496, 15694, 15886, 16084, 16284, 92, 284, 488, 681, 873, 1074, 1261, 1453, 1655, 1850, 2040, 2238, 2430, 2622, 2820, 3017, 3209, 3412, 3602, 3799, 3998, 4190, 4384, 4585, 4779, 4968, 5170, 5359, 5551, 5748, 5945, 6136, 6329, 6525, 6719, 6917, 7109, 7305, 7504, 7697, 7893, 8092, 8285, 8479, 8682, 8874, 9063, 9268, 9461, 9650, 9852, 10047, 10238, 10435, 10631, 10819, 11017, 11210, 11406, 11603, 11797, 11992, 12192, 12382, 12575, 12781, 12966, 13159, 13364, 13552, 13743, 13941, 14135, 14324])
 
-    angles = raw_angles / encoder_ticks_per_rev * 2 * np.pi # Convert to radians
+    # Convert to radians
+    forward_angles = forward_raw_angles / encoder_ticks_per_rev * 2 * np.pi
+    backward_angles = backward_raw_angles / encoder_ticks_per_rev * 2 * np.pi
 
     # Phase unwrapping
-    angles = np.unwrap(angles)
+    forward_angles = np.unwrap(forward_angles)
+    backward_angles = np.unwrap(backward_angles)
+
+    # Average forward and backward measurements
+    angles = (forward_angles + backward_angles) / 2
 
     # Guess erevs/mrev
     angle_slope = np.mean(np.diff(angles))
