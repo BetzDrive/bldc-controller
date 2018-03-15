@@ -1,5 +1,6 @@
 import struct
 import time
+import json
 
 class ProtocolError(Exception):
     def __init__(self, message, errors=None):
@@ -199,6 +200,10 @@ class BLDCControllerClient:
                 return False
 
         return True
+
+    def readCalibration(self, server_id):
+        l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
+	return json.loads(self.readFlash(server_id, COMM_NVPARAMS_OFFSET+3, l))
 
     def writeFlash(self, server_id, dest_addr, data, sector_map=None, print_progress=False):
         if sector_map is None:
