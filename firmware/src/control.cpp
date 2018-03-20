@@ -159,6 +159,7 @@ void runPositionControl() {
     pid_position.setOutputLimits(-calibration.velocity_limit, calibration.velocity_limit);
     pid_position.setSetPoint(0.0f);
     pid_position.setProcessValue(results.encoder_pos_radians - parameters.position_sp);
+    pid_position.setBias(0.0f);
     parameters.velocity_sp = pid_position.compute();
   } else {
     pid_position.setMode(MANUAL_MODE);
@@ -175,6 +176,7 @@ void runVelocityControl() {
     pid_velocity.setOutputLimits(-calibration.torque_limit, calibration.torque_limit);
     pid_velocity.setSetPoint(parameters.velocity_sp);
     pid_velocity.setProcessValue(results.encoder_vel_radians);
+    pid_velocity.setBias(0.0f);
     parameters.torque_sp = pid_velocity.compute();
   } else {
     pid_velocity.setMode(MANUAL_MODE);
