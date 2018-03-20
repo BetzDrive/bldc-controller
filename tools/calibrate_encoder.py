@@ -128,8 +128,12 @@ if __name__ == '__main__':
     print('erevs_per_mrev: {:5d}'.format(abs(erevs_per_mrev)))
     print('   flip_phases: {:5d}'.format(int(erevs_per_mrev > 0)))
 
-    # plt.plot((elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
-    # plt.show()
+    mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
+    plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
+    plt.title('Encoder angle residuals')
+    plt.xlabel('Mechanical angle (rad)')
+    plt.ylabel('Encoder angle residual (counts)')
+    plt.show()
 
     # # Apply smoothing
     # angle_residuals = sps.savgol_filter(angle_residuals, 31, 3, mode='wrap')
