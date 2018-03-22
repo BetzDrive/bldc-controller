@@ -47,7 +47,7 @@ def flash_board(client, board_id, data):
 calibrations = {}
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Change the board ID of a motor controller board.')
+    parser = argparse.ArgumentParser(description='Upload calibration values to a motor driver board')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_id', type=str, help='Board id to flash or all')
