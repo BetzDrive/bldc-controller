@@ -37,11 +37,9 @@ void UARTEndpoint::transmit() {
 
   chSysLock();
 
-  if (state_ == State::IDLE) {
-    palSetPad(dir_.port, dir_.pin);
-    uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length, tx_buf_);
-    changeStateI(State::TRANSMITTING);
-  }
+  palSetPad(dir_.port, dir_.pin);
+  uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length, tx_buf_);
+  changeStateI(State::TRANSMITTING);
 
   chSysUnlock();
 
