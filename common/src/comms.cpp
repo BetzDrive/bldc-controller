@@ -162,9 +162,12 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       /* Store upper byte of packet length and start receiving data */
       rx_buf_[3] = (uint8_t)c;
       rx_len_ = ((size_t)rx_buf_[3] << 8) | rx_buf_[2];
-      // TODO: what if rx_len_ is too big? add some bounds checking
-      uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_ + header_len);
-      changeStateI(State::RECEIVING);
+      if (rx_len_ <= max_dg_payload_len) {
+        uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_ + header_len);
+        changeStateI(State::RECEIVING);
+      } else {
+        changeStateI(State::INITIALIZING);
+      }
       break;
     default:
       break;
