@@ -37,6 +37,7 @@ void UARTEndpoint::transmit() {
 
   chSysLock();
 
+  uartStopReceiveI(uart_driver_);
   palSetPad(dir_.port, dir_.pin);
   uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length, tx_buf_);
   changeStateI(State::TRANSMITTING);
