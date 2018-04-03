@@ -68,11 +68,9 @@ else:
 
 print("Time,Temperature")
 next_print = time.time()
-secs = 0
 while True:
     data = struct.unpack('<f', client.readRegisters(address, 0x3005, 1))
-    print(str("{},{}".format(secs, data))
-    secs += 1
+    print(str("{},{}".format(time.time(), data))
 
     next_print += 1.0
     sleep_time = next_print - time.time()
