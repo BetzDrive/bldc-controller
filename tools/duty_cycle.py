@@ -99,8 +99,11 @@ for address, duty_cycle in zip(addresses, duty_cycles):
 
 while True:
     for address in addresses:
-        data = struct.unpack('<ff', client.readRegisters(address, 0x3000, 2))
-        print(address, data)
+        try:
+            data = struct.unpack('<ff', client.readRegisters(address, 0x3000, 2))
+            print(address, data)
+        except IOError:
+            pass
     time.sleep(0.01)
 
 # t = 0
