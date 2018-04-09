@@ -148,6 +148,8 @@ void estimateState() {
   recorder_new_data[recorder_channel_vc] = results.average_vc;
   recorder_new_data[recorder_channel_vin] = results.average_vin;
   recorder_new_data[recorder_channel_rotor_pos] = results.encoder_pos_radians;
+  recorder_new_data[recorder_channel_rotor_vel] = results.encoder_vel_radians;
+
   recorder.recordSample(recorder_new_data);
 }
 
