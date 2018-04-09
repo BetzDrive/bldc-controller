@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pickle
 import sys
 
-num_channels = 8
+num_channels = 9
 if len(sys.argv) < 2:
     print("give me a data file")
     exit(0)
@@ -21,6 +21,7 @@ vb = [data[i * num_channels + 4] for i in range(length)]
 vc = [data[i * num_channels + 5] for i in range(length)]
 vin = [data[i * num_channels + 6] for i in range(length)]
 angle = [data[i * num_channels + 7] for i in range(length)]
+vel = [data[i * num_channels + 8] for i in range(length)]
 
 plt.plot(ia)
 plt.xlabel('sample')
@@ -60,4 +61,9 @@ plt.show()
 plt.plot(angle)
 plt.xlabel('sample')
 plt.ylabel('Encoder Angle')
+plt.show()
+
+plt.plot(vel)
+plt.xlabel('sample')
+plt.ylabel('Encoder Velocity')
 plt.show()
