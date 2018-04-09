@@ -39,9 +39,9 @@ struct Calibration {
   uint16_t erev_start = 0;                // Encoder reading at the start of an electrical revolution
   uint8_t erevs_per_mrev = 1;             // Electrical revolutions per mechanical revolution
   uint8_t flip_phases = false;            // Phases A, B, C are arranged in clockwise instead of ccw order
-  float foc_kp_d = 1.0f;                  // Proportional gain for FOC/d PI loop
+  float foc_kp_d = 0.01f;                 // Proportional gain for FOC/d PI loop
   float foc_ki_d = 0.0f;                  // Integral gain for FOC/d PI loop
-  float foc_kp_q = 1.0f;                  // Proportional gain for FOC/q PI loop
+  float foc_kp_q = 0.01f;                 // Proportional gain for FOC/q PI loop
   float foc_ki_q = 0.0f;                  // Integral gain for FOC/q PI loop
   float velocity_kp = 1.0f;               // Proportional gain for velocity PI loop
   float velocity_ki = 0.01f;              // Integral gain for velocity PI loop
@@ -56,7 +56,7 @@ struct Calibration {
   float motor_inductance = 0.0f;          // Motor inductance (henries)
   float motor_torque_const = 0.0f;        // Motor torque constant (newton-meters per ampere)
   uint16_t control_watchdog_timeout = 0;  // Control watchdog timeout (ms)
-  float velocity_filter_param = 1e-2f;    // Parameter for velocity filter
+  float velocity_filter_param = 1e-3f;    // Parameter for velocity filter
   float position_offset = 0.0;            // Position offset
 
   Calibration() {}
