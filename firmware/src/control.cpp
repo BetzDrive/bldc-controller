@@ -92,13 +92,15 @@ void estimateState() {
   float diff = ((int16_t)raw_encoder_pos - (int16_t)prev_raw_encoder_pos) * encoder_pos_to_radians;
   if (diff < -threshold) {
     results.encoder_revs += 1;
+    diff += 2 * pi; // Normalize to (-pi, pi) range
   } else if (diff > threshold) {
     results.encoder_revs -= 1;
+    diff -= 2 * pi; // Normalize to (-pi, pi) range
   }
   results.raw_encoder_pos = raw_encoder_pos;
   results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi - calibration.position_offset;
 
-  float encoder_vel_radians_update = (results.encoder_pos_radians - prev_encoder_pos_radians) * current_control_freq;
+  float encoder_vel_radians_update = diff * current_control_freq;
   float alpha = calibration.velocity_filter_param;
   results.encoder_vel_radians = alpha * encoder_vel_radians_update + (1.0f - alpha) * results.encoder_vel_radians;
 
