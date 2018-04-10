@@ -69,6 +69,7 @@ float SVM::getMaxAmplitude() const {
       return sqrt(3.0f) / 2.0f;
 
     case SVMStrategy::TOP_BOTTOM_CLAMP:
+    case SVMStrategy::MIDPOINT_CLAMP:
 
       return 1.0f;
   }
