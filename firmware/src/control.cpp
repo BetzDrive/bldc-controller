@@ -88,11 +88,11 @@ void estimateState() {
 
   uint16_t prev_raw_encoder_pos = results.raw_encoder_pos;
   float prev_encoder_pos_radians = results.encoder_pos_radians;
-  float threshold = pi;
-  float diff = ((int16_t)prev_raw_encoder_pos - (int16_t)raw_encoder_pos) * encoder_pos_to_radians;
-  if (diff > threshold) {
+  constexpr float threshold = pi;
+  float diff = ((int16_t)raw_encoder_pos - (int16_t)prev_raw_encoder_pos) * encoder_pos_to_radians;
+  if (diff < -threshold) {
     results.encoder_revs += 1;
-  } else if (diff < -threshold) {
+  } else if (diff > threshold) {
     results.encoder_revs -= 1;
   }
   results.raw_encoder_pos = raw_encoder_pos;
