@@ -184,6 +184,10 @@ void startPeripherals() {
   // Enable counter on TIM1 (motor PWM) TRGO rising edge
   PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS) | TIM_SMCR_SMS_1 | TIM_SMCR_SMS_2;
 
+  // Reset timer counters
+  PWMD1.tim->CNT = 0;
+  PWMD3.tim->CNT = 0;
+
   // Start motor PWM timer, which also starts the ADC trigger timer
   PWMD1.tim->CR1 |= TIM_CR1_CEN;
 }
