@@ -92,13 +92,13 @@ class BLDCControllerClient:
         self._protocol_v2 = protocol_v2
 
     def setCurrent(self, id, value):
-    	ret = self.writeRegisters(id, 0x0102, 1, struct.pack('<f', value))
-    	return ret 
+        ret = self.writeRegisters(id, 0x0102, 1, struct.pack('<f', value))
+        return ret
 
     def getEncoder(self, id):
         print(id)
         angle = struct.unpack('<H', self.readRegisters(id, 0x100, 1))[0]
-    	return angle
+        return angle
 
     def setDuty(self, id, value):
         ret = self.writeRegisters(id, 0x0106, 1, struct.pack('<f', value ))
@@ -203,7 +203,7 @@ class BLDCControllerClient:
 
     def readCalibration(self, server_id):
         l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
-	return json.loads(self.readFlash(server_id, COMM_NVPARAMS_OFFSET+3, l))
+        return json.loads(self.readFlash(server_id, COMM_NVPARAMS_OFFSET+3, l))
 
     def writeFlash(self, server_id, dest_addr, data, sector_map=None, print_progress=False):
         if sector_map is None:
@@ -264,9 +264,8 @@ class BLDCControllerClient:
         datagram = prefixed_message + struct.pack('<H', self._computeCRC(prefixed_message))
 
         self._ser.write(datagram)
-        self._ser.flush()
 
-    def readResponse(self, server_id, func_code, num_tries=10, try_interval=0.01):
+    def readResponse(self, server_id, func_code, num_tries=1, try_interval=0.01):
         if self._protocol_v2:
             for i in range(num_tries):
                 sync = self._ser.read()
