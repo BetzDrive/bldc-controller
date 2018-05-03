@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     calibrations = json.loads(data)
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
     time.sleep(0.2)
     ser.reset_input_buffer()
 
