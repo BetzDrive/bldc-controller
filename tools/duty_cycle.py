@@ -12,7 +12,7 @@ if len(sys.argv) != 4:
         exit()
 
 port = sys.argv[1]
-s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
+s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.005)
 
 try:
     addresses = [int(sys.argv[2])]
@@ -56,8 +56,8 @@ for address, duty_cycle in zip(addresses, duty_cycles):
         client.writeRegisters(address, 0x1030, 1, struct.pack('<H', 3000)) # Control watchdog timeout
         # client.writeRegisters(address, 0x1030, 1, struct.pack('<H', 0))
 
-        # client.writeRegisters(address, 0x2006, 1, struct.pack('<f', duty_cycle))
-        # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 2) ) # Torque control
+        client.writeRegisters(address, 0x2006, 1, struct.pack('<f', duty_cycle))
+        client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 2) ) # Torque control
 
         # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
         # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
@@ -97,14 +97,23 @@ for address, duty_cycle in zip(addresses, duty_cycles):
 
         client.writeRegisters(address, 0x0106, 1, struct.pack('<f', duty_cycle))
 
+start_time = time.time()
+count = 0
 while True:
     for address in addresses:
         try:
             data = struct.unpack('<ff', client.readRegisters(address, 0x3000, 2))
-            print(address, data)
+            # print(address, data)
         except IOError:
             pass
-    time.sleep(0.01)
+
+        count += 1
+        if count % 100 == 0:
+            freq = count / (time.time() - start_time)
+            print("{} \t {}".format(address, freq))
+            print("hello!")
+            sys.stdout.flush()
+    # time.sleep(0.01)
 
 # t = 0
 # ts = 0.01
