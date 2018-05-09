@@ -23,9 +23,9 @@ except ValueError:
 
 client = BLDCControllerClient(s, protocol_v2=PROTOCOL_V2)
 
-angle_mapping = {1: 726, 2: 243, 3: 2827, 4: 1125, 5: 7568, 10: 800, 11: 823, 12: 501, 13: 10054, 14: 1008, 15: 775, 16: 22, 17: 1087, 18: 247, 19: 601, 20: 721, 21: 621, 22: 269, 23: 678, 24: 518} # mapping of id to joints
+angle_mapping = {1: 726, 2: 243, 3: 2827, 4: 1125, 5: 7568, 10: 800, 11: 823, 12: 501, 13: 10054, 14: 1008, 15: 775, 16: 22, 17: 1087, 18: 247, 19: 601, 20: 721, 21: 621, 22: 269, 23: 678, 24: 518, 30: 446, 31: 948, 32: 411, 33: 1092} # mapping of id to joints
 
-needs_flip_phase = [3, 4, 11, 17, 18, 22, 23, 24]
+needs_flip_phase = [3, 4, 11, 17, 18, 22, 23, 24, 30, 33]
 
 has_21_erevs_per_mrev = [2, 13, 18, 19, 20, 21]
 
@@ -59,26 +59,26 @@ for address, duty_cycle in zip(addresses, duty_cycles):
         # client.writeRegisters(address, 0x2006, 1, struct.pack('<f', duty_cycle))
         # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 2) ) # Torque control
 
-        client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
-        client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
-        if address in has_21_erevs_per_mrev:
-            client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.55))
-        else:
-            client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.45))
-        client.writeRegisters(address, 0x2007, 1, struct.pack('<f', duty_cycle))
-        client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 3) ) # Velocity control
-
-        # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 2.0))
+        # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
         # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
-        # client.writeRegisters(address, 0x1009, 1, struct.pack('<f', 25.0))
-        # client.writeRegisters(address, 0x100a, 1, struct.pack('<f', 0.01))
         # if address in has_21_erevs_per_mrev:
-        #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.25))
+        #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.55))
         # else:
-        #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.00))
-        # client.writeRegisters(address, 0x1012, 1, struct.pack('<f', 20.0))
-        # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
-        # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 4) ) # Position control
+        #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.45))
+        # client.writeRegisters(address, 0x2007, 1, struct.pack('<f', duty_cycle))
+        # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 3) ) # Velocity control
+
+        client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 2.0))
+        client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
+        client.writeRegisters(address, 0x1009, 1, struct.pack('<f', 25.0))
+        client.writeRegisters(address, 0x100a, 1, struct.pack('<f', 0.01))
+        if address in has_21_erevs_per_mrev:
+            client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.25))
+        else:
+            client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.00))
+        client.writeRegisters(address, 0x1012, 1, struct.pack('<f', 20.0))
+        client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
+        client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 4) ) # Position control
 
         # print struct.unpack('<f', client.readRegisters(address, 0x1003, 1))
     else:
