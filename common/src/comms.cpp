@@ -220,11 +220,29 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
   }
 
   comm_id_t id = datagram[index++];
+  uint8_t flags = datagram[index++];
   function_code_ = datagram[index++];
 
+  // If first packet, reset response coutner.
+  if (flags & 0x2)
+    resp_count_ = 1;
+
+  // If last packet, all boards decrement their counters!
+  if (flags & 0x4)
+    resp_count_--;
+
   if (id != 0 && id != server_->getID()) {
-    /* This datagram is not meant for us, ignore it */
-    return;
+    /* This datagram is not meant for us, ignore it.
+     * If this is an incoming message, increment counter.
+     * If outgoing, decrement semaphore. 
+     */
+  if (flag & 0x1)
+    resp_count_--; 
+  else
+    // We only wish to increment as long as we have not received our packet.
+    if ( state_ != State::RECEIVED )
+      resp_count_++;
+  return;
   }
 
   broadcast_ = (id == 0);
@@ -541,6 +559,10 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
     return;
   }
 
+  /* Wait for other boards */
+  if (resp_count_ != 0)
+    return;
+
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
   static_assert(sizeof(comm_fc_t) == 1, "Assuming comm_fc_t is uint8_t");
   static_assert(sizeof(comm_addr_t) == 2, "Assuming comm_addr_t is uint16_t");
@@ -561,10 +583,14 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
     datagram[index++] = server_->getID();
   }
 
+  datagram[index++] = 0x1;      // Board Response Flag.
   datagram[index++] = function_code_;
 
   size_t error_index;
   size_t buf_len;
+
+  resp_count_ = 1;              // Reset response coutner
+  
 
   switch (state_) {
     case State::RESPONDING:
