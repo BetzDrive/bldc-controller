@@ -43,6 +43,7 @@ public:
 
     chBSemInit(&rx_bsem_, 0);
     chBSemInit(&tx_bsem_, 0);
+    resp_count_ = 1;
   }
 
   void start();
@@ -84,6 +85,7 @@ private:
   gptcnt_t idle_time_ticks_;
   BinarySemaphore rx_bsem_;
   BinarySemaphore tx_bsem_;
+  uint8_t resp_count_;
 
   /* Receive DMA buffer */
   uint8_t rx_buf_[header_len + max_dg_payload_len + crc_length];
