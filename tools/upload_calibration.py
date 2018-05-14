@@ -64,7 +64,7 @@ if __name__ == '__main__':
     time.sleep(0.2)
     ser.reset_input_buffer()
 
-    client = BLDCControllerClient(ser, protocol_v2=True)
+    client = BLDCControllerClient(ser, protocol=2)
     if args.board_id == 'all':
         for id in calibrations:
             try:

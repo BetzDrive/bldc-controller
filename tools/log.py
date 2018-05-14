@@ -15,7 +15,7 @@ s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 
 address = int(sys.argv[2])
 
-client = BLDCControllerClient(s, protocol_v2=True)
+client = BLDCControllerClient(s, protocol=2)
 
 angle_mapping = {1: 726, 2: 243, 3: 2827, 4: 1125, 5: 7568, 10: 800, 11: 823, 12: 501, 13: 10054, 14: 1008, 15: 775, 16: 22, 17: 1087, 18: 247, 19: 601, 20: 721, 21: 621, 22: 269, 23: 678, 24: 518} # mapping of id to joints
 

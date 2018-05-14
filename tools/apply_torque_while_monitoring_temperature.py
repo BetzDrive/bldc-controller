@@ -8,7 +8,7 @@ from math import sin, cos, pi
 ## Applies a torque and continuously prints out temperature information
 ## Output is meant to be piped to a CSV file
 
-PROTOCOL_V2 = True
+PROTOCOL_V2 = 2
 
 if len(sys.argv) != 4:
         print("give me a serial port, address, and torque")
@@ -20,7 +20,7 @@ s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 address = int(sys.argv[2])
 torque = float(sys.argv[3])
 
-client = BLDCControllerClient(s, protocol_v2=PROTOCOL_V2)
+client = BLDCControllerClient(s, protocol=PROTOCOL_V2)
 
 client.leaveBootloader(address)
 time.sleep(0.2)

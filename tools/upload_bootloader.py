@@ -19,7 +19,7 @@ if __name__ == '__main__':
     time.sleep(0.1)
     # ser.reset_input_buffer()
 
-    client = BLDCControllerClient(ser, protocol_v2=True)
+    client = BLDCControllerClient(ser, protocol=2)
 
     try:
         board_ids = [int(args.board_id)]

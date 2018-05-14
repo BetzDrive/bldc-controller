@@ -5,7 +5,7 @@ import sys
 import time
 from math import sin, cos, pi
 
-PROTOCOL_V2 = True
+PROTOCOL_V2 = 2
 
 if len(sys.argv) != 4:
         print("give me a serial port, address, and duty cycle")
@@ -21,7 +21,7 @@ except ValueError:
     addresses = [int(address_str) for address_str in sys.argv[2].split(',')]
     duty_cycles = [float(duty_cycle_str) for duty_cycle_str in sys.argv[3].split(',')]
 
-client = BLDCControllerClient(s, protocol_v2=PROTOCOL_V2)
+client = BLDCControllerClient(s, protocol=PROTOCOL_V2)
 
 angle_mapping = {1: 726, 2: 243, 3: 2827, 4: 1125, 5: 7568, 10: 800, 11: 823, 12: 501, 13: 10054, 14: 1008, 15: 775, 16: 22, 17: 1087, 18: 247, 19: 601, 20: 721, 21: 621, 22: 269, 23: 678, 24: 518, 30: 446, 31: 948, 32: 411, 33: 1092} # mapping of id to joints
 

@@ -232,17 +232,21 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
     resp_count_--;
 
   if (id != 0 && id != server_->getID()) {
-    /* This datagram is not meant for us, ignore it.
-     * If this is an incoming message, increment counter.
-     * If outgoing, decrement semaphore. 
-     */
-  if (flag & 0x1)
-    resp_count_--; 
-  else
-    // We only wish to increment as long as we have not received our packet.
-    if ( state_ != State::RECEIVED )
-      resp_count_++;
-  return;
+   /* This datagram is not meant for us, ignore it.
+    * If this is an incoming message, increment counter.
+    * If outgoing, decrement semaphore. 
+    */
+    if (flags & 0x1)
+      resp_count_--; 
+    else
+      // We only wish to increment as long as we have not received our packet.
+      if ( state_ != State::RESPONDING &&
+           state_ != State::RESPONDING_U8 && 
+           state_ != State::RESPONDING_MEM && 
+           state_ != State::RESPONDING_READ && 
+           state_ != State::RESPONDING_U32 )
+        resp_count_++;
+    return;
   }
 
   broadcast_ = (id == 0);

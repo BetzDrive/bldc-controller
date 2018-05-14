@@ -29,6 +29,10 @@ COMM_FC_FLASH_READ = 0x87
 COMM_FC_FLASH_VERIFY = 0x88
 COMM_FC_FLASH_VERIFY_ERASED = 0x89
 
+COMM_FLAG_SEND = 0
+COMM_FLAG_FIRST_MESSAGE = 2
+COMM_FLAG_LAST_MESSAGE = 4
+
 COMM_BOOTLOADER_OFFSET = 0x08000000
 COMM_NVPARAMS_OFFSET = 0x08004000
 COMM_FIRMWARE_OFFSET = 0x08008000
@@ -87,9 +91,9 @@ class FlashSectorMap:
         return '\n'.join(lines)
 
 class BLDCControllerClient:
-    def __init__(self, ser, protocol_v2=False):
+    def __init__(self, ser, protocol=0):
         self._ser = ser
-        self._protocol_v2 = protocol_v2
+        self._protocol = protocol
 
     def setCurrent(self, id, value):
         ret = self.writeRegisters(id, 0x0102, 1, struct.pack('<f', value))
@@ -257,7 +261,7 @@ class BLDCControllerClient:
 
     def writeRequest(self, server_id, func_code, data=''):
         message = struct.pack('BB', server_id, func_code) + data
-        if self._protocol_v2:
+        if self._protocol:
             prefixed_message = struct.pack('BBH', 0xFF, 0xFF, len(message)) + message
         else:
             prefixed_message = struct.pack('B', len(message)) + message
@@ -266,7 +270,7 @@ class BLDCControllerClient:
         self._ser.write(datagram)
 
     def readResponse(self, server_id, func_code, num_tries=1, try_interval=0.01):
-        if self._protocol_v2:
+        if self._protocol:
             for i in range(num_tries):
                 sync = self._ser.read()
 

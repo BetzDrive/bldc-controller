@@ -5,7 +5,7 @@ import sys
 import time
 from math import sin, cos, pi
 
-PROTOCOL_V2 = True
+PROTOCOL_V2 = 2 
 
 if len(sys.argv) != 4:
         print("give me a serial port, address, and duty cycle")
@@ -17,7 +17,7 @@ s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 address = int(sys.argv[2])
 duty_cycle = float(sys.argv[3])
 
-client = BLDCControllerClient(s, protocol_v2=PROTOCOL_V2)
+client = BLDCControllerClient(s, protocol=PROTOCOL_V2)
 
 client.leaveBootloader(address)
 time.sleep(0.2)

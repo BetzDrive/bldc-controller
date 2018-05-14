@@ -32,7 +32,7 @@ if __name__ == '__main__':
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
     time.sleep(0.1)
 
-    client = BLDCControllerClient(ser, protocol_v2=True)
+    client = BLDCControllerClient(ser, protocol=2)
 
     client.leaveBootloader(args.board_id)
     time.sleep(0.2) # Wait for the controller to reset
