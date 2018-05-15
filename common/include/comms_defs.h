@@ -18,6 +18,12 @@ constexpr comm_id_t COMM_ID_BROADCAST = 0;
 constexpr comm_id_t COMM_ID_MIN = 1;
 constexpr comm_id_t COMM_ID_MAX = UINT8_MAX;
 
+using comm_fg_t = uint8_t;
+constexpr comm_fg_t COMM_FG_COMP = 0x00;
+constexpr comm_fg_t COMM_FG_BOARD = 0x01;
+constexpr comm_fg_t COMM_FG_FIRST_MESSAGE = 0x02;
+constexpr comm_fg_t COMM_FG_LAST_MESSAGE = 0x04;
+
 using comm_fc_t = uint8_t;
 constexpr comm_fc_t COMM_FC_NOP = 0x00;
 constexpr comm_fc_t COMM_FC_REG_READ = 0x01;

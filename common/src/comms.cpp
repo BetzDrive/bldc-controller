@@ -209,6 +209,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
   }
 
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
+  static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
   static_assert(sizeof(comm_fc_t) == 1, "Assuming comm_fc_t is uint8_t");
   static_assert(sizeof(comm_addr_t) == 2, "Assuming comm_addr_t is uint16_t");
   static_assert(sizeof(comm_reg_count_t) == 1, "Assuming comm_reg_count_t is uint8_t");
@@ -220,15 +221,15 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
   }
 
   comm_id_t id = datagram[index++];
-  uint8_t flags = datagram[index++];
+  comm_fg_t flags = datagram[index++];
   function_code_ = datagram[index++];
 
   // If first packet, reset response coutner.
-  if (flags & 0x2)
+  if (flags & COMM_FG_FIRST_MESSAGE)
     resp_count_ = 1;
 
   // If last packet, all boards decrement their counters!
-  if (flags & 0x4)
+  if (flags & COMM_FG_LAST_MESSAGE)
     resp_count_--;
 
   if (id != 0 && id != server_->getID()) {
@@ -236,9 +237,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
     * If this is an incoming message, increment counter.
     * If outgoing, decrement semaphore. 
     */
-    if (flags & 0x1)
+    if (flags & COMM_FG_BOARD) {
       resp_count_--; 
-    else
+    } else {
       // We only wish to increment as long as we have not received our packet.
       if ( state_ != State::RESPONDING &&
            state_ != State::RESPONDING_U8 && 
@@ -246,6 +247,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
            state_ != State::RESPONDING_READ && 
            state_ != State::RESPONDING_U32 )
         resp_count_++;
+    }
     return;
   }
 

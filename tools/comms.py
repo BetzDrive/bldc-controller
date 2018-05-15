@@ -29,9 +29,9 @@ COMM_FC_FLASH_READ = 0x87
 COMM_FC_FLASH_VERIFY = 0x88
 COMM_FC_FLASH_VERIFY_ERASED = 0x89
 
-COMM_FLAG_SEND = 0
-COMM_FLAG_FIRST_MESSAGE = 2
-COMM_FLAG_LAST_MESSAGE = 4
+COMM_FLAG_SEND = 0x00 
+COMM_FLAG_FIRST_MESSAGE = 0x02
+COMM_FLAG_LAST_MESSAGE = 0x04
 
 COMM_BOOTLOADER_OFFSET = 0x08000000
 COMM_NVPARAMS_OFFSET = 0x08004000
@@ -128,11 +128,11 @@ class BLDCControllerClient:
         return success
 
     def resetSystem(self, server_id):
-        self.writeRequest(server_id, COMM_FC_SYSTEM_RESET)
+        self.writeRequest(server_id, COMM_FLAG_FIRST_MESSAGE + COMM_FLAG_LAST_MESSAGE, COMM_FC_SYSTEM_RESET)
         return True
 
     def jumpToAddress(self, server_id, jump_addr=COMM_FIRMWARE_OFFSET):
-        self.writeRequest(server_id, COMM_FC_JUMP_TO_ADDR, struct.pack('<I', jump_addr))
+        self.writeRequest(server_id, COMM_FLAG_FIRST_MESSAGE + COMM_FLAG_LAST_MESSAGE, COMM_FC_JUMP_TO_ADDR, struct.pack('<I', jump_addr))
         return True
 
     def getFlashSectorCount(self, server_id):
@@ -256,12 +256,32 @@ class BLDCControllerClient:
         return FlashSectorMap(sector_count, sector_starts, sector_sizes)
 
     def doTransaction(self, server_id, func_code, data):
-        self.writeRequest(server_id, func_code, data)
+        self.writeRequest(server_id, COMM_FLAG_FIRST_MESSAGE + COMM_FLAG_LAST_MESSAGE, func_code, data)
         return self.readResponse(server_id, func_code)
 
-    def writeRequest(self, server_id, func_code, data=''):
-        message = struct.pack('BB', server_id, func_code) + data
-        if self._protocol:
+    # Pass in a lists of server id's, func codes and data packets.
+    def doMultiTransaction(self, server_id, func_code, data):
+        # First message flag
+        flags = COMM_FLAG_SEND + COMM_FLAG_FIRST_MESSAGE
+        for i in range(len(server_id)):
+            if i == len(server_id)-1:
+                flags = flags + COMM_FLAG_LAST_MESSAGE
+            self.writeRequest(server_id[i], flags, func_code[i], data[i])
+            flags = COMM_FLAG_SEND + COMM_FLAG_FIRST_MESSAGE
+
+        responses = []
+        for i in range(len(server_id)):
+            responses[i] = self.readResponse(server_id[i], func_code[i])
+
+        return responses
+
+    def writeRequest(self, server_id, flags, func_code, data=''):
+        if self._protocol >= 3:
+            message = struct.pack('BBB', server_id, flags, func_code) + data
+        else:
+            message = struct.pack('BB', server_id, func_code) + data
+
+        if self._protocol >= 2:
             prefixed_message = struct.pack('BBH', 0xFF, 0xFF, len(message)) + message
         else:
             prefixed_message = struct.pack('B', len(message)) + message
@@ -270,7 +290,7 @@ class BLDCControllerClient:
         self._ser.write(datagram)
 
     def readResponse(self, server_id, func_code, num_tries=1, try_interval=0.01):
-        if self._protocol:
+        if self._protocol >= 2:
             for i in range(num_tries):
                 sync = self._ser.read()
 
@@ -328,7 +348,14 @@ class BLDCControllerClient:
             print "crc not good"
             return False, None
 
-        message_server_id, message_func_code, errors = struct.unpack('<BBH', message[:4])
+        if self._protocol >= 3:
+            print (":".join("{:02x}".format(ord(c)) for c in message))
+            print (struct.unpack('<BBH', message[:4]))
+            message_server_id, flags, message_func_code, errors = struct.unpack('<BBH', message[:4])
+        else:
+            print (":".join("{:02x}".format(ord(c)) for c in message))
+            print(struct.unpack('<BBH', message[:4]))
+            message_server_id, message_func_code, errors = struct.unpack('<BBH', message[:4])
 
         if message_server_id != server_id or message_func_code != func_code:
             raise ProtocolError('received unexpected server ID or function code')
