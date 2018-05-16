@@ -204,9 +204,9 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
 }
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
-  if (state_ != State::IDLE) {
+  /*if (state_ != State::IDLE) {
     return;
-  }
+  }*/
 
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
   static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
@@ -216,15 +216,14 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
   size_t index = 0;
 
-  if (datagram_len - index < 2) {
+  if (datagram_len - index < 3) {
     return;
   }
 
   comm_id_t id = datagram[index++];
   comm_fg_t flags = datagram[index++];
-  function_code_ = datagram[index++];
 
-  // If first packet, reset response coutner.
+  // If first packet, reset response counter.
   if (flags & COMM_FG_FIRST_MESSAGE)
     resp_count_ = 1;
 
@@ -235,10 +234,12 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
   if (id != 0 && id != server_->getID()) {
    /* This datagram is not meant for us, ignore it.
     * If this is an incoming message, increment counter.
-    * If outgoing, decrement semaphore. 
+    * If outgoing, decrement counter. 
     */
-    if (flags & COMM_FG_BOARD) {
+    if (flags & COMM_FG_SEND) {
       resp_count_--; 
+      for (int i = 0; i < 30; i++)
+        __NOP();
     } else {
       // We only wish to increment as long as we have not received our packet.
       if ( state_ != State::RESPONDING &&
@@ -250,6 +251,8 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
     }
     return;
   }
+  
+  function_code_ = datagram[index++];
 
   broadcast_ = (id == 0);
 
@@ -565,11 +568,11 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
     return;
   }
 
-  /* Wait for other boards */
-  if (resp_count_ != 0)
+  if (resp_count_ > 0)
     return;
 
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
+  static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
   static_assert(sizeof(comm_fc_t) == 1, "Assuming comm_fc_t is uint8_t");
   static_assert(sizeof(comm_addr_t) == 2, "Assuming comm_addr_t is uint16_t");
   static_assert(sizeof(comm_reg_count_t) == 1, "Assuming comm_reg_count_t is uint8_t");
@@ -589,7 +592,7 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
     datagram[index++] = server_->getID();
   }
 
-  datagram[index++] = 0x1;      // Board Response Flag.
+  datagram[index++] = COMM_FG_SEND;      // Board Response Flag.
   datagram[index++] = function_code_;
 
   size_t error_index;
@@ -739,6 +742,7 @@ void runComms() {
     size_t receive_len = comms_endpoint.getReceiveLength();
     comms_protocol_fsm.handleRequest(comms_endpoint.getReceiveBufferPtr(), receive_len, errors);
 
+    /* Wait for other boards */
     size_t transmit_len;
     comms_protocol_fsm.composeResponse(comms_endpoint.getTransmitBufferPtr(), transmit_len, comms_endpoint.getTransmitBufferSize(), errors);
 

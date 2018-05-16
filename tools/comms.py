@@ -114,6 +114,11 @@ class BLDCControllerClient:
     def leaveBootloader(self, server_id):
         self.jumpToAddress(server_id, COMM_FIRMWARE_OFFSET)
 
+    def leaveMultiBootloader(self, server_id):
+        for sid in server_id:
+            self.jumpToAddress(sid, COMM_FIRMWARE_OFFSET)
+            time.sleep(1)
+
     def enterBootloader(self, server_id):
         self.resetSystem(server_id)
 
@@ -121,6 +126,17 @@ class BLDCControllerClient:
         success, data = self.doTransaction(server_id, COMM_FC_READ_REGS, struct.pack('<HB', start_addr, count))
         if not success:
             raise IOError("Register read failed")
+        return data
+
+    def readMultiRegisters(self, server_id, start_addr, count):
+        responses = self.doMultiTransaction(server_id, [COMM_FC_READ_REGS]*len(server_id), [struct.pack('<HB', start_addr, count)]*len(server_id))
+        data = [0]*len(responses)
+        for i in range(len(responses)):
+            #print(responses)
+            success = responses[i][0]
+            if not success:
+                raise IOError("Register read failed" + str(server_id[i]))
+            data[i] = responses[i][1]
         return data
 
     def writeRegisters(self, server_id, start_addr, count, data):
@@ -132,7 +148,7 @@ class BLDCControllerClient:
         return True
 
     def jumpToAddress(self, server_id, jump_addr=COMM_FIRMWARE_OFFSET):
-        self.writeRequest(server_id, COMM_FLAG_FIRST_MESSAGE + COMM_FLAG_LAST_MESSAGE, COMM_FC_JUMP_TO_ADDR, struct.pack('<I', jump_addr))
+        self.writeRequest(server_id, COMM_FLAG_SEND + COMM_FLAG_FIRST_MESSAGE + COMM_FLAG_LAST_MESSAGE, COMM_FC_JUMP_TO_ADDR, struct.pack('<I', jump_addr))
         return True
 
     def getFlashSectorCount(self, server_id):
@@ -262,15 +278,15 @@ class BLDCControllerClient:
     # Pass in a lists of server id's, func codes and data packets.
     def doMultiTransaction(self, server_id, func_code, data):
         # First message flag
-        flags = COMM_FLAG_SEND + COMM_FLAG_FIRST_MESSAGE
-        for i in range(len(server_id)):
-            if i == len(server_id)-1:
+        responses = [0]*len(server_id)
+        flags = COMM_FLAG_SEND + COMM_FLAG_FIRST_MESSAGE 
+        for i in range(len(responses)):
+            if i == len(responses)-1:
                 flags = flags + COMM_FLAG_LAST_MESSAGE
             self.writeRequest(server_id[i], flags, func_code[i], data[i])
-            flags = COMM_FLAG_SEND + COMM_FLAG_FIRST_MESSAGE
+            flags = COMM_FLAG_SEND
 
-        responses = []
-        for i in range(len(server_id)):
+        for i in range(len(responses)):
             responses[i] = self.readResponse(server_id[i], func_code[i])
 
         return responses
@@ -286,6 +302,8 @@ class BLDCControllerClient:
         else:
             prefixed_message = struct.pack('B', len(message)) + message
         datagram = prefixed_message + struct.pack('<H', self._computeCRC(prefixed_message))
+
+        #print (":".join("{:02x}".format(ord(c)) for c in datagram))
 
         self._ser.write(datagram)
 
@@ -336,6 +354,9 @@ class BLDCControllerClient:
             message_len, = struct.unpack('B', lb)
             message = self._ser.read(message_len)
 
+        print("Receiving")
+        print (":".join("{:02x}".format(ord(c)) for c in message))
+
         if len(message) < message_len:
             # self._ser.reset_input_buffer()
             print "not enough data"
@@ -349,16 +370,17 @@ class BLDCControllerClient:
             return False, None
 
         if self._protocol >= 3:
-            print (":".join("{:02x}".format(ord(c)) for c in message))
-            print (struct.unpack('<BBH', message[:4]))
-            message_server_id, flags, message_func_code, errors = struct.unpack('<BBH', message[:4])
+            #print (":".join("{:02x}".format(ord(c)) for c in message))
+            #print (struct.unpack('<BBBH', message[:5]))
+            message_server_id, flags, message_func_code, errors = struct.unpack('<BBBH', message[:5])
         else:
-            print (":".join("{:02x}".format(ord(c)) for c in message))
-            print(struct.unpack('<BBH', message[:4]))
+            # print (":".join("{:02x}".format(ord(c)) for c in message))
+            # print(struct.unpack('<BBH', message[:4]))
             message_server_id, message_func_code, errors = struct.unpack('<BBH', message[:4])
 
         if message_server_id != server_id or message_func_code != func_code:
-            raise ProtocolError('received unexpected server ID or function code')
+            #raise ProtocolError('received unexpected server ID or function code')
+            print ('received unexpected server ID or function code')
 
         message_crc, = struct.unpack('<H', crc_bytes)
 
@@ -387,7 +409,10 @@ class BLDCControllerClient:
         if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
             raise ProtocolError('buffer length mismatch')
 
-        return success, message[4:]
+        if self._protocol >= 3:
+            return success, message[5:]
+        else:
+            return success, message[4:]
 
     def _computeCRC(self, values):
         return 0 # TODO
