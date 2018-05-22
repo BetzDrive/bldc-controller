@@ -287,7 +287,12 @@ class BLDCControllerClient:
             flags = COMM_FLAG_SEND
 
         for i in range(len(responses)):
-            responses[i] = self.readResponse(server_id[i], func_code[i])
+            try:
+                responses[i] = self.readResponse(server_id[i], func_code[i])
+            except e:
+                print(e.message());
+
+        self._ser.read_all()
 
         return responses
 
@@ -306,6 +311,8 @@ class BLDCControllerClient:
         #print (":".join("{:02x}".format(ord(c)) for c in datagram))
 
         self._ser.write(datagram)
+
+        self._ser.flush()
 
     def readResponse(self, server_id, func_code, num_tries=1, try_interval=0.01):
         if self._protocol >= 2:
@@ -384,8 +391,8 @@ class BLDCControllerClient:
 
         message_crc, = struct.unpack('<H', crc_bytes)
 
-        # if message_crc != self._computeCRC(lb + message):
-        #     raise ProtocolError('received unexpected CRC')
+        if message_crc != self._computeCRC(lb + message):
+            raise ProtocolError('received unexpected CRC')
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 

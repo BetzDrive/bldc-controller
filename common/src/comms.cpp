@@ -197,10 +197,51 @@ void UARTEndpoint::gptCallback() {
 }
 
 uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
-  (void)buf;
-  (void)len;
+  uint16_t out = 0;
+  uint16_t bits_read = 0, bit_flag;
 
-  return 0; // TODO: implement
+  /* Sanity check */
+  if (buf == null)
+    return 0;
+
+  while (len > 0) {
+    bit_flag = out >> 15;
+
+    /* Get next bit: */
+    out <<= 1;
+    out |= (*data >> bits_read) & 1; // item a) work from the least significant bits
+    
+    /* Increment bit counter: */
+    bits_read++;
+    if(bits_read > 7) {
+      bits_read = 0;
+      data++;
+      size--;
+    }
+    
+    /* Cycle check: */
+    if(bit_flag)
+      out ^= CRC16IBM;
+  }
+
+  // item b) "push out" the last 16 bits
+  int i;
+  for (i = 0; i < 16; ++i) {
+    bit_flag = out >> 15;
+    out <<= 1;
+    if(bit_flag)
+      out ^= CRC16IBM;
+  }
+
+  // item c) reverse the bits
+  uint16_t crc = 0;
+  i = 0x8000;
+  int j = 0x0001;
+  for (; i != 0; i >>=1, j <<= 1) {
+    if (i & out) crc |= j;
+  }
+
+  return crc;
 }
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
@@ -216,20 +257,26 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
   size_t index = 0;
 
-  if (datagram_len - index < 3) {
+  if (datagram_len - index < 2) {
     return;
   }
 
   comm_id_t id = datagram[index++];
   comm_fg_t flags = datagram[index++];
 
-  // If first packet, reset response counter.
-  if (flags & COMM_FG_FIRST_MESSAGE)
+  // If first packet, reset.
+  if (flags & COMM_FG_FIRST_MESSAGE) {
     resp_count_ = 1;
+    state_ = State::IDLE;
+  }
 
   // If last packet, all boards decrement their counters!
   if (flags & COMM_FG_LAST_MESSAGE)
     resp_count_--;
+
+  if (activity_callback_ != nullptr) {
+    activity_callback_();
+  }
 
   if (id != 0 && id != server_->getID()) {
    /* This datagram is not meant for us, ignore it.
@@ -238,15 +285,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
     */
     if (flags & COMM_FG_SEND) {
       resp_count_--; 
-      for (int i = 0; i < 30; i++)
-        __NOP();
     } else {
       // We only wish to increment as long as we have not received our packet.
-      if ( state_ != State::RESPONDING &&
-           state_ != State::RESPONDING_U8 && 
-           state_ != State::RESPONDING_MEM && 
-           state_ != State::RESPONDING_READ && 
-           state_ != State::RESPONDING_U32 )
+      if ( state_ == State::IDLE)
         resp_count_++;
     }
     return;
@@ -256,9 +297,11 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
   broadcast_ = (id == 0);
 
+  /*
   if (activity_callback_ != nullptr) {
     activity_callback_();
   }
+  */
 
   /* Clear errors */
   errors = 0;
@@ -598,7 +641,7 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
   size_t error_index;
   size_t buf_len;
 
-  resp_count_ = 1;              // Reset response coutner
+  resp_count_ = 1;              // Reset response counter
   
 
   switch (state_) {
