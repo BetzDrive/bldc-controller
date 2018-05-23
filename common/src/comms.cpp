@@ -7,6 +7,7 @@
 #include "constants.h"
 #include "helper.h"
 #include "flash.h"
+#include "buffer.h"
 
 namespace motor_driver {
 
@@ -26,19 +27,20 @@ void UARTEndpoint::start() {
 }
 
 void UARTEndpoint::transmit() {
-  tx_buf_[0] = 0xff; // Sync flag
-  tx_buf_[1] = 0xff; // Protocol version
-  tx_buf_[2] = tx_len_ & 0xff;
-  tx_buf_[3] = (tx_len_ >> 8) & 0xff;
+  tx_buf_ << (uint8_t) 0xff; // Sync flag
+  tx_buf_ << (uint8_t) 0xff; // Protocol version
+  tx_buf_ << (uint8_t) tx_len_ & 0xff;
+  tx_buf_ << (uint8_t) (tx_len_ >> 8) & 0xff;
 
-  uint16_t crc = computeCRC(tx_buf_, header_len + tx_len_);
-  tx_buf_[header_len + tx_len_] = crc & 0xff;
-  tx_buf_[header_len + tx_len_ + 1] = (crc >> 8) & 0xff;
+  uint16_t crc = computeCRC(tx_buf_ + header_len, tx_len_);
+  tx_buf_ << crc;
+  //tx_buf_ << first_crc_;
 
   chSysLock();
 
   uartStopReceiveI(uart_driver_);
   palSetPad(dir_.port, dir_.pin);
+  //uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length + 2, tx_buf_);
   uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length, tx_buf_);
   changeStateI(State::TRANSMITTING);
 
@@ -50,8 +52,11 @@ void UARTEndpoint::transmit() {
 void UARTEndpoint::receive() {
   chBSemWait(&rx_bsem_);
 
-  uint16_t computed_crc = computeCRC(rx_buf_, header_len + rx_len_);
+  uint16_t computed_crc = computeCRC(rx_buf_ + header_len, rx_len_);
   uint16_t expected_crc = ((uint16_t)rx_buf_[header_len + rx_len_ + 1] << 8) | (uint16_t)rx_buf_[header_len + rx_len_];
+  
+  //first_crc_ = computed_crc;
+
   if (computed_crc != expected_crc) {
     rx_error_ = true;
   }
@@ -128,6 +133,7 @@ void UARTEndpoint::uartReceiveCompleteCallback() {
 
 void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
   chSysLockFromIsr();
+  rx_buf_ << (uint8_t) c;
 
   switch (state_) {
     case State::INITIALIZING:
@@ -201,7 +207,7 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   uint16_t bits_read = 0, bit_flag;
 
   /* Sanity check */
-  if (buf == null)
+  if (buf == nullptr)
     return 0;
 
   while (len > 0) {
@@ -209,14 +215,14 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
 
     /* Get next bit: */
     out <<= 1;
-    out |= (*data >> bits_read) & 1; // item a) work from the least significant bits
+    out |= (*buf >> bits_read) & 1; // item a) work from the least significant bits
     
     /* Increment bit counter: */
     bits_read++;
     if(bits_read > 7) {
       bits_read = 0;
-      data++;
-      size--;
+      buf++;
+      len--;
     }
     
     /* Cycle check: */
@@ -244,11 +250,8 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   return crc;
 }
 
-void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
-  /*if (state_ != State::IDLE) {
-    return;
-  }*/
-
+void ProtocolFSM::handleRequest(Buffer& datagram, size_t datagram_len, comm_errors_t& errors) {
+  
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
   static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
   static_assert(sizeof(comm_fc_t) == 1, "Assuming comm_fc_t is uint8_t");
@@ -257,12 +260,13 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
   size_t index = 0;
 
-  if (datagram_len - index < 2) {
+  if (datagram_len - index < 3) {
     return;
   }
 
-  comm_id_t id = datagram[index++];
-  comm_fg_t flags = datagram[index++];
+  comm_id_t id;
+  comm_fg_t flags;
+  datagram >> id >> flags;
 
   // If first packet, reset.
   if (flags & COMM_FG_FIRST_MESSAGE) {
@@ -271,12 +275,16 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
   }
 
   // If last packet, all boards decrement their counters!
-  if (flags & COMM_FG_LAST_MESSAGE)
+  if (flags & COMM_FG_LAST_MESSAGE) {
     resp_count_--;
-
+  }
+  
+  // Comm indicator LED
+  /*
   if (activity_callback_ != nullptr) {
     activity_callback_();
   }
+  */
 
   if (id != 0 && id != server_->getID()) {
    /* This datagram is not meant for us, ignore it.
@@ -287,21 +295,19 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
       resp_count_--; 
     } else {
       // We only wish to increment as long as we have not received our packet.
-      if ( state_ == State::IDLE)
+      if (state_ == State::IDLE)
         resp_count_++;
     }
     return;
   }
   
-  function_code_ = datagram[index++];
+  datagram >> function_code_;
 
   broadcast_ = (id == 0);
-
-  /*
+  // Comm indicator LED
   if (activity_callback_ != nullptr) {
     activity_callback_();
   }
-  */
 
   /* Clear errors */
   errors = 0;
@@ -605,14 +611,18 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 }
 
 void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_t max_datagram_len, comm_errors_t errors) {
-  if (state_ == State::IDLE) {
+  if (state_ == State::IDLE || resp_count_ != 0) {
     /* No response to send */
     datagram_len = 0;
     return;
   }
-
-  if (resp_count_ > 0)
-    return;
+ 
+  /* 
+  // Comm indicator LED
+  if (activity_callback_ != nullptr) {
+    activity_callback_();
+  }
+  */
 
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
   static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
@@ -803,6 +813,7 @@ void runComms() {
       NVIC_SystemReset(); // Does not return
     }
   }
+  
 }
 
 UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);

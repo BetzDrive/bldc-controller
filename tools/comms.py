@@ -1,6 +1,7 @@
 import struct
 import time
 import json
+import crcmod
 
 class ProtocolError(Exception):
     def __init__(self, message, errors=None):
@@ -41,6 +42,8 @@ COMM_DEFAULT_BAUD_RATE = 1000000
 COMM_SINGLE_PROGRAM_LENGTH = 128
 COMM_SINGLE_READ_LENGTH = 128
 COMM_SINGLE_VERIFY_LENGTH = 128
+
+CRC16IBM = 0x8005
 
 class FlashSectorMap:
     def __init__(self, sector_count, sector_starts, sector_sizes):
@@ -117,7 +120,7 @@ class BLDCControllerClient:
     def leaveMultiBootloader(self, server_id):
         for sid in server_id:
             self.jumpToAddress(sid, COMM_FIRMWARE_OFFSET)
-            time.sleep(1)
+            time.sleep(0.2)
 
     def enterBootloader(self, server_id):
         self.resetSystem(server_id)
@@ -278,21 +281,12 @@ class BLDCControllerClient:
     # Pass in a lists of server id's, func codes and data packets.
     def doMultiTransaction(self, server_id, func_code, data):
         # First message flag
+        flags = COMM_FLAG_SEND
+        self.writeMultiRequest(server_id, flags, func_code, data) 
+
         responses = [0]*len(server_id)
-        flags = COMM_FLAG_SEND + COMM_FLAG_FIRST_MESSAGE 
         for i in range(len(responses)):
-            if i == len(responses)-1:
-                flags = flags + COMM_FLAG_LAST_MESSAGE
-            self.writeRequest(server_id[i], flags, func_code[i], data[i])
-            flags = COMM_FLAG_SEND
-
-        for i in range(len(responses)):
-            try:
-                responses[i] = self.readResponse(server_id[i], func_code[i])
-            except e:
-                print(e.message());
-
-        self._ser.read_all()
+            responses[i] = self.readResponse(server_id[i], func_code[i])
 
         return responses
 
@@ -306,13 +300,30 @@ class BLDCControllerClient:
             prefixed_message = struct.pack('BBH', 0xFF, 0xFF, len(message)) + message
         else:
             prefixed_message = struct.pack('B', len(message)) + message
-        datagram = prefixed_message + struct.pack('<H', self._computeCRC(prefixed_message))
+
+        crc = self._computeCRC(message)
+        datagram = prefixed_message + struct.pack('<H', crc) 
 
         #print (":".join("{:02x}".format(ord(c)) for c in datagram))
 
         self._ser.write(datagram)
 
-        self._ser.flush()
+    def writeMultiRequest(self, server_id, flags, func_code, data=[]):
+        datagram = ''
+        for i in range(len(server_id)):
+            if i == len(server_id)-1:
+                flags = flags + COMM_FLAG_LAST_MESSAGE
+            message = struct.pack('BBB', server_id[i], flags, func_code[i]) + data[i]
+            prefixed_message = struct.pack('BBH', 0xFF, 0xFF, len(message)) + message
+            flags = COMM_FLAG_SEND
+
+            crc = self._computeCRC(message)
+            datagram = datagram + prefixed_message + struct.pack('<H', crc) 
+
+        print (":".join("{:02x}".format(ord(c)) for c in datagram))
+
+        self._ser.write(datagram)
+
 
     def readResponse(self, server_id, func_code, num_tries=1, try_interval=0.01):
         if self._protocol >= 2:
@@ -361,8 +372,7 @@ class BLDCControllerClient:
             message_len, = struct.unpack('B', lb)
             message = self._ser.read(message_len)
 
-        print("Receiving")
-        print (":".join("{:02x}".format(ord(c)) for c in message))
+        #print (":".join("{:02x}".format(ord(c)) for c in message))
 
         if len(message) < message_len:
             # self._ser.reset_input_buffer()
@@ -390,9 +400,17 @@ class BLDCControllerClient:
             print ('received unexpected server ID or function code')
 
         message_crc, = struct.unpack('<H', crc_bytes)
+        computed_crc = self._computeCRC(message)
 
-        if message_crc != self._computeCRC(lb + message):
-            raise ProtocolError('received unexpected CRC')
+        #board_crc, = struct.unpack('<H', self._ser.read(2))
+        #print "board crc:"
+        #print(hex(board_crc))
+
+        if message_crc != computed_crc: #+ lb):
+            #raise ProtocolError('received unexpected CRC')
+            print "crc error:"
+            print(hex(message_crc))
+            print(hex(computed_crc))
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
@@ -422,4 +440,6 @@ class BLDCControllerClient:
             return success, message[4:]
 
     def _computeCRC(self, values):
-        return 0 # TODO
+        crc = crcmod.predefined.Crc('crc-16')
+        crc.update(values)
+        return crc.crcValue
