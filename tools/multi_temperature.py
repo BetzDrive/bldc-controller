@@ -30,6 +30,8 @@ while True:
         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
     except IOError:
         print "ioerror"
+    except ProtocolError:
+        print "Protocol Error"
         #pass
     # angle = struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
     # print angle
