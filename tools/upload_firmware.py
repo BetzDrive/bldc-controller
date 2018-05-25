@@ -19,31 +19,31 @@ if __name__ == '__main__':
     time.sleep(0.1)
     # ser.reset_input_buffer()
 
-    client = BLDCControllerClient(ser, protocol=2)
+    client = BLDCControllerClient(ser)
 
     try:
         board_ids = [int(args.board_id)]
     except ValueError:
         board_ids = [int(board_id_str) for board_id_str in args.board_id.split(',')]
 
+    client.enterBootloader(board_ids)
+    time.sleep(0.2) # Wait for the controller to reset
+    ser.reset_input_buffer()
+
+    flash_sector_maps = client.getFlashSectorMap(board_ids)
+
+    with open(args.bin_file, 'rb') as bin_file:
+        firmware_image = bin_file.read()
+
+    success = client.writeFlash(board_ids, [args.offset for b in board_ids], firmware_image, sector_map=flash_sector_maps, print_progress=True)
+
     for board_id in board_ids:
         print 'Board {}'.format(board_id)
 
-        client.enterBootloader(board_id)
-        time.sleep(0.2) # Wait for the controller to reset
-        ser.reset_input_buffer()
-
-        flash_sector_map = client.getFlashSectorMap(board_id)
-
-        with open(args.bin_file, 'rb') as bin_file:
-            firmware_image = bin_file.read()
-
-        success = client.writeFlash(board_id, args.offset, firmware_image, sector_map=flash_sector_map, print_progress=True)
-
-        if success:
-            # client.leaveBootloader(board_id)
-            print "Success"
-        else:
-            print "Failed"
+    if success:
+        # client.leaveBootloader(board_id)
+        print "Success"
+    else:
+        print "Failed"
 
     ser.close()

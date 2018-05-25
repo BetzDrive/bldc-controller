@@ -35,7 +35,7 @@ while True:
         #pass
     # angle = struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
     # print angle
-    time.sleep(0.1)
+    #time.sleep(0.1)
 
 # try:
 #     temperature = struct.unpack('<f', client.readRegisters(address, 0x010c, 1))

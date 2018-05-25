@@ -28,18 +28,21 @@ void UARTEndpoint::start() {
 void UARTEndpoint::transmit() {
   tx_buf_[0] = 0xff; // Sync flag
   tx_buf_[1] = 0xff; // Protocol version
-  tx_buf_[2] = tx_len_ & 0xff;
-  tx_buf_[3] = (tx_len_ >> 8) & 0xff;
+  tx_buf_[2] = COMM_FG_SEND; // Flag byte 
+  tx_buf_[3] = (tx_len_ + 2) & 0xff;
+  tx_buf_[4] = ((tx_len_ + 2) >> 8) & 0xff;
+  tx_buf_[5] = tx_len_ & 0xff;
+  tx_buf_[6] = (tx_len_ >> 8) & 0xff;
 
-  uint16_t crc = computeCRC(tx_buf_, header_len + tx_len_);
-  tx_buf_[header_len + tx_len_] = crc & 0xff;
-  tx_buf_[header_len + tx_len_ + 1] = (crc >> 8) & 0xff;
+  uint16_t crc = computeCRC(header_len + tx_buf_, tx_len_ + sub_msg_len);
+  tx_buf_[header_len + sub_msg_len + tx_len_] = crc & 0xff;
+  tx_buf_[header_len + sub_msg_len + tx_len_ + 1] = (crc >> 8) & 0xff;
 
   chSysLock();
 
   uartStopReceiveI(uart_driver_);
   palSetPad(dir_.port, dir_.pin);
-  uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length, tx_buf_);
+  uartStartSendI(uart_driver_, header_len + sub_msg_len + tx_len_ + crc_length, tx_buf_);
   changeStateI(State::TRANSMITTING);
 
   chSysUnlock();
@@ -50,11 +53,15 @@ void UARTEndpoint::transmit() {
 void UARTEndpoint::receive() {
   chBSemWait(&rx_bsem_);
 
-  uint16_t computed_crc = computeCRC(rx_buf_, header_len + rx_len_);
+  uint16_t computed_crc = computeCRC(rx_buf_ + header_len, rx_len_);
   uint16_t expected_crc = ((uint16_t)rx_buf_[header_len + rx_len_ + 1] << 8) | (uint16_t)rx_buf_[header_len + rx_len_];
   if (computed_crc != expected_crc) {
     rx_error_ = true;
   }
+}
+
+uint8_t UARTEndpoint::getFlags() {
+  return rx_flags_;
 }
 
 uint8_t *UARTEndpoint::getReceiveBufferPtr() {
@@ -70,7 +77,7 @@ bool UARTEndpoint::hasReceiveError() const {
 }
 
 uint8_t *UARTEndpoint::getTransmitBufferPtr() {
-  return tx_buf_ + header_len;
+  return tx_buf_ + header_len + sub_msg_len;
 }
 
 void UARTEndpoint::setTransmitLength(size_t len) {
@@ -148,20 +155,26 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       /* Check protocol version */
       rx_buf_[1] = (uint8_t)c;
       if (c == 0xff) {
-        changeStateI(State::RECEIVING_LENGTH_L);
+        changeStateI(State::RECEIVING_FLAGS);
       } else {
         changeStateI(State::INITIALIZING);
       }
       break;
+    case State::RECEIVING_FLAGS:
+      /* Check protocol version */
+      rx_buf_[2] = (uint8_t)c;
+      rx_flags_ = (uint8_t)c;
+      changeStateI(State::RECEIVING_LENGTH_L);
+      break;
     case State::RECEIVING_LENGTH_L:
       /* Store lower byte of packet length */
-      rx_buf_[2] = (uint8_t)c;
+      rx_buf_[3] = (uint8_t)c;
       changeStateI(State::RECEIVING_LENGTH_H);
       break;
     case State::RECEIVING_LENGTH_H:
       /* Store upper byte of packet length and start receiving data */
-      rx_buf_[3] = (uint8_t)c;
-      rx_len_ = ((size_t)rx_buf_[3] << 8) | rx_buf_[2];
+      rx_buf_[4] = (uint8_t)c;
+      rx_len_ = ((size_t)rx_buf_[4] << 8) | rx_buf_[3];
       if (rx_len_ <= max_dg_payload_len) {
         uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_ + header_len);
         changeStateI(State::RECEIVING);
@@ -201,7 +214,7 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   uint16_t bits_read = 0, bit_flag;
 
   /* Sanity check */
-  if (buf == null)
+  if (buf == nullptr)
     return 0;
 
   while (len > 0) {
@@ -209,19 +222,18 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
 
     /* Get next bit: */
     out <<= 1;
-    out |= (*data >> bits_read) & 1; // item a) work from the least significant bits
+    out |= (*buf >> bits_read) & 1; // item a) work from the least significant bits
     
     /* Increment bit counter: */
     bits_read++;
     if(bits_read > 7) {
       bits_read = 0;
-      data++;
-      size--;
+      buf++;
+      len--;
     }
     
     /* Cycle check: */
-    if(bit_flag)
-      out ^= CRC16IBM;
+    if(bit_flag) out ^= crc_16_ibm_;
   }
 
   // item b) "push out" the last 16 bits
@@ -229,8 +241,7 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   for (i = 0; i < 16; ++i) {
     bit_flag = out >> 15;
     out <<= 1;
-    if(bit_flag)
-      out ^= CRC16IBM;
+    if(bit_flag) out ^= crc_16_ibm_;
   }
 
   // item c) reverse the bits
@@ -244,52 +255,46 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   return crc;
 }
 
-void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
-  /*if (state_ != State::IDLE) {
+void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_t flags, comm_errors_t& errors) {
+  /* If message from another board, decrement counter and exit. */
+  if (flags & COMM_FG_SEND) {
+    resp_count_--;
     return;
-  }*/
-
+  } else {
+    resp_count_ = 0;
+    state_ = State::IDLE;
+  }
+    
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
   static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
   static_assert(sizeof(comm_fc_t) == 1, "Assuming comm_fc_t is uint8_t");
   static_assert(sizeof(comm_addr_t) == 2, "Assuming comm_addr_t is uint16_t");
   static_assert(sizeof(comm_reg_count_t) == 1, "Assuming comm_reg_count_t is uint8_t");
 
-  size_t index = 0;
+  size_t index = 0, next_msg = 0;
+  bool found_board = false;
 
-  if (datagram_len - index < 2) {
-    return;
-  }
+  comm_id_t id;
+    
+  while ( ((datagram_len - index) >= sub_msg_header_len_) && !found_board ) {
+    uint16_t sub_msg_len = (uint16_t)datagram[index] | ((uint16_t)datagram[index + 1] << 8);
+    index += 2;
+    next_msg += sub_msg_len + sizeof(sub_msg_len);
 
-  comm_id_t id = datagram[index++];
-  comm_fg_t flags = datagram[index++];
+    id = datagram[index++];
 
-  // If first packet, reset.
-  if (flags & COMM_FG_FIRST_MESSAGE) {
-    resp_count_ = 1;
-    state_ = State::IDLE;
-  }
-
-  // If last packet, all boards decrement their counters!
-  if (flags & COMM_FG_LAST_MESSAGE)
-    resp_count_--;
-
-  if (activity_callback_ != nullptr) {
-    activity_callback_();
-  }
-
-  if (id != 0 && id != server_->getID()) {
-   /* This datagram is not meant for us, ignore it.
-    * If this is an incoming message, increment counter.
-    * If outgoing, decrement counter. 
-    */
-    if (flags & COMM_FG_SEND) {
-      resp_count_--; 
-    } else {
+    if (id != 0 && id != server_->getID()) {
       // We only wish to increment as long as we have not received our packet.
-      if ( state_ == State::IDLE)
-        resp_count_++;
+      if ( state_ == State::IDLE) resp_count_++;
+
+      index = next_msg;
+      continue;
     }
+    found_board = true;
+    datagram_len = next_msg;
+  }
+
+  if (!found_board) {
     return;
   }
   
@@ -297,11 +302,10 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 
   broadcast_ = (id == 0);
 
-  /*
+  /* Blink Com LED */
   if (activity_callback_ != nullptr) {
     activity_callback_();
   }
-  */
 
   /* Clear errors */
   errors = 0;
@@ -605,14 +609,11 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_err
 }
 
 void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_t max_datagram_len, comm_errors_t errors) {
-  if (state_ == State::IDLE) {
+  if (state_ == State::IDLE || resp_count_ != 0) {
     /* No response to send */
     datagram_len = 0;
     return;
   }
-
-  if (resp_count_ > 0)
-    return;
 
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
   static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
@@ -635,7 +636,6 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
     datagram[index++] = server_->getID();
   }
 
-  datagram[index++] = COMM_FG_SEND;      // Board Response Flag.
   datagram[index++] = function_code_;
 
   size_t error_index;
@@ -783,7 +783,7 @@ void runComms() {
     comm_errors_t errors = COMM_ERRORS_NONE;
 
     size_t receive_len = comms_endpoint.getReceiveLength();
-    comms_protocol_fsm.handleRequest(comms_endpoint.getReceiveBufferPtr(), receive_len, errors);
+    comms_protocol_fsm.handleRequest(comms_endpoint.getReceiveBufferPtr(), receive_len, comms_endpoint.getFlags(), errors);
 
     /* Wait for other boards */
     size_t transmit_len;

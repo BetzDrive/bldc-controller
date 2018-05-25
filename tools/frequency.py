@@ -9,27 +9,31 @@ if len(sys.argv) < 3:
         exit()
 
 port = sys.argv[1]
-s = serial.Serial(port=port, baudrate=1000000, timeout=0.1)
+s = serial.Serial(port=port, baudrate=1000000, timeout=0.002)
 
 boards = sys.argv[2:]
-address = [0]*len(boards)
-for i in range(len(boards)):
-    address[i] = int(boards[i])
+address = [int(b) for b in boards]
 
-client = BLDCControllerClient(s, 3)
+client = BLDCControllerClient(s)
 
-client.leaveMultiBootloader(address)
+client.leaveBootloader(address)
 s.reset_input_buffer()
 
 last_time = time.time()
 
 while True:
+    client.sum_time = 0
+    errors = 0
+
     for _ in range(1000):
         try:
-            client.readMultiRegisters(address, 0x3005, 1)
+            client.readRegisters(address, [0x3005 for b in boards], [1 for b in boards])
         except IOError:
-            print "ioerror"
+            errors += 1
             pass
     
-    print (time.time()-last_time)
+    diff = time.time() - last_time
+    print ("Frequency: " + str(1000.0 / diff) + 
+            " Millis: " + str(diff/1000.0) +
+            " Errors: " + str(errors))
     last_time = time.time()

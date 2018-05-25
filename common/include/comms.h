@@ -19,10 +19,11 @@ struct UARTEndpointGPTConfig : GPTConfig {
 
 class UARTEndpoint {
 public:
-  static constexpr size_t header_len = 4;
+  static constexpr size_t header_len = 5;
+  static constexpr size_t sub_msg_len = 2;
   static constexpr size_t crc_length = 2;
   static constexpr size_t max_dg_payload_len = 255;
-  static constexpr uint16_t CRC16IBM = 0x8005
+  static constexpr uint16_t crc_16_ibm_ = 0x8005;
 
   UARTEndpoint(UARTDriver& uart_driver, GPTDriver& gpt_driver, IOPin dir, uint32_t baud)
     : uart_driver_(&uart_driver),
@@ -52,6 +53,8 @@ public:
 
   void receive();
 
+  uint8_t getFlags();
+
   uint8_t *getReceiveBufferPtr();
 
   size_t getReceiveLength() const;
@@ -70,6 +73,7 @@ private:
     INITIALIZING,                 // Waiting for bus to become idle
     IDLE,                         // Waiting for sync flag
     RECEIVING_PROTOCOL_VERSION,   // Waiting for protocol version byte
+    RECEIVING_FLAGS,              // Waiting for flags bits
     RECEIVING_LENGTH_L,           // Waiting for lower byte of length word
     RECEIVING_LENGTH_H,           // Waiting for upper byte of length word
     RECEIVING,                    // Receiving data
@@ -90,6 +94,7 @@ private:
   uint8_t rx_buf_[header_len + max_dg_payload_len + crc_length];
   size_t rx_len_;
   bool rx_error_;
+  comm_fg_t rx_flags_;
 
   /* Transmit DMA buffer */
   uint8_t tx_buf_[header_len + max_dg_payload_len + crc_length];
@@ -164,12 +169,14 @@ private:
 
 class ProtocolFSM {
 public:
+  static constexpr size_t sub_msg_header_len_ = 5;
+
   ProtocolFSM(Server& server) : server_(&server) {
     state_ = State::IDLE;
     resp_count_ = 1;
   }
 
-  void handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors);
+  void handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_t flags, comm_errors_t& errors);
 
   void composeResponse(uint8_t *datagram, size_t& datagram_len, size_t max_datagram_len, comm_errors_t errors);
 
