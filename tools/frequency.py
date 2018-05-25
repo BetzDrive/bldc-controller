@@ -9,7 +9,7 @@ if len(sys.argv) < 3:
         exit()
 
 port = sys.argv[1]
-s = serial.Serial(port=port, baudrate=1000000, timeout=0.002)
+s = serial.Serial(port=port, baudrate=1000000, timeout=0.1)
 
 boards = sys.argv[2:]
 address = [int(b) for b in boards]

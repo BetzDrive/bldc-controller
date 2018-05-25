@@ -9,6 +9,8 @@ class ProtocolError(Exception):
 
         self.errors = errors
 
+COMM_VERSION = 0xFE
+
 COMM_ERRORS_NONE = 0
 COMM_ERRORS_OP_FAILED = 1
 COMM_ERRORS_MALFORMED = 2
@@ -244,10 +246,10 @@ class BLDCControllerClient:
             sector_map = self.getFlashSectorMap(server_ids)
 
         # Find out which sectors need to be erased
-        sector_nums = [smap.getFlashSectorsOfAddressRange(ad, length) for smap, ad in zip(sector_map, addr)] 
+        board_sector_nums = [smap.getFlashSectorsOfAddressRange(ad, length) for smap, ad in zip(sector_map, addr)] 
 
-        for i in range(len(sector_nums)):
-            success = self.eraseFlashSector(server_ids, [sector_num[i] for sector_num in sector_nums])
+        for nums in board_sector_nums[0]:
+            success = self.eraseFlashSector(server_ids, [nums] * len(server_ids))
             if not success:
                 return False
 
@@ -321,7 +323,7 @@ class BLDCControllerClient:
             sub_message = struct.pack('<BB', server_ids[i], func_code[i]) + data[i]
             message = message + struct.pack('H', len(sub_message)) + sub_message
 
-        prefixed_message = struct.pack('<BBBH', 0xFF, 0xFF, flags, len(message)) + message
+        prefixed_message = struct.pack('<BBBH', 0xFF, COMM_VERSION, flags, len(message)) + message
         crc = self._computeCRC(message)
         datagram = prefixed_message + struct.pack('<H', crc) 
 
@@ -337,7 +339,7 @@ class BLDCControllerClient:
             return False, None
 
         version = self._ser.read()
-        if len(version) != 1 or version != "\xff":
+        if len(version) != 1 or version != "\xfe":
             # self._ser.flushInput()
             return False, None
 
