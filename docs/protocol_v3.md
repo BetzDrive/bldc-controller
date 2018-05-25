@@ -4,21 +4,30 @@
 
 #### Request Packet Format
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Flag | Function | Payload | CRC |
-|--------------|------------------|-------------------------|----------------|----------|------|---------------|-----------------|-----|
-| **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | 1 | n | 2 |
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Flags | Packet Length | Sub-Messages | CRC |
+|--------------|------------------|-------------------------|-------|---------------|----------------|-----|
+| **Size (bytes)** | 1 | 1 | 1 | 2 | n | 2 |
 
-The message length is the combined length of the board ID, flag, function code, and payload.
+The packet length is the total length of all sub-messages and the CRC.
+
+#### Sub Message Format
+
+|  | Message Length | Board ID | Function | Payload |
+|--------------|--------------------|----------|---------------|-----------------|
+| **Size (bytes)** | 2 | 1 | 1 | n |
+
+The message length is the combined length of the board ID, flag, function code, and payload. The number of sub-messages is only limited by the input buffer on the boards receiving the packets. 
 
 Setting the board ID to `0` will broadcast the request. All connected boards will listen to a broadcasted command and attempt to respond, so this should typically only be used with a single board connected.
 
 #### Response Packet Format
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Flag | Function | Errors | Payload | CRC |
-|--------------|------------------|-------------------------|----------------|----------|------|----------|--------|--------|-----|
-| **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | 1 | 2 | n | 2 |
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Flag | Packet Length | Sub Len | Board ID | Function | Errors | Payload | CRC |
+|--------------|------------------|-------------------------|------|---------------|---------|----------|----------|--------|--------|-----|
+| **Size (bytes)** | 1 | 1 | 1 | 2 | 2 | 1 | 1 | 2 | n | 2 |
 
 The message length is the combined length of the board ID, function code, errors, and payload.
+
 
 -------
 
@@ -162,9 +171,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | Bit | Description |
 |-----|-------------|
 | 0 | Send/Receive (1 if packet coming from boards, 0 if from control) |
-| 1 | First Message (Set if first packet from desktop, will reset all semaphores) |
-| 2 | Last Message (Set if last packet from desktop, first board will respond) |
-| 3-7 | Unused |
+| 1-7 | Unused |
 
 -------
 
