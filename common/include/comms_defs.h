@@ -5,6 +5,8 @@
 
 namespace motor_driver {
 
+constexpr uint8_t COMM_VERSION = 0xfe;
+
 using comm_errors_t = uint16_t;
 constexpr comm_errors_t COMM_ERRORS_NONE = 0;
 constexpr comm_errors_t COMM_ERRORS_OP_FAILED = 1;

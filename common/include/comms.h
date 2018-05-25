@@ -23,7 +23,7 @@ public:
   static constexpr size_t sub_msg_len = 2;
   static constexpr size_t crc_length = 2;
   static constexpr size_t max_dg_payload_len = 255;
-  static constexpr uint16_t crc_16_ibm_ = 0x8005;
+  static constexpr uint16_t crc_16_ibm = 0x8005;
 
   UARTEndpoint(UARTDriver& uart_driver, GPTDriver& gpt_driver, IOPin dir, uint32_t baud)
     : uart_driver_(&uart_driver),
@@ -169,7 +169,7 @@ private:
 
 class ProtocolFSM {
 public:
-  static constexpr size_t sub_msg_header_len_ = 5;
+  static constexpr size_t sub_msg_header_len_ = 4;
 
   ProtocolFSM(Server& server) : server_(&server) {
     state_ = State::IDLE;

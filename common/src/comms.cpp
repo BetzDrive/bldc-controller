@@ -27,7 +27,7 @@ void UARTEndpoint::start() {
 
 void UARTEndpoint::transmit() {
   tx_buf_[0] = 0xff; // Sync flag
-  tx_buf_[1] = 0xff; // Protocol version
+  tx_buf_[1] = COMM_VERSION; // Protocol version
   tx_buf_[2] = COMM_FG_SEND; // Flag byte 
   tx_buf_[3] = (tx_len_ + 2) & 0xff;
   tx_buf_[4] = ((tx_len_ + 2) >> 8) & 0xff;
@@ -154,7 +154,7 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
     case State::RECEIVING_PROTOCOL_VERSION:
       /* Check protocol version */
       rx_buf_[1] = (uint8_t)c;
-      if (c == 0xff) {
+      if (((uint8_t) c) == COMM_VERSION) {
         changeStateI(State::RECEIVING_FLAGS);
       } else {
         changeStateI(State::INITIALIZING);
@@ -233,7 +233,7 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
     }
     
     /* Cycle check: */
-    if(bit_flag) out ^= crc_16_ibm_;
+    if(bit_flag) out ^= crc_16_ibm;
   }
 
   // item b) "push out" the last 16 bits
@@ -241,7 +241,7 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   for (i = 0; i < 16; ++i) {
     bit_flag = out >> 15;
     out <<= 1;
-    if(bit_flag) out ^= crc_16_ibm_;
+    if(bit_flag) out ^= crc_16_ibm;
   }
 
   // item c) reverse the bits
@@ -285,7 +285,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
 
     if (id != 0 && id != server_->getID()) {
       // We only wish to increment as long as we have not received our packet.
-      if ( state_ == State::IDLE) resp_count_++;
+      if (state_ == State::IDLE) resp_count_++;
 
       index = next_msg;
       continue;
@@ -294,7 +294,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
     datagram_len = next_msg;
   }
 
+  // None of the packets were meant for us.
   if (!found_board) {
+    resp_count_ = 0;
     return;
   }
   
