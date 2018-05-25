@@ -12,9 +12,9 @@ The packet length is the total length of all sub-messages and the CRC.
 
 #### Sub Message Format
 
-|  | Message Length | Board ID | Flag | Function | Payload |
-|--------------|--------------------|----------|------|---------------|-----------------|
-| **Size (bytes)** | 2 | 1 | 1 | 1 | n |
+|  | Message Length | Board ID | Function | Payload |
+|--------------|--------------------|----------|---------------|-----------------|
+| **Size (bytes)** | 2 | 1 | 1 | n |
 
 The message length is the combined length of the board ID, flag, function code, and payload. The number of sub-messages is only limited by the input buffer on the boards receiving the packets. 
 
