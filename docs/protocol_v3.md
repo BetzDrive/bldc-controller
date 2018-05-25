@@ -22,9 +22,9 @@ Setting the board ID to `0` will broadcast the request. All connected boards wil
 
 #### Response Packet Format
 
-|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Message Length | Board ID | Flag | Function | Errors | Payload | CRC |
-|--------------|------------------|-------------------------|----------------|----------|------|----------|--------|--------|-----|
-| **Size (bytes)** | 1 | 1 | 2 | 1 | 1 | 1 | 2 | n | 2 |
+|  | Sync Flag (`0xFF`) | Protocol Version (`0xFF`) | Flag | Packet Length | Sub Len | Board ID | Function | Errors | Payload | CRC |
+|--------------|------------------|-------------------------|------|---------------|---------|----------|----------|--------|--------|-----|
+| **Size (bytes)** | 1 | 1 | 1 | 2 | 2 | 1 | 1 | 2 | n | 2 |
 
 The message length is the combined length of the board ID, function code, errors, and payload.
 
