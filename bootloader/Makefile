@@ -237,7 +237,7 @@ upload: build/$(PROJECT).bin
 		init;\
 		reset halt;\
 		flash probe 0;\
-		flash write_image erase build/mc_bootloader.bin 0x08000000;\
-		verify_image build/mc_bootloader.bin 0x08000000;\
+		flash write_image erase build/$(PROJECT).bin 0x08000000;\
+		verify_image build/$(PROJECT).bin 0x08000000;\
 		reset run;\
 		shutdown"
