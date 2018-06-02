@@ -110,8 +110,8 @@ static const ADCConversionGroup ivsense_adc_group = {
   0,                                        // CR1
   ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
   ADC_SMPR1_SMP_AN10(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_144)
-      | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_144), // SMPR1
-  ADC_SMPR2_SMP_AN8(ADC_SAMPLE_144),        // SMPR2
+      | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
+  ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
   ADC_SQR1_NUM_CH(ivsense_channel_count),   // SQR1
   ADC_SQR2_SQ7_N(ADC_CHANNEL_IN13),         // SQR2
   ADC_SQR3_SQ1_N(ADC_CHANNEL_IN14) | ADC_SQR3_SQ2_N(ADC_CHANNEL_IN15) | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN8)
@@ -119,7 +119,7 @@ static const ADCConversionGroup ivsense_adc_group = {
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
-  2 * motor_pwm_cycle_freq * ivsense_samples_per_cycle,   // PWM clock frequency
+  motor_pwm_cycle_freq * ivsense_samples_per_cycle,       // PWM clock frequency
   2,                                                      // PWM period (ticks)
   NULL,                                                   // PWM callback
   {
