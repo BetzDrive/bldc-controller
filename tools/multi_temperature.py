@@ -12,9 +12,9 @@ port = sys.argv[1]
 s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 
 boards = sys.argv[2:]
-address = [0]*len(boards)
+address = []
 for i in range(len(boards)):
-    address[i] = int(boards[i])
+    address.append(int(boards[i]))
 
 client = BLDCControllerClient(s)
 
@@ -24,7 +24,7 @@ s.reset_input_buffer()
 
 while True:
     try:
-        temperature = client.readRegisters(address, [0x3005]*len(address), [1]*len(address))
+        temperature = client.readRegisters(address, [0x3005 for b in boards], [1 for b in boards])
         for i in range(len(temperature)):
             print(str(boards[i]) + ": " + str(struct.unpack('<f', temperature[i])[0]))
         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]

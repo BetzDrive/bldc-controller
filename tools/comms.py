@@ -97,17 +97,17 @@ class BLDCControllerClient:
         self._ser = ser
 
     def getRotorPosition(self, server_ids):
-        angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, 0x3000, [1 for sid in server_ids])]
+        angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids])]
         return angles
 
     def getState(self, server_ids):
         # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
-        states = [struct.unpack('<ffffffiii', data) for data in self.readRegisters(server_ids, 0x3000, [9 for sid in server_ids])]
+        states = [struct.unpack('<ffffffiii', data) for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [9 for sid in server_ids])]
         return states
 
     def getVoltage(self, server_ids):
         # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
-        states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, 0x3004, [1 for sid in server_ids])]
+        states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3004 for sid in server_ids], [1 for sid in server_ids])]
         return states
 
     def getTemperature(self, server_ids):
@@ -207,22 +207,26 @@ class BLDCControllerClient:
         return success
 
     def readFlash(self, server_ids, src_addr, length):
-        data = ''
+        data = '' 
         for i in range(0, length, COMM_SINGLE_READ_LENGTH):
             read_len = min(length - i, COMM_SINGLE_READ_LENGTH)
             data_chunk = self._readFlashLimitedLength(server_ids, src_addr + i, read_len)
             if any([len(chunk) != read_len for chunk in data_chunk]):
                 return False
-            data += data_chunk
+            data += data_chunk[0]
         return data
 
     def _readFlashLimitedLength(self, server_ids, src_addr, length):
-        _, data = self.doTransaction(server_ids, [COMM_FC_FLASH_READ]*len(server_ids), struct.pack('<II', src_addr, length))
+        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_READ]*len(server_ids), [struct.pack('<II', src_addr, length)])
+        data = [resp[1] for resp in responses]
+        print data
         return data
 
     def readCalibration(self, server_ids):
         l = struct.unpack('<H', self.readFlash(server_ids, COMM_NVPARAMS_OFFSET+1, 2))[0]
-        return json.loads(self.readFlash(server_ids, COMM_NVPARAMS_OFFSET+3, l))
+        b = self.readFlash(server_ids, COMM_NVPARAMS_OFFSET+3, l)
+        print b
+        return json.loads(b)
 
     def verifyFlash(self, server_ids, dest_addr, data):
         for i in range(0, len(data), COMM_SINGLE_VERIFY_LENGTH):
@@ -359,6 +363,7 @@ class BLDCControllerClient:
             return False, None
 
         crc_bytes = self._ser.read(2)
+        #print (":".join("{:02x}".format(ord(c)) for c in crc_bytes))
 
         if len(crc_bytes) < 2:
             # self._ser.flushInput()
