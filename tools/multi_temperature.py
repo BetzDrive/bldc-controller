@@ -16,15 +16,15 @@ address = [0]*len(boards)
 for i in range(len(boards)):
     address[i] = int(boards[i])
 
-client = BLDCControllerClient(s, 3)
+client = BLDCControllerClient(s)
 
-client.leaveMultiBootloader(address)
+client.leaveBootloader(address)
 time.sleep(0.2)
 s.reset_input_buffer()
 
 while True:
     try:
-        temperature = client.readMultiRegisters(address, 0x3005, 1)
+        temperature = client.readRegisters(address, [0x3005 for b in boards], [1 for b in boards])
         for i in range(len(temperature)):
             print(str(boards[i]) + ": " + str(struct.unpack('<f', temperature[i])[0]))
         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]

@@ -15,31 +15,31 @@ def is_int(i):
         return False
 
 def flash_board(client, board_id, data):
-    client.resetSystem(board_id)
+    client.resetSystem([board_id])
     time.sleep(0.2) # Wait for the controller to reset
     ser.reset_input_buffer()
 
-    old_board_id = client.readFlash(board_id, COMM_NVPARAMS_OFFSET, 1)
+    old_board_id = client.readFlash([board_id], COMM_NVPARAMS_OFFSET, 1)
 
-    flash_sector_map = client.getFlashSectorMap(board_id)
+    flash_sector_map = client.getFlashSectorMap([board_id])
 
-    success = client.eraseFlash(board_id, COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
+    success = client.eraseFlash([board_id], COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
 
     buf = old_board_id + struct.pack('<H', len(data)) + data
     print(len(data))
 
-    success = success and client.programFlash(board_id, COMM_NVPARAMS_OFFSET, buf)
+    success = success and client.programFlash([board_id], COMM_NVPARAMS_OFFSET, [buf])
 
-    l = struct.unpack('<H', client.readFlash(board_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
-    d = client.readFlash(board_id, COMM_NVPARAMS_OFFSET+3, l)
+    l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET+1, 2))[0]
+    d = client.readFlash([board_id], COMM_NVPARAMS_OFFSET+3, l)
 
     if success and d == data:
-        client.resetSystem(board_id)
+        client.resetSystem([board_id])
         print("Success", board_id)
         print("Wrote:")
         time.sleep(0.2)
         ser.reset_input_buffer()
-        l = struct.unpack('<H', client.readFlash(board_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
+        l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET+1, [2]))[0]
         print(json.loads(client.readFlash(board_id, COMM_NVPARAMS_OFFSET+3, l)))
     else:
         print("Failed ", board_id)
