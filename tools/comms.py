@@ -155,8 +155,8 @@ class BLDCControllerClient:
         data = [response[1] for response in responses]
         return data
 
-    def writeRegisters(self, server_ids, start_addr, count):
-        responses = self.doTransaction(server_ids, [COMM_FC_REG_WRITE]*len(server_ids), [struct.pack('<HB', addr, ct) for addr, ct in zip(start_addr, count)])
+    def writeRegisters(self, server_ids, start_addr, count, data):
+        responses = self.doTransaction(server_ids, [COMM_FC_REG_WRITE]*len(server_ids), [struct.pack('<HB', addr, ct) + dat for addr, ct, dat in zip(start_addr, count, data)])
         success = [response[0] for response in responses]
         return success 
     

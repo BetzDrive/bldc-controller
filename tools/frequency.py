@@ -27,7 +27,8 @@ while True:
 
     for _ in range(1000):
         try:
-            client.readRegisters(address, [0x3005 for b in boards], [1 for b in boards])
+            temp = client.readRegisters(address, [0x3005 for b in boards], [1 for b in boards])
+            #print struct.unpack("f", temp[0])
         except IOError:
             errors += 1
             pass

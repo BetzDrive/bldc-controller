@@ -32,19 +32,19 @@ if __name__ == '__main__':
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
     time.sleep(0.1)
 
-    client = BLDCControllerClient(ser, protocol=2)
+    client = BLDCControllerClient(ser)
 
-    client.leaveBootloader(args.board_id)
+    client.leaveBootloader([args.board_id])
     time.sleep(0.2) # Wait for the controller to reset
     ser.reset_input_buffer()
 
     def set_phase_state(phase_state):
         a, b, c = phase_state
-        client.writeRegisters(args.board_id, 0x2003, 3, struct.pack('<fff', a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle))
+        client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle)])
 
-    client.writeRegisters(args.board_id, 0x1030, 1, struct.pack('<H', 3000)) # Control watchdog timeout
-    client.writeRegisters(args.board_id, 0x2003, 3, struct.pack('<fff', 0, 0, 0))
-    client.writeRegisters(args.board_id, 0x2000, 1, struct.pack('<B', 1))
+    client.writeRegisters([args.board_id], [0x1030], [1], [struct.pack('<H', 3000)]) # Control watchdog timeout
+    client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', 0, 0, 0)])
+    client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 1)])
 
     # Start one step before phase A to avoid boundary issues
     set_phase_state(phase_state_list[-1])
@@ -56,7 +56,7 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = struct.unpack('<H', client.readRegisters(args.board_id, 0x3010, 1))[0]
+        raw_angle = struct.unpack('<H', client.readRegisters([args.board_id], [0x3010], [1])[0])[0]
 
         if i > 4 and abs(forward_raw_angles[0] - raw_angle) < abs(forward_raw_angles[1] - forward_raw_angles[0]) / 3.0:
             break
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = struct.unpack('<H', client.readRegisters(args.board_id, 0x3010, 1))[0]
+        raw_angle = struct.unpack('<H', client.readRegisters([args.board_id], [0x3010], [1])[0])[0]
 
         backward_raw_angles.append(raw_angle)
 
