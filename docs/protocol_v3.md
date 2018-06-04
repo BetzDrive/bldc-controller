@@ -166,7 +166,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 
 -------
 
-## Flags
+## Flag Bits
 
 | Bit | Description |
 |-----|-------------|
