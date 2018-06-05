@@ -31,7 +31,7 @@ void UARTEndpoint::transmit() {
   tx_buf_[2] = tx_len_ & 0xff;
   tx_buf_[3] = (tx_len_ >> 8) & 0xff;
 
-  uint16_t crc = computeCRC(tx_buf_, header_len + tx_len_);
+  uint16_t crc = computeCRC(header_len + tx_buf_, tx_len_);
   tx_buf_[header_len + tx_len_] = crc & 0xff;
   tx_buf_[header_len + tx_len_ + 1] = (crc >> 8) & 0xff;
 
@@ -50,7 +50,7 @@ void UARTEndpoint::transmit() {
 void UARTEndpoint::receive() {
   chBSemWait(&rx_bsem_);
 
-  uint16_t computed_crc = computeCRC(rx_buf_, header_len + rx_len_);
+  uint16_t computed_crc = computeCRC(rx_buf_ + header_len, rx_len_);
   uint16_t expected_crc = ((uint16_t)rx_buf_[header_len + rx_len_ + 1] << 8) | (uint16_t)rx_buf_[header_len + rx_len_];
   if (computed_crc != expected_crc) {
     rx_error_ = true;
@@ -197,10 +197,49 @@ void UARTEndpoint::gptCallback() {
 }
 
 uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
-  (void)buf;
-  (void)len;
+  uint16_t out = 0;
+  uint16_t bits_read = 0, bit_flag;
 
-  return 0; // TODO: implement
+  /* Sanity check */
+  if (buf == nullptr)
+    return 0;
+
+  while (len > 0) {
+    bit_flag = out >> 15;
+
+    /* Get next bit: */
+    out <<= 1;
+    out |= (*buf >> bits_read) & 1; // item a) work from the least significant bits
+    
+    /* Increment bit counter: */
+    bits_read++;
+    if(bits_read > 7) {
+      bits_read = 0;
+      buf++;
+      len--;
+    }
+    
+    /* Cycle check: */
+    if(bit_flag) out ^= crc_16_ibm;
+  }
+
+  // item b) "push out" the last 16 bits
+  int i;
+  for (i = 0; i < 16; ++i) {
+    bit_flag = out >> 15;
+    out <<= 1;
+    if(bit_flag) out ^= crc_16_ibm;
+  }
+
+  // item c) reverse the bits
+  uint16_t crc = 0;
+  i = 0x8000;
+  int j = 0x0001;
+  for (; i != 0; i >>=1, j <<= 1) {
+    if (i & out) crc |= j;
+  }
+
+  return crc;
 }
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
