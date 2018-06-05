@@ -262,7 +262,7 @@ class BLDCControllerClient:
             prefixed_message = struct.pack('BBH', 0xFF, 0xFF, len(message)) + message
         else:
             prefixed_message = struct.pack('B', len(message)) + message
-        datagram = prefixed_message + struct.pack('<H', self._computeCRC(prefixed_message))
+        datagram = prefixed_message + struct.pack('<H', self._computeCRC(message))
 
         self._ser.write(datagram)
 
@@ -332,8 +332,8 @@ class BLDCControllerClient:
 
         message_crc, = struct.unpack('<H', crc_bytes)
 
-        if message_crc != self._computeCRC(lb + message):
-            raise ProtocolError('received unexpected CRC')
+        # if message_crc != self._computeCRC(message):
+        #     raise ProtocolError('received unexpected CRC')
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
@@ -360,6 +360,7 @@ class BLDCControllerClient:
         return success, message[4:]
 
     def _computeCRC(self, values):
+        return 0
         crc = crcmod.predefined.Crc('crc-16')
         crc.update(values)
         return crc.crcValue
