@@ -252,7 +252,7 @@ upload: build/$(PROJECT).bin
 		init;\
 		reset halt;\
 		flash probe 0;\
-		flash write_image erase build/motor_controller.bin 0x08008000;\
-		verify_image build/motor_controller.bin 0x08008000;\
+		flash write_image erase build/$(PROJECT).bin 0x08008000;\
+		verify_image build/$(PROJECT).bin 0x08008000;\
 		reset run;\
 		shutdown"
