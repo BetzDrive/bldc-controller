@@ -15,7 +15,7 @@ void DRV8301::start() {
   palSetPad(en_gate_.port, en_gate_.pin);
 
   // Configure parameters over SPI
-  // TODO
+  writeRegister(0x02, 0x0400); // Set gate drive peak current to 1.7 A
 }
 
 uint16_t DRV8301::readRegister(uint8_t addr) {
