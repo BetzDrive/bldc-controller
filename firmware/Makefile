@@ -101,6 +101,7 @@ CSRC = $(PORTSRC) \
        $(COMMON_SRC)/utils.c \
        $(COMMON_SRC)/flash.c \
        $(COMMON_SRC)/helper.c \
+       $(COMMON_SRC)/crc16.c \
        $(SRC)/usbcfg.c \
        $(SRC)/shell.c \
        $(SRC)/LSM6DS3_ACC_GYRO_driver.c

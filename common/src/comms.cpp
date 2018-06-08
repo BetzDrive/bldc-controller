@@ -7,6 +7,7 @@
 #include "constants.h"
 #include "helper.h"
 #include "flash.h"
+#include "crc16.h"
 
 namespace motor_driver {
 
@@ -197,49 +198,9 @@ void UARTEndpoint::gptCallback() {
 }
 
 uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
-  uint16_t out = 0;
-  uint16_t bits_read = 0, bit_flag;
-
-  /* Sanity check */
-  if (buf == nullptr)
-    return 0;
-
-  while (len > 0) {
-    bit_flag = out >> 15;
-
-    /* Get next bit: */
-    out <<= 1;
-    out |= (*buf >> bits_read) & 1; // item a) work from the least significant bits
-    
-    /* Increment bit counter: */
-    bits_read++;
-    if(bits_read > 7) {
-      bits_read = 0;
-      buf++;
-      len--;
-    }
-    
-    /* Cycle check: */
-    if(bit_flag) out ^= crc_16_ibm;
-  }
-
-  // item b) "push out" the last 16 bits
-  int i;
-  for (i = 0; i < 16; ++i) {
-    bit_flag = out >> 15;
-    out <<= 1;
-    if(bit_flag) out ^= crc_16_ibm;
-  }
-
-  // item c) reverse the bits
-  uint16_t crc = 0;
-  i = 0x8000;
-  int j = 0x0001;
-  for (; i != 0; i >>=1, j <<= 1) {
-    if (i & out) crc |= j;
-  }
-
-  return crc;
+  crc16_t crc = crc16_init();
+  crc = crc16_update(crc, buf, len);
+  return crc16_finalize(crc);
 }
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {

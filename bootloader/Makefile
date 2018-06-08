@@ -100,7 +100,8 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/memstreams.c \
        $(COMMON_SRC)/utils.c \
        $(COMMON_SRC)/flash.c \
-       $(COMMON_SRC)/helper.c
+       $(COMMON_SRC)/helper.c \
+       $(COMMON_SRC)/crc16.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
