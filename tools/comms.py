@@ -91,6 +91,7 @@ class BLDCControllerClient:
     def __init__(self, ser, protocol_v2=False):
         self._ser = ser
         self._protocol_v2 = protocol_v2
+        self._crc_alg = crcmod.predefined.PredefinedCrc('crc-16')
 
     def setCurrent(self, id, value):
         ret = self.writeRegisters(id, 0x0102, 1, struct.pack('<f', value))
@@ -332,8 +333,8 @@ class BLDCControllerClient:
 
         message_crc, = struct.unpack('<H', crc_bytes)
 
-        # if message_crc != self._computeCRC(message):
-        #     raise ProtocolError('received unexpected CRC')
+        if message_crc != self._computeCRC(message):
+            raise ProtocolError('received unexpected CRC')
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
@@ -360,6 +361,6 @@ class BLDCControllerClient:
         return success, message[4:]
 
     def _computeCRC(self, values):
-        crc = crcmod.predefined.Crc('crc-16')
+        crc = self._crc_alg.new()
         crc.update(values)
         return crc.crcValue
