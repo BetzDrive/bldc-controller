@@ -21,7 +21,7 @@ class UARTEndpoint {
 public:
   static constexpr size_t header_len = 5;
   static constexpr size_t sub_msg_len = 2;
-  static constexpr size_t crc_length = 2;
+  static constexpr size_t crc_len = 2;
   static constexpr size_t max_dg_payload_len = 255;
   static constexpr uint16_t crc_16_ibm = 0x8005;
 
@@ -91,13 +91,13 @@ private:
   BinarySemaphore tx_bsem_;
 
   /* Receive DMA buffer */
-  uint8_t rx_buf_[header_len + max_dg_payload_len + crc_length];
+  uint8_t rx_buf_[header_len + max_dg_payload_len + crc_len];
   size_t rx_len_;
   bool rx_error_;
   comm_fg_t rx_flags_;
 
   /* Transmit DMA buffer */
-  uint8_t tx_buf_[header_len + max_dg_payload_len + crc_length];
+  uint8_t tx_buf_[header_len + max_dg_payload_len + crc_len];
   size_t tx_len_;
 
   static uint16_t computeCRC(const uint8_t *buf, size_t len);

@@ -42,7 +42,7 @@ void UARTEndpoint::transmit() {
 
   uartStopReceiveI(uart_driver_);
   palSetPad(dir_.port, dir_.pin);
-  uartStartSendI(uart_driver_, header_len + sub_msg_len + tx_len_ + crc_length, tx_buf_);
+  uartStartSendI(uart_driver_, header_len + sub_msg_len + tx_len_ + crc_len, tx_buf_);
   changeStateI(State::TRANSMITTING);
 
   chSysUnlock();
@@ -176,7 +176,7 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       rx_buf_[4] = (uint8_t)c;
       rx_len_ = ((size_t)rx_buf_[4] << 8) | rx_buf_[3];
       if (rx_len_ <= max_dg_payload_len) {
-        uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_ + header_len);
+        uartStartReceiveI(uart_driver_, rx_len_ + crc_len, rx_buf_ + header_len);
         changeStateI(State::RECEIVING);
       } else {
         changeStateI(State::INITIALIZING);
