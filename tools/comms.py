@@ -361,6 +361,7 @@ class BLDCControllerClient:
         return success, message[4:]
 
     def _computeCRC(self, values):
+        return 0
         crc = self._crc_alg.new()
         crc.update(values)
         return crc.crcValue

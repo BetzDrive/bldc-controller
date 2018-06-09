@@ -198,9 +198,11 @@ void UARTEndpoint::gptCallback() {
 }
 
 uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
-  crc16_t crc = crc16_init();
-  crc = crc16_update(crc, buf, len);
-  return crc16_finalize(crc);
+  // crc16_t crc = crc16_init();
+  // crc = crc16_update(crc, buf, len);
+  // return crc16_finalize(crc);
+
+  return 0;
 }
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
