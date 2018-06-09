@@ -101,8 +101,20 @@ void estimateState() {
   results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi - calibration.position_offset;
 
   float encoder_vel_radians_update = (results.encoder_pos_radians - prev_encoder_pos_radians) * current_control_freq;
-  float alpha = calibration.velocity_filter_param;
-  results.encoder_vel_radians = alpha * encoder_vel_radians_update + (1.0f - alpha) * results.encoder_vel_radians;
+
+  constexpr size_t encoder_vel_radians_filter_len = 31;
+  static float encoder_vel_radians_buffer[encoder_vel_radians_filter_len] = {0};
+
+  for (int i = encoder_vel_radians_filter_len - 1; i > 0; i--) {
+    encoder_vel_radians_buffer[i] = encoder_vel_radians_buffer[i - 1];
+  }
+  encoder_vel_radians_buffer[0] = encoder_vel_radians_update;
+
+  float sum = 0;
+  for (int i = 0; i < (int)encoder_vel_radians_filter_len; i++) {
+    sum += encoder_vel_radians_buffer[i];
+  }
+  results.encoder_vel_radians = sum / encoder_vel_radians_filter_len;
 
   /*
    * Calculate average voltages and currents

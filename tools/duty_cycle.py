@@ -49,9 +49,9 @@ for address, duty_cycle in zip(addresses, duty_cycles):
 
         client.writeRegisters(address, 0x1022, 1, struct.pack('<f', 0.55 if (address in has_21_erevs_per_mrev) else 1.45)) # Motor torque constant
         # client.writeRegisters(address, 0x1022, 1, struct.pack('<f', 0.01))
-        client.writeRegisters(address, 0x1003, 1, struct.pack('<f', 5.0)) # FOC direct current Kp
+        client.writeRegisters(address, 0x1003, 1, struct.pack('<f', 1.0)) # FOC direct current Kp
         client.writeRegisters(address, 0x1004, 1, struct.pack('<f', 0.0)) # FOC direct current Ki
-        client.writeRegisters(address, 0x1005, 1, struct.pack('<f', 5.0)) # FOC quadrature current Kp
+        client.writeRegisters(address, 0x1005, 1, struct.pack('<f', 1.0)) # FOC quadrature current Kp
         client.writeRegisters(address, 0x1006, 1, struct.pack('<f', 0.0)) # FOC quadrature current Ki
         client.writeRegisters(address, 0x1020, 1, struct.pack('<f', 15.2)) # Motor resistance
         client.writeRegisters(address, 0x1040, 1, struct.pack('<f', 1e-3)) # Velocity filter parameter
