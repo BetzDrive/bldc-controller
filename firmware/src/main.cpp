@@ -36,21 +36,6 @@ static msg_t blinkerThreadRun(void *arg) {
   setCommsActivityLED(false);
 
   while (true) {
-
-    // palSetPad(GPIOA, GPIOA_LED_B);
-   //  palClearPad(GPIOA, GPIOA_LED_R);
-   //  chThdSleepMilliseconds(250);
-   //  palSetPad(GPIOA, GPIOA_LED_R);
-   //  palClearPad(GPIOA, GPIOA_LED_G);
-   //  chThdSleepMilliseconds(250);
-   //  palSetPad(GPIOA, GPIOA_LED_G);
-   //  palClearPad(GPIOA, GPIOA_LED_B);
-   //  chThdSleepMilliseconds(250);
-    // palClearPad(GPIOA, GPIOA_LED_G);
-    // chThdSleepMilliseconds(250);
-    // palSetPad(GPIOA, GPIOA_LED_G);
-    // chThdSleepMilliseconds(250);
-
     uint8_t g = ::abs(t - 255);
     if (gate_driver.hasFault() || gate_driver.hasOCTW()) {
       setStatusLEDColor(g < 50 ? 255 : 0, g, 0);
@@ -159,24 +144,6 @@ int main(void) {
   while (true) {
     chThdSleepMilliseconds(1000);
   }
-
-  // float d = 0.5f;
-  // int u = 0;
-  // int v = 1;
-  // int w = 2;
-  // uint16_t t = 0;
-  // uint16_t speed = 0;
-  // while (true) {
-  //   float arg = (float)t / 65536.0f * 2.0f * pi;
-  //   gate_driver.setPWMDutyCycle(u, 0.5f + d * fast_cos(arg));
-  //   gate_driver.setPWMDutyCycle(v, 0.5f + d * fast_cos(arg - 2 / 3.0f * pi));
-  //   gate_driver.setPWMDutyCycle(w, 0.5f + d * fast_cos(arg - 4 / 3.0f * pi));
-  //   chThdSleepMilliseconds(1);
-  //   t += speed;
-  //   if (speed < 2000) {
-  //     speed += 10;
-  //   }
-  // }
 
   return CH_SUCCESS; // Should never get here
 }

@@ -161,7 +161,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
           break;
         case 0x3009: { // Recorder start
-          uint8_t success = (uint8_t) recorder.startRecord();
+          uint8_t success = (uint8_t) recorder.startRecording();
           handleVarAccess(success, buf, index, buf_size, access_type, errors);
           break;
         }
