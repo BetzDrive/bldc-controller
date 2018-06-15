@@ -23,7 +23,7 @@ def flash_board(client, board_id, data):
 
     flash_sector_map = client.getFlashSectorMap([board_id])
 
-    success = client.eraseFlash([board_id], COMM_NVPARAMS_OFFSET, [1], sector_map=[flash_sector_map])
+    success = client.eraseFlash([board_id], COMM_NVPARAMS_OFFSET, 1, sector_map=[flash_sector_map])
 
     buf = old_board_id + struct.pack('<H', len(data)) + data
     print(len(data))

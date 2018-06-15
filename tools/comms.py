@@ -66,6 +66,7 @@ class FlashSectorMap:
 
     def getFlashSectorOfAddress(self, addr):
         for i in range(self.getFlashSectorCount()):
+            print self.getFlashSectorStart(i)
             if self.getFlashSectorStart(i) <= addr < self.getFlashSectorEnd(i):
                 return i
 
@@ -175,140 +176,137 @@ class BLDCControllerClient:
         self.writeRequest(server_ids, [COMM_FC_JUMP_TO_ADDR]*len(server_ids), [struct.pack('<I', addr) for addr in jump_addr])
         return True
 
-    def getFlashSectorCount(self, server_ids):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_SECTOR_COUNT]*len(server_ids), ['' for sid in server_ids])
-        data = [resp[1] for resp in responses]
-        return [struct.unpack('<I', dat)[0] for dat in data]
+    def getFlashSectorCount(self, server_id):
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_COUNT], [''])[0]
+        _, data = responses
+        return struct.unpack('<I', data)[0]
 
-    def getFlashSectorStart(self, server_ids, sector_nums):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_SECTOR_START]*len(server_ids), [struct.pack('<I', sector) for sector in sector_nums])
-        data = [resp[1] for resp in responses]
-        return [struct.unpack('<I', dat)[0] for dat in data]
+    def getFlashSectorStart(self, server_id, sector_nums):
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_START], [struct.pack('<I', sector_nums)])[0]
+        _, data = responses
+        return struct.unpack('<I', data)
 
-    def getFlashSectorSize(self, server_ids, sector_nums):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_SECTOR_SIZE]*len(server_ids), [struct.pack('<I', sector) for sector in sector_nums])
-        data = [resp[1] for resp in responses]
-        return [struct.unpack('<I', dat)[0] for dat in data]
+    def getFlashSectorSize(self, server_id, sector_nums):
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_SIZE], [struct.pack('<I', sector_nums)])[0]
+        _, data = responses
+        return struct.unpack('<I', data)
 
-    def eraseFlashSector(self, server_ids, sector_nums):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_SECTOR_ERASE]*len(server_ids), [struct.pack('<I', sector) for sector in sector_nums])
-        success = [resp[0] for resp in responses]
+    def eraseFlashSector(self, server_id, sector_nums):
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_ERASE], [struct.pack('<I', sector_nums)])[0]
+        success, _ = responses        
         return success
 
-    def programFlash(self, server_ids, dest_addr, data):
+    def programFlash(self, server_id, dest_addr, data):
         for i in range(0, len(data), COMM_SINGLE_PROGRAM_LENGTH):
-            success = self._programFlashLimitedLength(server_ids, [addr + i for addr in dest_addr], data[i:i+COMM_SINGLE_PROGRAM_LENGTH])
-            if not all(success):
+            success = self._programFlashLimitedLength(server_id, dest_addr + i, data[i:i+COMM_SINGLE_PROGRAM_LENGTH])
+            if not success:
                 return False
         return True
 
     def _programFlashLimitedLength(self, server_ids, dest_addr, data):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_PROGRAM]*len(server_ids), [struct.pack('<I', addr) + data for addr in dest_addr])
-        success = [resp[0] for resp in responses]
+        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_PROGRAM], [struct.pack('<I', dest_addr) + data])[0]
+        success, _ = responses
         return success
 
-    def readFlash(self, server_ids, src_addr, length):
+    def readFlash(self, server_id, src_addr, length):
         data = '' 
         for i in range(0, length, COMM_SINGLE_READ_LENGTH):
             read_len = min(length - i, COMM_SINGLE_READ_LENGTH)
-            data_chunk = self._readFlashLimitedLength(server_ids, src_addr + i, read_len)
-            if any([len(chunk) != read_len for chunk in data_chunk]):
+            data_chunk = self._readFlashLimitedLength(server_id, src_addr + i, read_len)
+            if len(data_chunk) != read_len:
                 return False
-            data += data_chunk[0]
+            data += data_chunk
         return data
 
-    def _readFlashLimitedLength(self, server_ids, src_addr, length):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_READ]*len(server_ids), [struct.pack('<II', src_addr, length)])
-        data = [resp[1] for resp in responses]
-        print data
+    def _readFlashLimitedLength(self, server_id, src_addr, length):
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_READ], [struct.pack('<II', src_addr, length)])[0]
+        _, data = responses
         return data
 
-    def readCalibration(self, server_ids):
-        l = struct.unpack('<H', self.readFlash(server_ids, COMM_NVPARAMS_OFFSET+1, 2))[0]
-        b = self.readFlash(server_ids, COMM_NVPARAMS_OFFSET+3, l)
-        print b
+    def readCalibration(self, server_id):
+        l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
+        print l
+        b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET+3, l)
         return json.loads(b)
 
-    def verifyFlash(self, server_ids, dest_addr, data):
+    def verifyFlash(self, server_id, dest_addr, data):
         for i in range(0, len(data), COMM_SINGLE_VERIFY_LENGTH):
-            success = self._verifyFlashLimitedLength(server_ids, [addr + i for addr in dest_addr], data[i:i+COMM_SINGLE_VERIFY_LENGTH])
-            if not all(success):
+            success = self._verifyFlashLimitedLength(server_id, dest_addr + i, data[i:i+COMM_SINGLE_VERIFY_LENGTH])
+            if not success:
                 return False
         return True
 
-    def _verifyFlashLimitedLength(self, server_ids, dest_addr, data):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_VERIFY]*len(server_ids), [struct.pack('<I', addr) + data for addr in dest_addr])
-        success = [resp[0] for resp in responses]
+    def _verifyFlashLimitedLength(self, server_id, dest_addr, data):
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_VERIFY], [struct.pack('<I', dest_addr) + data])[0]
+        success, _ = responses
         return success
 
-    def verifyFlashErased(self, server_ids, dest_addr, length):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_VERIFY_ERASED]*len(server_ids), [struct.pack('<II', addr, length) for addr in dest_addr])
-        success = [resp[0] for resp in responses]
+    def verifyFlashErased(self, server_id, dest_addr, length):
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_VERIFY_ERASED], [struct.pack('<II', dest_addr, length)])[0]
+        success, _ = responses
         return success
 
-    def eraseFlash(self, server_ids, addr, length, sector_map=None):
+    def eraseFlash(self, server_id, addr, length, sector_map=None):
         if sector_map is None:
-            sector_map = self.getFlashSectorMap(server_ids)
+            sector_map = [self.getFlashSectorMap(server_id)]
 
         # Find out which sectors need to be erased
-        board_sector_nums = [smap.getFlashSectorsOfAddressRange(ad, length) for smap, ad in zip(sector_map, addr)] 
+        board_sector_nums = sector_map[0].getFlashSectorsOfAddressRange(addr, length) 
 
-        for nums in board_sector_nums[0]:
-            success = self.eraseFlashSector(server_ids, [nums] * len(server_ids))
+        for nums in board_sector_nums:
+            success = self.eraseFlashSector(server_id, [nums])
             if not success:
                 return False
 
         return True
 
-    def writeFlash(self, server_ids, dest_addr, data, sector_map=None, print_progress=False):
+    def writeFlash(self, server_id, dest_addr, data, sector_map=None, print_progress=False):
         if sector_map is None:
-            sector_map = self.getFlashSectorMap(server_ids)
+            sector_map = self.getFlashSectorMap(server_id)
 
         if print_progress:
             print "Erasing flash"
 
-        success = self.eraseFlash(server_ids, dest_addr, len(data), sector_map)
+        success = self.eraseFlash(server_id, dest_addr, len(data), sector_map)
         if not success:
             return False
 
         if print_progress:
             print "Verifying flash was erased"
 
-        success = self.verifyFlashErased(server_ids, dest_addr, len(data))
+        success = self.verifyFlashErased(server_id, dest_addr, len(data))
         if not success:
             return False
 
         if print_progress:
             print "Programming flash"
 
-        success = self.programFlash(server_ids, dest_addr, data)
+        success = self.programFlash(server_id, dest_addr, data)
         if not success:
             return False
 
         if print_progress:
             print "Verifying flash was programmed"
 
-        success = self.verifyFlash(server_ids, dest_addr, data)
+        success = self.verifyFlash(server_id, dest_addr, data)
         if not success:
             return False
 
         return True
 
-    def getFlashSectorMap(self, server_ids):
-        sector_counts = self.getFlashSectorCount(server_ids)
+    def getFlashSectorMap(self, server_id):
+        sector_counts = self.getFlashSectorCount(server_id)
         sector_starts = []
         sector_sizes = []
 
         # TODO: Make this individual sector stars and sizes. THis does the 0th item only.
-        for count in range(sector_counts[0]):
-            sector_starts.append(self.getFlashSectorStart(server_ids, [count]*len(server_ids)))
-            sector_sizes.append(self.getFlashSectorSize(server_ids, [count]*len(server_ids)))
-        
-        sector_maps = [0] * len(server_ids)
-        for i in range(len(server_ids)):
-            sector_maps[i] = FlashSectorMap(sector_counts[i], [sector_st[i] for sector_st in sector_starts], [sector_sz[i] for sector_sz in sector_sizes])
+        for count in range(sector_counts):
+            sector_starts.append(self.getFlashSectorStart(server_id, count))
+            sector_sizes.append(self.getFlashSectorSize(server_id, count))
 
-        return sector_maps 
+        sector_map = FlashSectorMap(sector_counts, sector_starts, sector_sizes)
+
+        return sector_map 
 
     def doTransaction(self, server_ids, func_code, data):
         # Send the request to the boards.
