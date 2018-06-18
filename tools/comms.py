@@ -66,7 +66,6 @@ class FlashSectorMap:
 
     def getFlashSectorOfAddress(self, addr):
         for i in range(self.getFlashSectorCount()):
-            print self.getFlashSectorStart(i)
             if self.getFlashSectorStart(i) <= addr < self.getFlashSectorEnd(i):
                 return i
 
@@ -184,12 +183,12 @@ class BLDCControllerClient:
     def getFlashSectorStart(self, server_id, sector_nums):
         responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_START], [struct.pack('<I', sector_nums)])[0]
         _, data = responses
-        return struct.unpack('<I', data)
+        return struct.unpack('<I', data)[0]
 
     def getFlashSectorSize(self, server_id, sector_nums):
         responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_SIZE], [struct.pack('<I', sector_nums)])[0]
         _, data = responses
-        return struct.unpack('<I', data)
+        return struct.unpack('<I', data)[0]
 
     def eraseFlashSector(self, server_id, sector_nums):
         responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_ERASE], [struct.pack('<I', sector_nums)])[0]
@@ -203,8 +202,8 @@ class BLDCControllerClient:
                 return False
         return True
 
-    def _programFlashLimitedLength(self, server_ids, dest_addr, data):
-        responses = self.doTransaction(server_ids, [COMM_FC_FLASH_PROGRAM], [struct.pack('<I', dest_addr) + data])[0]
+    def _programFlashLimitedLength(self, server_id, dest_addr, data):
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_PROGRAM], [(struct.pack('<I', dest_addr) + data)])[0]
         success, _ = responses
         return success
 
@@ -248,13 +247,13 @@ class BLDCControllerClient:
 
     def eraseFlash(self, server_id, addr, length, sector_map=None):
         if sector_map is None:
-            sector_map = [self.getFlashSectorMap(server_id)]
+            sector_map = self.getFlashSectorMap(server_id)
 
         # Find out which sectors need to be erased
-        board_sector_nums = sector_map[0].getFlashSectorsOfAddressRange(addr, length) 
+        board_sector_nums = sector_map.getFlashSectorsOfAddressRange(addr, length) 
 
         for nums in board_sector_nums:
-            success = self.eraseFlashSector(server_id, [nums])
+            success = self.eraseFlashSector(server_id, nums)
             if not success:
                 return False
 

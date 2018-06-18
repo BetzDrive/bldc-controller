@@ -17,20 +17,20 @@ if __name__ == '__main__':
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
     time.sleep(0.1)
 
-    client = BLDCControllerClient(ser, protocol=3)
+    client = BLDCControllerClient(ser)
 
-    client.enterBootloader(args.board_id)
+    client.enterBootloader([args.board_id])
     time.sleep(0.2) # Wait for the controller to reset
     ser.reset_input_buffer()
 
-    flash_sector_map = client.getFlashSectorMap(args.board_id)
+    flash_sector_map = client.getFlashSectorMap([args.board_id])
 
-    success = client.eraseFlash(args.board_id, COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
+    success = client.eraseFlash([args.board_id], COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
 
-    success = success and client.programFlash(args.board_id, COMM_NVPARAMS_OFFSET, chr(args.new_board_id))
+    success = success and client.programFlash([args.board_id], COMM_NVPARAMS_OFFSET, chr(args.new_board_id))
 
     if success:
-        client.resetSystem(args.new_board_id)
+        client.resetSystem([args.new_board_id])
         print "Success"
     else:
         print "Failed"
