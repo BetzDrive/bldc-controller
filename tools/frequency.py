@@ -67,7 +67,7 @@ while True:
     # Update user every 1000 packets.
     for _ in range(1000):
         try:
-            states = client.setCommandAndGetState(motor_ids, [0.2]*len(motor_ids))
+            states = client.setCommandAndGetState(motor_ids, [0.0]*len(motor_ids))
             for state in states:
                 if state == None:
                     errors += 1
@@ -83,9 +83,10 @@ while True:
             myfile.write(str(time.time()) + ", " + str(thous_packs) + ", " + str(errors) + "\n")
         myfile.close()
     
+    temp_time = time.time()
     diff = time.time() - last_time
+    last_time = temp_time
     print ("k packets: " + str(thous_packs) +
             " Frequency: " + str(1000.0 / diff) + 
             " Millis: " + str(diff/1000.0) +
             " Errors: " + str(errors))
-    last_time = time.time()
