@@ -1,6 +1,7 @@
 #include "LUTFunction.h"
 
 #include <cmath>
+#include <stdint.h>
 
 namespace motor_driver {
 
@@ -40,5 +41,6 @@ float LUTFunction<T>::lookupReduced(float reduced_arg) const {
 }
 
 template class LUTFunction<float>;
+template class LUTFunction<int8_t>;
 
 } // namespace motor_driver

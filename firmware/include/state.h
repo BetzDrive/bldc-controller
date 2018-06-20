@@ -57,7 +57,10 @@ struct Calibration {
   float motor_torque_const = 0.0f;        // Motor torque constant (newton-meters per ampere)
   uint16_t control_watchdog_timeout = 0;  // Control watchdog timeout (ms)
   float velocity_filter_param = 1e-3f;    // Parameter for velocity filter
-  float position_offset = 0.0;            // Position offset
+  float position_offset = 0.0f;           // Position offset
+  float elec_ang_corr_scale = 0.0f;       // Electrical angle correction scale (rad)
+  float elec_ang_corr_offset = 0.0f;      // Electrical angle correction offset (rad)
+  int8_t elec_ang_corr_table_values[elec_ang_corr_table_size]; // Electrical angle correction table values
 
   Calibration() {}
 };

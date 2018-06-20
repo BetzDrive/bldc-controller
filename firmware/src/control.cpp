@@ -26,6 +26,25 @@ static PID pid_position(calibration.position_kp, calibration.position_ki, 0.0f, 
 
 static systime_t last_control_watchdog_reset;
 
+static const LFFlipType elec_ang_corr_periodicity_flips[] = {
+  LFFlipType::NONE
+};
+
+static const LFPeriodicity elec_ang_corr_periodicity = {
+  1,
+  elec_ang_corr_periodicity_flips
+};
+
+static LUTFunction<int8_t> elec_ang_corr_table(0, 2 * pi, calibration.elec_ang_corr_table_values, elec_ang_corr_table_size, elec_ang_corr_periodicity);
+
+static float getElectricalAngleCorrection(float mechanical_angle) {
+  if (calibration.elec_ang_corr_scale != 0.0f) {
+    return elec_ang_corr_table(mechanical_angle) * calibration.elec_ang_corr_scale + calibration.elec_ang_corr_offset;
+  } else {
+    return 0.0f;
+  }
+}
+
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
   pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
@@ -213,7 +232,8 @@ void runCurrentControl() {
     }
 
     uint16_t zeroed_encoder_pos = (results.raw_encoder_pos - calibration.erev_start + encoder_period) % encoder_period;
-    float elec_pos_radians = zeroed_encoder_pos * encoder_pos_to_radians * calibration.erevs_per_mrev;
+    float mechanical_angle = zeroed_encoder_pos * encoder_pos_to_radians;
+    float elec_pos_radians = mechanical_angle * calibration.erevs_per_mrev + getElectricalAngleCorrection(mechanical_angle);
 
     float cos_theta = fast_cos(elec_pos_radians);
     float sin_theta = fast_sin(elec_pos_radians);

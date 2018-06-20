@@ -85,6 +85,9 @@ constexpr uint8_t control_mode_velocity = 3;
 constexpr uint8_t control_mode_position = 4;
 constexpr uint8_t control_mode_position_velocity = 5;
 
+/* Electrical angle correction */
+constexpr size_t elec_ang_corr_table_size = 257;
+
 /* Address of non-volatile parameters storage */
 /* extern const void *nvparams_start; */
 

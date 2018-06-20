@@ -27,6 +27,9 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           errors |= COMM_ERRORS_INVALID_ARGS;
         }
       }
+    } else if (addr >= 0x1200 && addr < 0x1200 + elec_ang_corr_table_size) {
+      // Electrical Angle Correction Table Values
+      handleVarAccess(calibration.elec_ang_corr_table_values[addr - 0x1200], buf, index, buf_len, access_type, errors);
     } else {
       switch (addr) {
         case 0x0000: // Register Map Version
@@ -103,6 +106,12 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           break;
         case 0x1040: // Velocity Filter Parameter
           handleVarAccess(calibration.velocity_filter_param, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x1100: // Electrical Angle Correction Scale (rad)
+          handleVarAccess(calibration.elec_ang_corr_scale, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x1101: // Electrical Angle Correction Offset (rad)
+          handleVarAccess(calibration.elec_ang_corr_offset, buf, index, buf_len, access_type, errors);
           break;
 
         case 0x2000: // Control Mode

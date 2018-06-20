@@ -110,6 +110,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x1022` | Motor Torque Constant (N*m/A) | `float` |
 | `0x1030` | Control Watchdog Timeout (ms) | `uint16_t` |
 | `0x1040` | Velocity Filter Parameter | `float` |
+| `0x1100` | Electrical Angle Correction Scale (rad) | `float` |
+| `0x1101` | Electrical Angle Correction Offset (rad) | `float` |
+| `0x1200` | Electrical Angle Correction Table Values | `uint8_t` |
 
 **Volatile Registers `(0x2***)`**
 
