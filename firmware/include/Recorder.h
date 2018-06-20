@@ -12,7 +12,7 @@ public:
 
   bool startRecording();
 
-  void recordSample(float* recorder_new_data);
+  void recordSample(float *recorder_new_data);
 
   float *read();
 
