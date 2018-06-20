@@ -108,7 +108,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x1020` | Motor Resistance (ohm) | `float` |
 | `0x1021` | Motor Inductance (H) | `float` |
 | `0x1022` | Motor Torque Constant (N*m/A) | `float` |
-| `0x1030` | Control Watchdog Timeout (ms) | `uint16_t` |
+| `0x1030` | Control Timeout (ms) | `uint16_t` |
 | `0x1040` | Velocity Filter Parameter | `float` |
 | `0x1100` | Electrical Angle Correction Scale (rad) | `float` |
 | `0x1101` | Electrical Angle Correction Offset (rad) | `float` |

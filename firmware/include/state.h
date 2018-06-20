@@ -55,7 +55,7 @@ struct Calibration {
   float motor_resistance = 17.8f;         // Motor resistance (ohm)
   float motor_inductance = 0.0f;          // Motor inductance (henries)
   float motor_torque_const = 0.0f;        // Motor torque constant (newton-meters per ampere)
-  uint16_t control_watchdog_timeout = 0;  // Control watchdog timeout (ms)
+  uint16_t control_timeout = 0;           // Control timeout (ms)
   float velocity_filter_param = 1e-3f;    // Parameter for velocity filter
   float position_offset = 0.0f;           // Position offset
   float elec_ang_corr_scale = 0.0f;       // Electrical angle correction scale (rad)

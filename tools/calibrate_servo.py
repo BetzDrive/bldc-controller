@@ -56,7 +56,7 @@ if __name__ == '__main__':
         a, b, c = midpoint_clamping_svm(angle, args.duty_cycle)
         client.writeRegisters(args.board_id, 0x2003, 3, struct.pack('<fff', a, b, c))
 
-    client.writeRegisters(args.board_id, 0x1030, 1, struct.pack('<H', 3000)) # Control watchdog timeout
+    client.writeRegisters(args.board_id, 0x1030, 1, struct.pack('<H', 3000)) # Control timeout
     client.writeRegisters(args.board_id, 0x2003, 3, struct.pack('<fff', 0, 0, 0))
     client.writeRegisters(args.board_id, 0x2000, 1, struct.pack('<B', 1))
 

@@ -17,7 +17,7 @@ namespace motor_driver {
 static systime_t last_comms_activity_time = 0;
 
 static void comms_activity_callback() {
-  resetControlWatchdog();
+  resetControlTimeout();
   last_comms_activity_time = chTimeNow();
 }
 

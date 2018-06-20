@@ -24,7 +24,7 @@ static PID pid_velocity(calibration.velocity_kp, calibration.velocity_ki, 0.0f, 
 
 static PID pid_position(calibration.position_kp, calibration.position_ki, 0.0f, position_control_interval);
 
-static systime_t last_control_watchdog_reset;
+static systime_t last_control_timeout_reset;
 
 static const LFFlipType elec_ang_corr_periodicity_flips[] = {
   LFFlipType::NONE
@@ -48,7 +48,7 @@ static float getElectricalAngleCorrection(float mechanical_angle) {
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
   pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
-  last_control_watchdog_reset = chTimeNow();
+  last_control_timeout_reset = chTimeNow();
 }
 
 void resumeInnerControlLoop() {
@@ -77,7 +77,7 @@ void runInnerControlLoop() {
      */
     chEvtWaitAny((flagsmask_t)1);
 
-    if (calibration.control_watchdog_timeout != 0 && (chTimeNow() - last_control_watchdog_reset) >= MS2ST(calibration.control_watchdog_timeout)) {
+    if (calibration.control_timeout != 0 && (chTimeNow() - last_control_timeout_reset) >= MS2ST(calibration.control_timeout)) {
       brakeMotor();
     }
 
@@ -296,8 +296,8 @@ void runCurrentControl() {
   }
 }
 
-void resetControlWatchdog() {
-  last_control_watchdog_reset = chTimeNow();
+void resetControlTimeout() {
+  last_control_timeout_reset = chTimeNow();
 }
 
 void brakeMotor() {
