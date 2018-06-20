@@ -35,7 +35,7 @@ if __name__ == '__main__':
     with open(args.bin_file, 'rb') as bin_file:
         firmware_image = bin_file.read()
 
-    success = client.writeFlash(board_ids, [args.offset for b in board_ids], firmware_image, sector_map=flash_sector_maps, print_progress=True)
+    success = client.writeFlash(board_ids, args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
 
     for board_id in board_ids:
         print 'Board {}'.format(board_id)
