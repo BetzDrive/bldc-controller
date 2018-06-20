@@ -77,7 +77,7 @@ AS5047D encoder(
 
 BinarySemaphore ivsense_adc_samples_bsem;
 
-volatile adcsample_t *ivsense_adc_samples_ptr = NULL;
+volatile adcsample_t *ivsense_adc_samples_ptr = nullptr;
 
 volatile size_t ivsense_adc_samples_count;
 

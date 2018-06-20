@@ -12,7 +12,7 @@
 
 namespace motor_driver {
 
-static Thread *control_thread_ptr;
+static Thread *control_thread_ptr = nullptr;
 
 static SVM modulator(SVMStrategy::MIDPOINT_CLAMP);
 
@@ -52,7 +52,7 @@ void initControl() {
 }
 
 void resumeInnerControlLoop() {
-  if (control_thread_ptr != NULL) {
+  if (control_thread_ptr != nullptr) {
     chSysLockFromIsr();
     chEvtSignalI(control_thread_ptr, (flagsmask_t)1);
     chSysUnlockFromIsr();
