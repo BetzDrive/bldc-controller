@@ -2,6 +2,7 @@
 
 #include "constants.h"
 #include "usbcfg.h"
+#include "state.h"
 
 SerialUSBDriver SDU1;
 
@@ -70,7 +71,12 @@ const PWMConfig led_pwm_config = {
   0
 };
 
-AS5047D encoder(
+AS5047D encoder_as5047d(
+  SPID3,
+  {GPIOA, GPIOA_ENC_CSN}
+);
+
+MLX90363 encoder_mlx90363(
   SPID3,
   {GPIOA, GPIOA_ENC_CSN}
 );
@@ -164,7 +170,7 @@ void startPeripherals() {
   gate_driver.start();
 
   // Start encoder
-  encoder.start();
+  startEncoder();
 
   // Start temperature sensor
   temp_sensor.start();
@@ -190,6 +196,36 @@ void startPeripherals() {
 
   // Start motor PWM timer, which also starts the ADC trigger timer
   PWMD1.tim->CR1 |= TIM_CR1_CEN;
+}
+
+void startEncoder() {
+  /*
+   * Encoder autodetection
+   */
+
+  uint8_t txbuf[8];
+  uint8_t rxbuf[8];
+
+  // Try running the MLX90363's echo command
+  encoder_mlx90363.start();
+  encoder_mlx90363.createNopMessage(txbuf, 0xabcd);
+  encoder_mlx90363.sendMessage(txbuf);
+  halPolledDelay(US2RTT(120));
+  encoder_mlx90363.receiveMessage(rxbuf);
+
+  uint16_t key_echo;
+  mlx90363_status_t status = encoder_mlx90363.parseEchoMessage(rxbuf, &key_echo);
+
+  if (status == MLX90363_STATUS_OK && key_echo == 0xabcd) {
+    // Encoder is MLX90363
+
+    results.encoder_mode = encoder_mode_mlx90363;
+    return;
+  }
+
+  // Assume the encoder is AS5047D
+  encoder_as5047d.start();
+  results.encoder_mode = encoder_mode_as5047d;
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {

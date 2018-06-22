@@ -27,6 +27,7 @@ public:
   uint16_t readRegister(uint16_t addr);
   // void writeRegister(uint16_t addr, uint16_t value);
   uint16_t getAngle();
+  uint16_t getDiagnostics();
   void startPipelinedRegisterReadI(uint16_t addr);
   uint16_t getPipelinedRegisterReadResultI();
 
