@@ -105,7 +105,25 @@ class BLDCControllerClient:
     def setDuty(self, id, value):
         ret = self.writeRegisters(id, 0x0106, 1, struct.pack('<f', value ))
         return ret
-    
+
+    def setZeroAngle(self, id, value):
+        return self.writeRegisters(id, 0x1000, 1, struct.pack('<H', value))
+
+    def setInvertPhases(self, id, value):
+        return self.writeRegisters(id, 0x1002, 1, struct.pack('<B', value))
+
+    def setERevsPerMRev(self, id, value):
+        return self.writeRegisters(id, 0x1001, 1, struct.pack('<B', value))
+
+    def setTorqueConstant(self, id, value):
+        return self.writeRegisters(id, 0x1022, 1, struct.pack('<f', value))
+
+    def setPositionOffset(self, id, value):
+        return self.writeRegisters(id, 0x1015, 1, struct.pack('<f', value))
+
+    def setCurrentControlMode(self, id):
+        return self.writeRegisters(id, 0x2000, 1, struct.pack('<B', 0))
+
     def setControlEnabled(self, id, logical):
         self.writeRegisters(id, 0x0102, 1, struct.pack('<B', logical))
 

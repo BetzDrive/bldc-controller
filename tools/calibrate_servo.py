@@ -17,12 +17,45 @@ from collections import OrderedDict
 # 14-bit encoder
 encoder_ticks_per_rev = 2 ** 14
 steps_per_erev = 6
-elec_ang_corr_table_size = 257
+enc_ang_corr_table_size = 257
 
 def midpoint_clamping_svm(angle, magnitude):
     dc = magnitude * np.cos(np.array([angle, angle - (2 / 3 * pi), angle - (4 / 3 * pi)])) / np.sqrt(3) + 0.5
     shift = 0.5 * (1.0 - np.min(dc) - np.max(dc))
     return dc + shift
+
+def circular_mean(a, b):
+    return np.arctan2(0.5 * (np.sin(a) + np.sin(b)), 0.5 * (np.cos(a) + np.cos(b)))
+
+def wrap_pi(a):
+    return (a + pi) % (2 * pi) - pi
+
+def interp_periodic_periodic(x, xp, fp):
+    '''
+    Interpolates a periodic function of a periodic argument
+    '''
+
+    # Wrap x, xp into range [0, 2*pi)
+    x = x % (2 * pi)
+    xp = xp % (2 * pi)
+
+    # Sort by xp
+    sort_indices = np.argsort(xp)
+    xp = xp[sort_indices]
+    fp = fp[sort_indices]
+
+    # Unwrap fp
+    fp = np.unwrap(fp)
+
+    # Extend to avoid boundary issues
+    xp_ext = np.concatenate([xp[-1:] - 2 * pi, xp, xp[:1] + 2 * pi])
+    fp_ext = np.unwrap(np.concatenate([fp[-1:], fp, fp[:1]]))
+
+    f_interp = np.interp(x, xp_ext, fp_ext, left=np.nan, right=np.nan)
+
+    assert not np.isnan(np.sum(f_interp))
+
+    return f_interp
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate calibration parameters for a single servo (motor and controller board).')
@@ -33,8 +66,8 @@ if __name__ == '__main__':
     parser.add_argument('--max_steps', type=int, help='Maximum number of steps')
     parser.add_argument('--delay', type=float, help='Delay between steps')
     parser.add_argument('--start_delay', type=float, help='Delay before first step')
-    parser.add_argument('--plot', dest='plot', action='store_true', help='Plot the electrical angle compensation table')
-    parser.add_argument('--no-plot', dest='plot', action='store_false', help='Don\'t plot the electrical angle compensation table')
+    parser.add_argument('--plot', dest='plot', action='store_true', help='Plot the encoder angle compensation table')
+    parser.add_argument('--no-plot', dest='plot', action='store_false', help='Don\'t plot the encoder angle compensation table')
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=126, delay=0.05, start_delay=0.5, plot=False)
     args = parser.parse_args()
 
@@ -110,80 +143,78 @@ if __name__ == '__main__':
     forward_angles = forward_raw_angles / encoder_ticks_per_rev * 2 * np.pi
     backward_angles = backward_raw_angles / encoder_ticks_per_rev * 2 * np.pi
 
-    # Phase unwrapping
-    forward_angles = np.unwrap(forward_angles)
-    backward_angles = np.unwrap(backward_angles)
+    # Average forward and backward angles, taking phase wrapping into account
+    enc_angles = circular_mean(forward_angles, backward_angles)
 
-    # Average forward and backward measurements
-    enc_angles = (forward_angles + backward_angles) / 2
+    # enc_angles = np.array([-1.35776474, -1.31001959, -1.26668464, -1.21625502, -1.15988122,
+    #    -1.10676714, -1.05231082, -0.98941761, -0.92173071, -0.86171371,
+    #    -0.79498554, -0.7223132 , -0.66057048, -0.60036173, -0.53593454,
+    #    -0.47515055, -0.42414569, -0.37045636, -0.31638354, -0.27247334,
+    #    -0.22952188, -0.18541993, -0.14285196, -0.10507768, -0.06691991,
+    #    -0.02684466,  0.00824515,  0.0435267 ,  0.08168448,  0.12291021,
+    #     0.16010924,  0.20037624,  0.24812139,  0.29049761,  0.33440781,
+    #     0.38637141,  0.44236171,  0.49317482,  0.55165784,  0.61761901,
+    #     0.67648553,  0.73707777,  0.80514817,  0.87341031,  0.93304381,
+    #     0.99497829,  1.05902199,  1.11213607,  1.16237394,  1.21529628,
+    #     1.26687638,  1.30886911,  1.35335455,  1.39899048,  1.43657301,
+    #     1.47358029,  1.5126968 ,  1.55181331,  1.58594439,  1.62295167,
+    #     1.66417741,  1.7008012 ,  1.73838373,  1.78171869,  1.82792986,
+    #     1.87030608,  1.91881822,  1.97289104,  2.02466289,  2.07720173,
+    #     2.13779398,  2.20260466,  2.26204642,  2.32666536,  2.39780372,
+    #     2.45858771,  2.51783772,  2.58149792,  2.64324065,  2.69386201,
+    #     2.74755134,  2.8021994 ,  2.8464931 ,  2.8900198 ,  2.93527224,
+    #     2.97841545,  3.01618972,  3.05415575,  3.09461449,  3.12951255,
+    #    -3.11858294, -3.08042517, -3.04034992, -3.00372613, -2.96384263,
+    #    -2.91782321, -2.87640572, -2.83326252, -2.78110717, -2.72665085,
+    #    -2.67602948, -2.6188887 , -2.55331102, -2.49463626, -2.43289353,
+    #    -2.36405614, -2.29483526, -2.23385952, -2.17039107, -2.1040464 ,
+    #    -2.04920659, -1.996476  , -1.94125269, -1.8881386 , -1.84384491,
+    #    -1.79878422, -1.75199781, -1.7128813 , -1.67472353, -1.63388129,
+    #    -1.59361429, -1.55890798, -1.52055846, -1.47914097, -1.44059971,
+    #    -1.40129145])
+    # step_count = len(enc_angles)
 
-    # Find erevs/mrev, including its sign
-    est_enc_angle_slope = np.mean(np.diff(np.unwrap(enc_angles)))
-    steps_per_mrev = int(np.round(2 * np.pi / est_enc_angle_slope))
-    assert abs(steps_per_mrev) == step_count
-    erevs_per_mrev = steps_per_mrev // steps_per_erev # Could be negative
+    # Move smallest encoder angle aligned with phase A to the front, for consistency
+    smallest_index = np.argmin(np.abs(enc_angles[::steps_per_erev])) * steps_per_erev
+    enc_angles = np.roll(enc_angles, -smallest_index)
 
-    # Shift smallest encoder angle corresponding to phase A to the front
-    # This will be the start of a "mechanical revolution"
-    enc_angles = enc_angles % (2 * np.pi) # Wrap phase
-    smallest_phase_a_index = np.argmin(enc_angles[::steps_per_erev]) * steps_per_erev
-    enc_angles = np.roll(enc_angles, -smallest_phase_a_index)
+    mech_angle_slope = -np.sign(np.diff(np.unwrap(enc_angles))[0]) # Encoder angles increase clockwise, mechanical angles increase counterclockwise
+    mech_angles = np.linspace(0, 2 * pi, step_count, endpoint=False) * mech_angle_slope
 
-    # Find offset between mechanical angle and encoder angle
-    enc_angle_slope = 2 * np.pi / steps_per_mrev
-    enc_angle_offset = np.mean((enc_angles - np.arange(step_count) * enc_angle_slope) % (2 * np.pi))
-    enc_tick_offset = enc_angle_offset / (2 * np.pi) * encoder_ticks_per_rev
+    interp_enc_angles = np.linspace(0, 2 * pi, enc_ang_corr_table_size, endpoint=False)
+    interp_mech_angles = interp_periodic_periodic(interp_enc_angles, enc_angles, mech_angles)
 
-    # Find mapping from mechanical angle to true electrical angle
-    mech_angles = np.unwrap(enc_angles - enc_angle_offset)
-    mech_angles_trend = np.arange(step_count) * enc_angle_slope
-    smoothed_mech_angles = sps.savgol_filter(mech_angles - mech_angles_trend, 31, 3, mode='wrap') + mech_angles_trend
-    elec_angle_slope = enc_angle_slope * erevs_per_mrev
-    true_elec_angles = np.arange(step_count) * elec_angle_slope
+    # interp_mech_angles is the sum of a (2*pi)-periodic linear component and a (2*pi)-periodic nonlinear component, w.r.t. the encoder angle
+    # The linear component has y-intercept mech_angle_offset and slope mech_angle_slope
+    # The nonlinear component is mech_angle_residuals
+    mech_angle_offset = np.mean(interp_mech_angles - mech_angle_slope * interp_enc_angles)
+    mech_angle_residuals = interp_mech_angles - mech_angle_slope * interp_enc_angles - mech_angle_offset
 
-    # if erevs_per_mrev < 0:
-    #     smoothed_mech_angles = np.roll(smoothed_mech_angles, -1) % (2 * np.pi)
-    #     true_elec_angles = np.roll(true_elec_angles, -1) % (2 * np.pi * abs(erevs_per_mrev))
-
-    # Extend parameters to np.interp
-    ext_smoothed_mech_angles = np.concatenate((
-        smoothed_mech_angles[-steps_per_erev:] - step_count * enc_angle_slope,
-        smoothed_mech_angles,
-        smoothed_mech_angles[:steps_per_erev] + step_count * enc_angle_slope))
-    ext_true_elec_angles = np.concatenate((
-        true_elec_angles[-steps_per_erev:] - step_count * enc_angle_slope * erevs_per_mrev,
-        true_elec_angles,
-        true_elec_angles[:steps_per_erev] + step_count * enc_angle_slope * erevs_per_mrev))
-
-    # Ensure ext_smoothed_mech_angles are strictly monotonically increasing
-    if ext_smoothed_mech_angles[0] > ext_smoothed_mech_angles[-1]:
-        ext_smoothed_mech_angles = ext_smoothed_mech_angles[::-1]
-        ext_true_elec_angles = ext_true_elec_angles[::-1]
-    assert all(np.diff(ext_smoothed_mech_angles) > 0), 'Mechanical angles are not strictly monotonically increasing'
-
-    table_mech_angles = np.linspace(0, step_count * enc_angle_slope, elec_ang_corr_table_size, endpoint=True)
-    table_elec_angle_residuals = np.unwrap(np.interp(table_mech_angles, ext_smoothed_mech_angles, ext_true_elec_angles) - table_mech_angles * erevs_per_mrev)
-
-    # Generate electrical angle correction table
-    elec_ang_corr_scale = np.ptp(table_elec_angle_residuals) / 254
-    elec_ang_corr_offset = (np.min(table_elec_angle_residuals) + np.max(table_elec_angle_residuals)) / 2
-    elec_ang_corr_values = np.round((table_elec_angle_residuals - elec_ang_corr_offset) / elec_ang_corr_scale).astype(np.int8)
+    # Build encoder angle compensation table
+    eac_scale = np.ptp(mech_angle_residuals) / 254
+    eac_offset = (np.min(mech_angle_residuals) + np.max(mech_angle_residuals)) / 2
+    eac_table = np.round((mech_angle_residuals - eac_offset) / eac_scale).astype(np.int8)
 
     if args.plot:
-        plt.plot(table_mech_angles, table_elec_angle_residuals, label='Floating point')
-        plt.plot(table_mech_angles, elec_ang_corr_values * elec_ang_corr_scale + elec_ang_corr_offset, '.', label='int8 quantized')
-        plt.xlabel('Mechanical angle (rad)')
-        plt.ylabel('Electrical angle correction (rad)')
+        plt.figure()
+        plt.plot(interp_enc_angles, mech_angle_residuals, label='float')
+        plt.plot(interp_enc_angles, eac_scale * eac_table + eac_offset, '.', label='int8')
+        plt.title('Encoder angle compensation')
+        plt.xlabel('Encoder angle (rad)')
+        plt.ylabel('Mechanical angle residuals (rad)')
         plt.legend()
         plt.show()
+
+    enc_tick_offset = (mech_angle_offset % (2 * pi)) / (2 * pi) * encoder_ticks_per_rev
+    erevs_per_mrev = int(round(step_count / steps_per_erev))
 
     calibration_dict = OrderedDict()
     calibration_dict['angle'] = int(round(enc_tick_offset))
     calibration_dict['inv'] = int(erevs_per_mrev > 0)
     calibration_dict['epm'] = abs(erevs_per_mrev)
     calibration_dict['eac_type'] = 'int8'
-    calibration_dict['eac_scale'] = elec_ang_corr_scale
-    calibration_dict['eac_offset'] = elec_ang_corr_offset
-    calibration_dict['eac_table'] = elec_ang_corr_values.tolist()
+    calibration_dict['eac_scale'] = eac_scale
+    calibration_dict['eac_offset'] = eac_offset
+    calibration_dict['eac_table'] = eac_table.tolist()
 
     print(json.dumps(calibration_dict))
