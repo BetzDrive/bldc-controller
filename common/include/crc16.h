@@ -37,8 +37,8 @@
  * crc = crc16_finalize(crc);
  * \endcode
  */
-#ifndef PYCRC_STDOUT
-#define PYCRC_STDOUT
+#ifndef _CRC16_H_
+#define _CRC16_H_
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -103,4 +103,4 @@ static inline crc16_t crc16_finalize(crc16_t crc)
 }           /* closing brace for extern "C" */
 #endif
 
-#endif      /* PYCRC_STDOUT */
+#endif      /* _CRC16_H_ */

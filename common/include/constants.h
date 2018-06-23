@@ -85,6 +85,11 @@ constexpr uint8_t control_mode_velocity = 3;
 constexpr uint8_t control_mode_position = 4;
 constexpr uint8_t control_mode_position_velocity = 5;
 
+/* Encoder modes */
+constexpr uint8_t encoder_mode_none = 0;
+constexpr uint8_t encoder_mode_as5047d = 1;
+constexpr uint8_t encoder_mode_mlx90363 = 2;
+
 /* Electrical angle correction */
 constexpr size_t elec_ang_corr_table_size = 257;
 

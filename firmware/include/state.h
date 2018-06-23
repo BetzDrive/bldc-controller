@@ -8,29 +8,30 @@
 namespace motor_driver {
 
 struct Results {
-  float foc_d_current = 0;        // Measured FOC direct current (amperes)
-  float foc_q_current = 0;        // Measured FOC quadrature current (amperes)
+  float foc_d_current = 0;                  // Measured FOC direct current (amperes)
+  float foc_q_current = 0;                  // Measured FOC quadrature current (amperes)
 
-  uint16_t raw_encoder_pos = 0;   // Encoder position, wraps around
+  uint16_t raw_encoder_pos = 0;             // Encoder position, wraps around
   uint16_t encoder_diag = 0;
 
-  int16_t encoder_revs = 0;       // Total number of encoder revolutions
-  float encoder_pos_radians = 0;  // Encoder position (radians)
-  float encoder_vel_radians = 0;  // Encoder velocity (radians/second)
+  int16_t encoder_revs = 0;                 // Total number of encoder revolutions
+  float encoder_pos_radians = 0;            // Encoder position (radians)
+  float encoder_vel_radians = 0;            // Encoder velocity (radians/second)
+  uint8_t encoder_mode = encoder_mode_none; // Encoder mode
 
-  float average_va = 0;           // Average voltage on phase A (volts)
-  float average_vb = 0;           // Average voltage on phase B (volts)
-  float average_vc = 0;           // Average voltage on phase C (volts)
-  float average_vin = 0;          // Average supply voltage (volts)
-  float average_ia = 0;           // Average current into phase A (amperes)
-  float average_ib = 0;           // Average current into phase B (amperes)
-  float average_ic = 0;           // Average current into phase C (amperes)
+  float average_va = 0;                     // Average voltage on phase A (volts)
+  float average_vb = 0;                     // Average voltage on phase B (volts)
+  float average_vc = 0;                     // Average voltage on phase C (volts)
+  float average_vin = 0;                    // Average supply voltage (volts)
+  float average_ia = 0;                     // Average current into phase A (amperes)
+  float average_ib = 0;                     // Average current into phase B (amperes)
+  float average_ic = 0;                     // Average current into phase C (amperes)
 
-  int32_t xl_x = 0;               // X-acceleration in milli-g's
-  int32_t xl_y = 0;               // Y-acceleration in milli-g's
-  int32_t xl_z = 0;               // Z-acceleration in milli-g's
+  int32_t xl_x = 0;                         // X-acceleration in milli-g's
+  int32_t xl_y = 0;                         // Y-acceleration in milli-g's
+  int32_t xl_z = 0;                         // Z-acceleration in milli-g's
 
-  float temperature = 0;          // Temperature in degrees Celsius
+  float temperature = 0;                    // Temperature in degrees Celsius
 
   Results() {}
 };

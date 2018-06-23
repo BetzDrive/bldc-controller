@@ -62,14 +62,21 @@ void resumeInnerControlLoop() {
 void runInnerControlLoop() {
   control_thread_ptr = chThdSelf();
 
-  chSysLock();
+  if (results.encoder_mode == encoder_mode_as5047d) {
+    chSysLock();
 
-  /*
-   * getPipelinedRegisterReadResultI requires startPipelinedRegisterReadI to be called beforehand
-   */
-  encoder.startPipelinedRegisterReadI(0x3fff);
+    /*
+     * getPipelinedRegisterReadResultI requires startPipelinedRegisterReadI to be called beforehand
+     */
+    encoder_as5047d.startPipelinedRegisterReadI(0x3fff);
 
-  chSysUnlock();
+    chSysUnlock();
+  } else if (results.encoder_mode == encoder_mode_mlx90363) {
+    uint8_t txbuf[8];
+
+    encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
+    encoder_mlx90363.sendMessage(txbuf);
+  }
 
   while (true) {
     /*
@@ -98,12 +105,41 @@ void estimateState() {
 
   uint16_t raw_encoder_pos;
 
-  chSysLock(); // Required for function calls with "I" suffix
+  if (results.encoder_mode == encoder_mode_as5047d) {
+    chSysLock(); // Required for function calls with "I" suffix
 
-  raw_encoder_pos = encoder.getPipelinedRegisterReadResultI();
-  encoder.startPipelinedRegisterReadI(0x3fff);
+    raw_encoder_pos = encoder_as5047d.getPipelinedRegisterReadResultI();
+    encoder_as5047d.startPipelinedRegisterReadI(0x3fff);
 
-  chSysUnlock();
+    chSysUnlock();
+  } else if (results.encoder_mode == encoder_mode_mlx90363) {
+    static int cycles_since_update = 0;
+
+    // MLX90363 can only provide a new position every 20 cycles
+    if (cycles_since_update >= 20) {
+      uint8_t txbuf[8];
+      uint8_t rxbuf[8];
+
+      encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
+      encoder_mlx90363.exchangeMessage(txbuf, rxbuf);
+      mlx90363_status_t status = encoder_mlx90363.parseAlphaMessage(rxbuf, &raw_encoder_pos, nullptr);
+      raw_encoder_pos = encoder_period - raw_encoder_pos; // MLX90363 angles increase in opposite direction
+
+      if (status != MLX90363_STATUS_OK) {
+        // If an error occurred, use the previous encoder position
+        raw_encoder_pos = results.raw_encoder_pos;
+      }
+
+      cycles_since_update = 0;
+    } else {
+      // Use the previous encoder position
+      raw_encoder_pos = results.raw_encoder_pos;
+    }
+
+    cycles_since_update++;
+  } else {
+    raw_encoder_pos = 0; // TODO
+  }
 
   uint16_t prev_raw_encoder_pos = results.raw_encoder_pos;
   constexpr float threshold = pi;
