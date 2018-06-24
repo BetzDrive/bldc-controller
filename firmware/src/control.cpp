@@ -272,12 +272,11 @@ void runCurrentControl() {
       ibeta = -ibeta;
     }
 
-    uint16_t zeroed_encoder_pos = (results.raw_enc_value - calibration.erev_start + encoder_period) % encoder_period;
-    float mechanical_angle = zeroed_encoder_pos * rad_per_enc_tick;
-    float elec_pos_radians = mechanical_angle * calibration.erevs_per_mrev;
+    float mech_pos = results.enc_pos - calibration.erev_start * rad_per_enc_tick;
+    float elec_pos = mech_pos * calibration.erevs_per_mrev;
 
-    float cos_theta = fast_cos(elec_pos_radians);
-    float sin_theta = fast_sin(elec_pos_radians);
+    float cos_theta = fast_cos(elec_pos);
+    float sin_theta = fast_sin(elec_pos);
 
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
