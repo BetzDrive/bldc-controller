@@ -90,8 +90,8 @@ constexpr uint8_t encoder_mode_none = 0;
 constexpr uint8_t encoder_mode_as5047d = 1;
 constexpr uint8_t encoder_mode_mlx90363 = 2;
 
-/* Electrical angle correction */
-constexpr size_t elec_ang_corr_table_size = 257;
+/* Encoder angle correction */
+constexpr size_t enc_ang_corr_table_size = 257;
 
 /* Address of non-volatile parameters storage */
 /* extern const void *nvparams_start; */

@@ -59,9 +59,9 @@ struct Calibration {
   uint16_t control_timeout = 0;           // Control timeout (ms)
   float velocity_filter_param = 1e-3f;    // Parameter for velocity filter
   float position_offset = 0.0f;           // Position offset
-  float elec_ang_corr_scale = 0.0f;       // Electrical angle correction scale (rad)
-  float elec_ang_corr_offset = 0.0f;      // Electrical angle correction offset (rad)
-  int8_t elec_ang_corr_table_values[elec_ang_corr_table_size]; // Electrical angle correction table values
+  float enc_ang_corr_scale = 0.0f;        // Encoder angle correction scale (rad)
+  float enc_ang_corr_offset = 0.0f;       // Encoder angle correction offset (rad)
+  int8_t enc_ang_corr_table_values[enc_ang_corr_table_size]; // Encoder angle correction table values
 
   Calibration() {}
 };
