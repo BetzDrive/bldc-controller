@@ -143,10 +143,10 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           break;
 
         case 0x3000: // Rotor Position (rad)
-          handleVarAccess(results.encoder_pos_radians, buf, index, buf_size, access_type, errors);
+          handleVarAccess(results.rotor_pos, buf, index, buf_size, access_type, errors);
           break;
         case 0x3001: // Rotor Velocity (rad/sec)
-          handleVarAccess(results.encoder_vel_radians, buf, index, buf_size, access_type, errors);
+          handleVarAccess(results.rotor_vel, buf, index, buf_size, access_type, errors);
           break;
         case 0x3002: // Direct Current Measurement (A)
           handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
@@ -185,8 +185,8 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           handleVarAccess(flag, buf, index, buf_size, access_type, errors);
           break;
         }
-        case 0x3010: // Raw Encoder Position
-          handleVarAccess(results.raw_encoder_pos, buf, index, buf_size, access_type, errors);
+        case 0x3010: // Raw Encoder Value
+          handleVarAccess(results.raw_enc_value, buf, index, buf_size, access_type, errors);
           break;
         case 0x3011: // Encoder Mode
           handleVarAccess(results.encoder_mode, buf, index, buf_size, access_type, errors);

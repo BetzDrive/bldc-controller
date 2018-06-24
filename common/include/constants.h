@@ -20,7 +20,7 @@ constexpr uint32_t rs485_baud = 1000000;
 constexpr uint16_t encoder_period = 1U << 14;
 
 /* Need to flip the sign because encoder position increases clockwise */
-constexpr float encoder_pos_to_radians = -2.0f * pi / encoder_period;
+constexpr float rad_per_enc_tick = -2.0f * pi / encoder_period;
 
 constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
 

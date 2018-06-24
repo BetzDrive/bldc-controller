@@ -37,9 +37,9 @@ static const LFPeriodicity enc_ang_corr_periodicity = {
 
 static LUTFunction<int8_t> enc_ang_corr_table(0, 2 * pi, calibration.enc_ang_corr_table_values, enc_ang_corr_table_size, enc_ang_corr_periodicity);
 
-static float getEncoderAngleCorrection(float mechanical_angle) {
+static float getEncoderAngleCorrection(float raw_enc_pos) {
   if (calibration.enc_ang_corr_scale != 0.0f) {
-    return enc_ang_corr_table(mechanical_angle) * calibration.enc_ang_corr_scale + calibration.enc_ang_corr_offset;
+    return enc_ang_corr_table(raw_enc_pos) * calibration.enc_ang_corr_scale + calibration.enc_ang_corr_offset;
   } else {
     return 0.0f;
   }
@@ -103,12 +103,12 @@ void estimateState() {
    * Get current encoder position and velocity
    */
 
-  uint16_t raw_encoder_pos;
+  uint16_t raw_enc_value;
 
   if (results.encoder_mode == encoder_mode_as5047d) {
     chSysLock(); // Required for function calls with "I" suffix
 
-    raw_encoder_pos = encoder_as5047d.getPipelinedRegisterReadResultI();
+    raw_enc_value = encoder_as5047d.getPipelinedRegisterReadResultI();
     encoder_as5047d.startPipelinedRegisterReadI(0x3fff);
 
     chSysUnlock();
@@ -122,42 +122,47 @@ void estimateState() {
 
       encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
       encoder_mlx90363.exchangeMessage(txbuf, rxbuf);
-      mlx90363_status_t status = encoder_mlx90363.parseAlphaMessage(rxbuf, &raw_encoder_pos, nullptr);
-      raw_encoder_pos = encoder_period - raw_encoder_pos; // MLX90363 angles increase in opposite direction
+      mlx90363_status_t status = encoder_mlx90363.parseAlphaMessage(rxbuf, &raw_enc_value, nullptr);
+      raw_enc_value = encoder_period - raw_enc_value; // MLX90363 angles increase in opposite direction
 
       if (status != MLX90363_STATUS_OK) {
         // If an error occurred, use the previous encoder position
-        raw_encoder_pos = results.raw_encoder_pos;
+        raw_enc_value = results.raw_enc_value;
       }
 
       cycles_since_update = 0;
     } else {
       // Use the previous encoder position
-      raw_encoder_pos = results.raw_encoder_pos;
+      raw_enc_value = results.raw_enc_value;
     }
 
     cycles_since_update++;
   } else {
-    raw_encoder_pos = 0; // TODO
+    raw_enc_value = 0; // TODO
   }
 
-  uint16_t prev_raw_encoder_pos = results.raw_encoder_pos;
-  constexpr float threshold = pi;
-  float diff = ((int16_t)raw_encoder_pos - (int16_t)prev_raw_encoder_pos) * encoder_pos_to_radians;
-  if (diff < -threshold) {
-    results.encoder_revs += 1;
-    diff += 2 * pi; // Normalize to (-pi, pi) range
-  } else if (diff > threshold) {
-    results.encoder_revs -= 1;
-    diff -= 2 * pi; // Normalize to (-pi, pi) range
-  }
-  results.raw_encoder_pos = raw_encoder_pos;
-  float prev_encoder_pos_radians = results.encoder_pos_radians;
-  results.encoder_pos_radians = raw_encoder_pos * encoder_pos_to_radians + results.encoder_revs * 2 * pi - calibration.position_offset;
+  results.raw_enc_value = raw_enc_value;
 
-  float encoder_vel_radians_update = (results.encoder_pos_radians - prev_encoder_pos_radians) * current_control_freq;
+  float raw_enc_pos = raw_enc_value * rad_per_enc_tick;
+  float enc_pos = raw_enc_pos + getEncoderAngleCorrection(raw_enc_pos);
+
+  float prev_enc_pos = results.enc_pos;
+  results.enc_pos = enc_pos;
+
+  float enc_pos_diff = enc_pos - prev_enc_pos;
+  if (enc_pos_diff < -pi) {
+    results.rotor_revs += 1;
+    enc_pos_diff += 2 * pi; // Normalize to (-pi, pi) range
+  } else if (enc_pos_diff > pi) {
+    results.rotor_revs -= 1;
+    enc_pos_diff -= 2 * pi; // Normalize to (-pi, pi) range
+  }
+
+  results.rotor_pos = enc_pos + results.rotor_revs * 2 * pi - calibration.position_offset;
+
+  float rotor_vel_update = enc_pos_diff * current_control_freq;
   float alpha = calibration.velocity_filter_param;
-  results.encoder_vel_radians = alpha * encoder_vel_radians_update + (1.0f - alpha) * results.encoder_vel_radians;
+  results.rotor_vel = alpha * rotor_vel_update + (1.0f - alpha) * results.rotor_vel;
 
   /*
    * Calculate average voltages and currents
@@ -204,8 +209,8 @@ void estimateState() {
   recorder_new_data[recorder_channel_vb] = results.average_vb;
   recorder_new_data[recorder_channel_vc] = results.average_vc;
   recorder_new_data[recorder_channel_vin] = results.average_vin;
-  recorder_new_data[recorder_channel_rotor_pos] = results.encoder_pos_radians;
-  recorder_new_data[recorder_channel_rotor_vel] = results.encoder_vel_radians;
+  recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
+  recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
 
   recorder.recordSample(recorder_new_data);
 }
@@ -217,7 +222,7 @@ void runPositionControl() {
     pid_position.setInputLimits(-1.0f, 1.0f);
     pid_position.setOutputLimits(-calibration.velocity_limit, calibration.velocity_limit);
     pid_position.setSetPoint(0.0f);
-    pid_position.setProcessValue(results.encoder_pos_radians - parameters.position_sp);
+    pid_position.setProcessValue(results.rotor_pos - parameters.position_sp);
     pid_position.setBias(0.0f);
     parameters.velocity_sp = pid_position.compute();
   } else {
@@ -234,7 +239,7 @@ void runVelocityControl() {
     pid_velocity.setInputLimits(-velocity_max, velocity_max);
     pid_velocity.setOutputLimits(-calibration.torque_limit, calibration.torque_limit);
     pid_velocity.setSetPoint(parameters.velocity_sp);
-    pid_velocity.setProcessValue(results.encoder_vel_radians);
+    pid_velocity.setProcessValue(results.rotor_vel);
     pid_velocity.setBias(0.0f);
     parameters.torque_sp = pid_velocity.compute();
   } else {
@@ -267,9 +272,9 @@ void runCurrentControl() {
       ibeta = -ibeta;
     }
 
-    uint16_t zeroed_encoder_pos = (results.raw_encoder_pos - calibration.erev_start + encoder_period) % encoder_period;
-    float mechanical_angle = zeroed_encoder_pos * encoder_pos_to_radians;
-    float elec_pos_radians = mechanical_angle * calibration.erevs_per_mrev + getEncoderAngleCorrection(mechanical_angle);
+    uint16_t zeroed_encoder_pos = (results.raw_enc_value - calibration.erev_start + encoder_period) % encoder_period;
+    float mechanical_angle = zeroed_encoder_pos * rad_per_enc_tick;
+    float elec_pos_radians = mechanical_angle * calibration.erevs_per_mrev;
 
     float cos_theta = fast_cos(elec_pos_radians);
     float sin_theta = fast_sin(elec_pos_radians);
@@ -305,7 +310,7 @@ void runCurrentControl() {
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.encoder_vel_radians * calibration.motor_torque_const);
+    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();

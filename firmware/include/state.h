@@ -11,13 +11,14 @@ struct Results {
   float foc_d_current = 0;                  // Measured FOC direct current (amperes)
   float foc_q_current = 0;                  // Measured FOC quadrature current (amperes)
 
-  uint16_t raw_encoder_pos = 0;             // Encoder position, wraps around
-  uint16_t encoder_diag = 0;
-
-  int16_t encoder_revs = 0;                 // Total number of encoder revolutions
-  float encoder_pos_radians = 0;            // Encoder position (radians)
-  float encoder_vel_radians = 0;            // Encoder velocity (radians/second)
   uint8_t encoder_mode = encoder_mode_none; // Encoder mode
+  uint16_t raw_enc_value = 0;               // Raw encoder value, wraps around
+  float enc_pos = 0;                        // Corrected encoder position, wraps around (radians)
+  uint16_t encoder_diag = 0;                // Encoder diagnostics
+
+  int16_t rotor_revs = 0;                   // Total number of rotor revolutions
+  float rotor_pos = 0;                      // Rotor position (radians)
+  float rotor_vel = 0;                      // Rotor velocity (radians/second)
 
   float average_va = 0;                     // Average voltage on phase A (volts)
   float average_vb = 0;                     // Average voltage on phase B (volts)
