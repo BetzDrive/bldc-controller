@@ -83,7 +83,7 @@ MLX90363 encoder_mlx90363(
 
 BinarySemaphore ivsense_adc_samples_bsem;
 
-volatile adcsample_t *ivsense_adc_samples_ptr = NULL;
+volatile adcsample_t *ivsense_adc_samples_ptr = nullptr;
 
 volatile size_t ivsense_adc_samples_count;
 
@@ -115,8 +115,8 @@ static const ADCConversionGroup ivsense_adc_group = {
   ivsenseADCErrorCallback,
   0,                                        // CR1
   ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_144)
-      | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
+  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15)
+      | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
   ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
   ADC_SQR1_NUM_CH(ivsense_channel_count),   // SQR1
   ADC_SQR2_SQ7_N(ADC_CHANNEL_IN13),         // SQR2

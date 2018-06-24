@@ -108,8 +108,11 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x1020` | Motor Resistance (ohm) | `float` |
 | `0x1021` | Motor Inductance (H) | `float` |
 | `0x1022` | Motor Torque Constant (N*m/A) | `float` |
-| `0x1030` | Control Watchdog Timeout (ms) | `uint16_t` |
+| `0x1030` | Control Timeout (ms) | `uint16_t` |
 | `0x1040` | Velocity Filter Parameter | `float` |
+| `0x1100` | Electrical Angle Correction Scale (rad) | `float` |
+| `0x1101` | Electrical Angle Correction Offset (rad) | `float` |
+| `0x1200` | Electrical Angle Correction Table Values | `uint8_t` |
 
 **Volatile Registers `(0x2***)`**
 
@@ -141,7 +144,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x3009` | Recorder start | `bool` |
 | `0x300a` | Recorder ready/length | `uint16_t` |
 | `0x300b` | Recorder reset | `bool` |
-| `0x300c` | Rotor Position (raw) | `uint16_t` |
+| `0x3010` | Raw Encoder Value | `uint16_t` |
 
 -------
 

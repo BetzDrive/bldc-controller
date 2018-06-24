@@ -31,21 +31,6 @@ static msg_t blinkerThreadRun(void *arg) {
   setCommsActivityLED(false);
 
   while (true) {
-
-    // palSetPad(GPIOA, GPIOA_LED_B);
-   //  palClearPad(GPIOA, GPIOA_LED_R);
-   //  chThdSleepMilliseconds(250);
-   //  palSetPad(GPIOA, GPIOA_LED_R);
-   //  palClearPad(GPIOA, GPIOA_LED_G);
-   //  chThdSleepMilliseconds(250);
-   //  palSetPad(GPIOA, GPIOA_LED_G);
-   //  palClearPad(GPIOA, GPIOA_LED_B);
-   //  chThdSleepMilliseconds(250);
-    // palClearPad(GPIOA, GPIOA_LED_G);
-    // chThdSleepMilliseconds(250);
-    // palSetPad(GPIOA, GPIOA_LED_G);
-    // chThdSleepMilliseconds(250);
-
     uint8_t g = ::abs(t - 255);
     setStatusLEDColor(0, 0, g);
 

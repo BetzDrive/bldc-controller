@@ -50,7 +50,7 @@ if PROTOCOL_V2:
     client.writeRegisters(address, 0x1003, 1, struct.pack('<f', 1.0)) # FOC direct current Kp
     client.writeRegisters(address, 0x1005, 1, struct.pack('<f', 1.0)) # FOC quadrature current Kp
     client.writeRegisters(address, 0x1040, 1, struct.pack('<f', 1e-2)) # Velocity filter parameter
-    client.writeRegisters(address, 0x1030, 1, struct.pack('<H', 1000)) # Control watchdog timeout
+    client.writeRegisters(address, 0x1030, 1, struct.pack('<H', 1000)) # Control timeout
     # client.writeRegisters(address, 0x1030, 1, struct.pack('<H', 0))
 
     client.writeRegisters(address, 0x2006, 1, struct.pack('<f', torque))
