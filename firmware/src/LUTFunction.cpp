@@ -1,11 +1,12 @@
 #include "LUTFunction.h"
 
 #include <cmath>
+#include <stdint.h>
 
 namespace motor_driver {
 
 template <typename T>
-T LUTFunction<T>::lookup(float arg) const {
+float LUTFunction<T>::lookup(float arg) const {
   float norm_arg = (arg - x_first_) / (x_last_ - x_first_);
   float norm_arg_integral = std::floor(norm_arg);
   float norm_arg_fraction = norm_arg - norm_arg_integral;
@@ -26,7 +27,7 @@ T LUTFunction<T>::lookup(float arg) const {
 }
 
 template <typename T>
-T LUTFunction<T>::lookupReduced(float reduced_arg) const {
+float LUTFunction<T>::lookupReduced(float reduced_arg) const {
   if (reduced_arg <= 0.0f) {
     return y_[0];
   } else if (reduced_arg >= 1.0f) {
@@ -40,5 +41,6 @@ T LUTFunction<T>::lookupReduced(float reduced_arg) const {
 }
 
 template class LUTFunction<float>;
+template class LUTFunction<int8_t>;
 
 } // namespace motor_driver

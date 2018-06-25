@@ -2,7 +2,7 @@
 
 namespace motor_driver {
 
-bool Recorder::startRecord() {
+bool Recorder::startRecording() {
   // TODO: start another record as soon as it is over, if already recording
   if (state_ == State::READY) {
     state_ = State::RECORDING;

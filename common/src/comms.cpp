@@ -7,6 +7,7 @@
 #include "constants.h"
 #include "helper.h"
 #include "flash.h"
+#include "crc16.h"
 
 namespace motor_driver {
 
@@ -39,7 +40,7 @@ void UARTEndpoint::transmit() {
 
   uartStopReceiveI(uart_driver_);
   palSetPad(dir_.port, dir_.pin);
-  uartStartSendI(uart_driver_, header_len + tx_len_ + crc_length, tx_buf_);
+  uartStartSendI(uart_driver_, header_len + tx_len_ + crc_len, tx_buf_);
   changeStateI(State::TRANSMITTING);
 
   chSysUnlock();
@@ -163,7 +164,7 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
       rx_buf_[3] = (uint8_t)c;
       rx_len_ = ((size_t)rx_buf_[3] << 8) | rx_buf_[2];
       if (rx_len_ <= max_dg_payload_len) {
-        uartStartReceiveI(uart_driver_, rx_len_ + crc_length, rx_buf_ + header_len);
+        uartStartReceiveI(uart_driver_, rx_len_ + crc_len, rx_buf_ + header_len);
         changeStateI(State::RECEIVING);
       } else {
         changeStateI(State::INITIALIZING);
@@ -197,49 +198,11 @@ void UARTEndpoint::gptCallback() {
 }
 
 uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
-  uint16_t out = 0;
-  uint16_t bits_read = 0, bit_flag;
+  // crc16_t crc = crc16_init();
+  // crc = crc16_update(crc, buf, len);
+  // return crc16_finalize(crc);
 
-  /* Sanity check */
-  if (buf == nullptr)
-    return 0;
-
-  while (len > 0) {
-    bit_flag = out >> 15;
-
-    /* Get next bit: */
-    out <<= 1;
-    out |= (*buf >> bits_read) & 1; // item a) work from the least significant bits
-    
-    /* Increment bit counter: */
-    bits_read++;
-    if(bits_read > 7) {
-      bits_read = 0;
-      buf++;
-      len--;
-    }
-    
-    /* Cycle check: */
-    if(bit_flag) out ^= crc_16_ibm;
-  }
-
-  // item b) "push out" the last 16 bits
-  int i;
-  for (i = 0; i < 16; ++i) {
-    bit_flag = out >> 15;
-    out <<= 1;
-    if(bit_flag) out ^= crc_16_ibm;
-  }
-
-  // item c) reverse the bits
-  uint16_t crc = 0;
-  i = 0x8000;
-  int j = 0x0001;
-  for (; i != 0; i >>=1, j <<= 1) {
-    if (i & out) crc |= j;
-  }
-
-  return crc;
+  return 0;
 }
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_errors_t& errors) {
@@ -726,11 +689,13 @@ void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAc
 
 template void handleVarAccess<uint8_t>(uint8_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
+template void handleVarAccess<int8_t>(int8_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+
 template void handleVarAccess<uint16_t>(uint16_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
-template void handleVarAccess<float>(float& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
-
 template void handleVarAccess<int32_t>(int32_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+
+template void handleVarAccess<float>(float& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
 void startComms() {
   comms_endpoint.start();

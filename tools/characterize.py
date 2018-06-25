@@ -73,7 +73,7 @@ if len(sys.argv) >= 3:
             time.sleep(0.1)
         data = []
         chunk_len = 16
-        for i in range(0, l/2, chunk_len):
+        for i in range(0, int(l/4), chunk_len):
             a = (struct.unpack("<{}f".format(chunk_len), client.readRegisters(address, 0x8000 + i, chunk_len)))
             data += a
 
@@ -116,11 +116,16 @@ current = (ia - ib - ic) / 2.0
 # Find start of step
 start_index = np.argmax(current >= 0.1 * np.max(current))
 
+# Find approximate end of step
+end_index = np.argmax(current >= 0.95 * np.max(current)) + 100
+if end_index > length:
+    end_index = length
+
 def model_func(x, a, k, b):
     return a * np.exp(-k*x) + b
 
-p0 = (0.5, 1e-8, 1.0)
-opt, pcov = curve_fit(model_func, time[start_index:], current[start_index:], p0)
+p0 = (-1e10, 1e4, 0.25)
+opt, pcov = curve_fit(model_func, time[start_index:end_index], current[start_index:end_index], p0)
 a, k, b = opt
 
 motor_resistance = supply_voltage * PWM_DUTY_CYCLE / b
@@ -129,12 +134,12 @@ motor_inductance = motor_resistance / k
 def current_func(y, t0):
     return supply_voltage * PWM_DUTY_CYCLE / motor_inductance - motor_resistance / motor_inductance * y
 
-current_sim = odeint(current_func, current[start_index], time[start_index:])
+current_sim = odeint(current_func, current[start_index], time[start_index:end_index])
 
 plt.figure()
-plt.plot(time[start_index:], current[start_index:], label='Measured current')
-plt.plot(time[start_index:], model_func(time[start_index:], a, k, b), label='Fitted current')
-plt.plot(time[start_index:], current_sim, label='Simulated current')
+plt.plot(time[start_index:end_index], current[start_index:end_index], label='Measured current')
+plt.plot(time[start_index:end_index], model_func(time[start_index:end_index], a, k, b), label='Fitted current')
+plt.plot(time[start_index:end_index], current_sim, label='Simulated current')
 plt.xlabel('Time (s)')
 plt.ylabel('Current (A)')
 plt.title('Voltage step response')
@@ -147,6 +152,11 @@ raw_angle = angle / (2 * np.pi) * 2 ** encoder_bits
 encoder_enob = encoder_bits - np.log2(np.std(raw_angle))
 print(np.std(raw_angle))
 
+# Find RMS current noise
+# current_noise = np.sqrt(np.mean(np.square(ic[:start_index])))
+current_noise = np.std(ic[:start_index])
+
 print('Resistance (ohms): {}'.format(motor_resistance))
 print('Inductance (henries): {}'.format(motor_inductance))
 print('Encoder ENOB: {}'.format(encoder_enob))
+print('Current stddev (A): {}'.format(current_noise))

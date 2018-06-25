@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16 --specs=nosys.specs -lm -DBOOTLOADER
+  USE_OPT = -Os -ggdb -fomit-frame-pointer -falign-functions=16 --specs=nosys.specs -lm -DBOOTLOADER
 endif
 
 # C specific options here (added to USE_OPT).
@@ -100,7 +100,8 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/memstreams.c \
        $(COMMON_SRC)/utils.c \
        $(COMMON_SRC)/flash.c \
-       $(COMMON_SRC)/helper.c
+       $(COMMON_SRC)/helper.c \
+       $(COMMON_SRC)/crc16.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.

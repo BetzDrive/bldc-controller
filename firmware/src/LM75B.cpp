@@ -7,9 +7,8 @@ void LM75B::start() {
 }
 
 bool LM75B::receive(uint16_t addr, uint8_t* data, size_t size) {
-  systime_t tmo = MS2ST(4);
-  msg_t status = RDY_OK;
-  status = i2cMasterReceiveTimeout(i2c_driver_, addr, data, size, tmo);
+  systime_t tmo = MS2ST(4); // 4 millisecond timeout
+  msg_t status = i2cMasterReceiveTimeout(i2c_driver_, addr, data, size, tmo);
   return status == RDY_OK;
 }
 
@@ -18,7 +17,7 @@ bool LM75B::getTemperature(float* temp) {
   bool success = LM75B::receive(0x48, data, 2);
   if (success) {
     int16_t bits = (data[0] << 8) + data[1];
-    *temp = (float) (bits >> 5) * 0.125;
+    *temp = (float) (bits >> 5) * 0.125f;
   }
 
   return success;

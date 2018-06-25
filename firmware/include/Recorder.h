@@ -10,11 +10,11 @@ class Recorder {
 public:
   Recorder() : state_(State::READY), index_(0) {}
 
-  bool startRecord();
+  bool startRecording();
 
-  void recordSample(float* recorder_new_data);
+  void recordSample(float *recorder_new_data);
 
-  float* read();
+  float *read();
 
   void reset();
 

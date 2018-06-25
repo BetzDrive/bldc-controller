@@ -26,8 +26,8 @@ public:
       y_(y),
       y_len_(y_len),
       periodicity_(periodicity) {}
-  T lookup(float arg) const;
-  T operator()(float arg) const { return lookup(arg); }
+  float lookup(float arg) const;
+  float operator()(float arg) const { return lookup(arg); }
 
 private:
   const float x_first_;
@@ -36,7 +36,7 @@ private:
   const size_t y_len_;
   const LFPeriodicity periodicity_;
 
-  T lookupReduced(float reduced_arg) const;
+  float lookupReduced(float reduced_arg) const;
 };
 
 } // namespace motor_driver

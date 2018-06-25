@@ -91,6 +91,7 @@ class BLDCControllerClient:
     def __init__(self, ser, protocol_v2=False):
         self._ser = ser
         self._protocol_v2 = protocol_v2
+        self._crc_alg = crcmod.predefined.PredefinedCrc('crc-16')
 
     def setCurrent(self, id, value):
         ret = self.writeRegisters(id, 0x0102, 1, struct.pack('<f', value))
@@ -104,7 +105,25 @@ class BLDCControllerClient:
     def setDuty(self, id, value):
         ret = self.writeRegisters(id, 0x0106, 1, struct.pack('<f', value ))
         return ret
-    
+
+    def setZeroAngle(self, id, value):
+        return self.writeRegisters(id, 0x1000, 1, struct.pack('<H', value))
+
+    def setInvertPhases(self, id, value):
+        return self.writeRegisters(id, 0x1002, 1, struct.pack('<B', value))
+
+    def setERevsPerMRev(self, id, value):
+        return self.writeRegisters(id, 0x1001, 1, struct.pack('<B', value))
+
+    def setTorqueConstant(self, id, value):
+        return self.writeRegisters(id, 0x1022, 1, struct.pack('<f', value))
+
+    def setPositionOffset(self, id, value):
+        return self.writeRegisters(id, 0x1015, 1, struct.pack('<f', value))
+
+    def setCurrentControlMode(self, id):
+        return self.writeRegisters(id, 0x2000, 1, struct.pack('<B', 0))
+
     def setControlEnabled(self, id, logical):
         self.writeRegisters(id, 0x0102, 1, struct.pack('<B', logical))
 
@@ -332,8 +351,8 @@ class BLDCControllerClient:
 
         message_crc, = struct.unpack('<H', crc_bytes)
 
-        # if message_crc != self._computeCRC(message):
-        #     raise ProtocolError('received unexpected CRC')
+        if message_crc != self._computeCRC(message):
+            raise ProtocolError('received unexpected CRC')
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
@@ -360,6 +379,7 @@ class BLDCControllerClient:
         return success, message[4:]
 
     def _computeCRC(self, values):
-        crc = crcmod.predefined.Crc('crc-16')
+        return 0
+        crc = self._crc_alg.new()
         crc.update(values)
         return crc.crcValue

@@ -2,6 +2,7 @@
 
 #include "constants.h"
 #include "usbcfg.h"
+#include "state.h"
 
 SerialUSBDriver SDU1;
 
@@ -70,14 +71,19 @@ const PWMConfig led_pwm_config = {
   0
 };
 
-AS5047D encoder(
+AS5047D encoder_as5047d(
+  SPID3,
+  {GPIOA, GPIOA_ENC_CSN}
+);
+
+MLX90363 encoder_mlx90363(
   SPID3,
   {GPIOA, GPIOA_ENC_CSN}
 );
 
 BinarySemaphore ivsense_adc_samples_bsem;
 
-volatile adcsample_t *ivsense_adc_samples_ptr = NULL;
+volatile adcsample_t *ivsense_adc_samples_ptr = nullptr;
 
 volatile size_t ivsense_adc_samples_count;
 
@@ -109,8 +115,8 @@ static const ADCConversionGroup ivsense_adc_group = {
   ivsenseADCErrorCallback,
   0,                                        // CR1
   ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_144)
-      | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_144) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
+  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15)
+      | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
   ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
   ADC_SQR1_NUM_CH(ivsense_channel_count),   // SQR1
   ADC_SQR2_SQ7_N(ADC_CHANNEL_IN13),         // SQR2
@@ -164,7 +170,7 @@ void startPeripherals() {
   gate_driver.start();
 
   // Start encoder
-  encoder.start();
+  startEncoder();
 
   // Start temperature sensor
   temp_sensor.start();
@@ -190,6 +196,36 @@ void startPeripherals() {
 
   // Start motor PWM timer, which also starts the ADC trigger timer
   PWMD1.tim->CR1 |= TIM_CR1_CEN;
+}
+
+void startEncoder() {
+  /*
+   * Encoder autodetection
+   */
+
+  uint8_t txbuf[8];
+  uint8_t rxbuf[8];
+
+  // Try running the MLX90363's echo command
+  encoder_mlx90363.start();
+  encoder_mlx90363.createNopMessage(txbuf, 0xabcd);
+  encoder_mlx90363.sendMessage(txbuf);
+  halPolledDelay(US2RTT(120));
+  encoder_mlx90363.receiveMessage(rxbuf);
+
+  uint16_t key_echo;
+  mlx90363_status_t status = encoder_mlx90363.parseEchoMessage(rxbuf, &key_echo);
+
+  if (status == MLX90363_STATUS_OK && key_echo == 0xabcd) {
+    // Encoder is MLX90363
+
+    results.encoder_mode = encoder_mode_mlx90363;
+    return;
+  }
+
+  // Assume the encoder is AS5047D
+  encoder_as5047d.start();
+  results.encoder_mode = encoder_mode_as5047d;
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {

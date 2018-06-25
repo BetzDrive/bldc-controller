@@ -5,6 +5,7 @@
 #include "hal.h"
 #include "DRV8301.h"
 #include "AS5047D.h"
+#include "MLX90363.h"
 #include "LM75B.h"
 #include "LSM6DS3Sensor.h"
 #include "constants.h"
@@ -21,7 +22,9 @@ extern DRV8301 gate_driver;
 
 extern const PWMConfig led_pwm_config;
 
-extern AS5047D encoder;
+extern AS5047D encoder_as5047d;
+
+extern MLX90363 encoder_mlx90363;
 
 extern LM75B temp_sensor;
 
@@ -38,6 +41,8 @@ extern adcsample_t ivsense_sample_buf[ivsense_channel_count * ivsense_sample_buf
 void initPeripherals();
 
 void startPeripherals();
+
+void startEncoder();
 
 void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue);
 
