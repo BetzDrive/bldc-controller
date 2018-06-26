@@ -1,5 +1,6 @@
 #include "MLX90363.h"
 
+#include <algorithm>
 #include "crc_mlx.h"
 
 namespace motor_driver {
@@ -34,6 +35,17 @@ void MLX90363::exchangeMessage(const uint8_t *txbuf, uint8_t *rxbuf) {
   spiSelect(spi_driver_);
   spiExchange(spi_driver_, 8, txbuf, rxbuf);
   spiUnselect(spi_driver_);
+}
+
+void MLX90363::startAsyncExchangeMessageI(const uint8_t *txbuf) {
+  std::copy(txbuf, txbuf + 8, async_txbuf_);
+
+  spiSelectI(spi_driver_);
+  spiStartExchangeI(spi_driver_, 8, async_txbuf_, async_rxbuf_);
+}
+
+void MLX90363::getAsyncExchangeMessageResultI(uint8_t *rxbuf) {
+  std::copy(async_rxbuf_, async_rxbuf_ + 8, rxbuf);
 }
 
 void MLX90363::createNopMessage(uint8_t *txbuf, uint16_t key) {
