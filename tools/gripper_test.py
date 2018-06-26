@@ -3,6 +3,7 @@ from comms import *
 import serial
 import sys
 import time
+import datetime
 from math import sin, cos, pi
 
 PROTOCOL_V2 = True
@@ -52,48 +53,53 @@ for address, duty_cycle in zip(addresses, duty_cycles):
         client.writeRegisters(address, 0x1030, 1, struct.pack('<H', 1000))
         client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 2) ) # Torque control
         # print("Motor %d ready: supply voltage=%fV", address, client.getVoltage(address))
-    else:
-        client.writeRegisters(address, 0x1010, 1, struct.pack('<H', angle_mapping[address]) )
-        client.writeRegisters(address, 0x1011, 1, struct.pack('<B', 0) )
-        client.writeRegisters(address, 0x1012, 1, struct.pack('<B', int(address in needs_flip_phase)) )
-        try:
-            client.writeRegisters(address, 0x010a, 1, struct.pack('<B', 21 if (address in has_21_erevs_per_mrev) else 14))
-        except:
-            print "WARNING: Motor driver board does not support erevs_per_mrev, try updating the firmware."
 
 num_grips = 0
-start_state = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))[0]
+start_pos = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))[0]
+overheated = False
 
 while True:
-    address = addresses[0]
-    duty_cycle = duty_cycles[0]
-    # Close the gripper for 1 second
-    last_time = time.time()
-    while (time.time() - last_time < 1):
-        try:
-            client.writeRegisters(address, 0x2006, 1, struct.pack('<f', duty_cycle))
-            last_state = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))[0]
-        except Exception as e:
-            print(str(e))
-            pass
+    now = datetime.datetime.now()
+    # Shutoff between 11PM and 10AM
+    if now.hour >= 10 and now.hour < 23:
+        address = addresses[0]
+        if not overheated:
+            duty_cycle = duty_cycles[0]
+        else:
+            duty_cycle = 0.0
+        # Close the gripper for 1 second
+        last_time = time.time()
+        while (time.time() - last_time < 1):
+            try:
+                client.writeRegisters(address, 0x2006, 1, struct.pack('<f', duty_cycle))
+                state = struct.unpack('<ffffff', client.readRegisters(address, 0x3000, 6))
+            except Exception as e:
+                print(str(e))
+                pass
 
-    closed_pos = last_state
+        closed_pos = state[0]
 
-    # Open the gripper until position is 0
-    while (last_state > start_state):
-        try:
-            client.writeRegisters(address, 0x2006, 1, struct.pack('<f', -duty_cycle))
-            last_state = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))[0]
-        except Exception as e:
-            print(str(e))
-            pass
+        # Open the gripper until position is 0
+        while (state[0] > start_pos):
+            try:
+                client.writeRegisters(address, 0x2006, 1, struct.pack('<f', -duty_cycle))
+                state = struct.unpack('<ffffff', client.readRegisters(address, 0x3000, 6))
+            except Exception as e:
+                print(str(e))
+                pass
 
-    opened_pos = last_state
+        opened_pos = state[0]
 
-    with open("gripper_log.txt", "a") as myfile:
-        myfile.write(str(time.time()) + ", " + str(closed_pos) + ", " + str(opened_pos) + "\n")
-        myfile.close()
+        temperature = state[5]
+        if temperature > 70:
+            overheated = True
+        elif overheated and temperature < 50:
+            overheated = False
 
-    print (str(time.time()) + ", " + str(closed_pos) + ", " + str(opened_pos) + "\n")
+        with open("gripper_log.txt", "a") as myfile:
+            myfile.write(str(time.time()) + ", " + str(closed_pos) + ", " + str(opened_pos) + ", " + str(temperature) + "\n")
+            myfile.close()
 
-    
+        print (str(time.time()) + ", " + str(closed_pos) + ", " + str(opened_pos) + ", " + str(temperature) + "\n")
+
+        
