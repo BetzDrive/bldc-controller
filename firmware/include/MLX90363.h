@@ -38,6 +38,8 @@ public:
   void sendMessage(const uint8_t *txbuf);
   void receiveMessage(uint8_t *rxbuf);
   void exchangeMessage(const uint8_t *txbuf, uint8_t *rxbuf);
+  void startAsyncExchangeMessageI(const uint8_t *txbuf);
+  void getAsyncExchangeMessageResultI(uint8_t *rxbuf);
   void createNopMessage(uint8_t *txbuf, uint16_t key);
   void createGet1AlphaMessage(uint8_t *txbuf, uint16_t timeout);
   mlx90363_status_t parseEchoMessage(const uint8_t *rxbuf, uint16_t *key_echo);
@@ -49,6 +51,8 @@ private:
   SPIDriver * const spi_driver_;
   MLX90363SPIConfig spi_config_;
   const IOPin csn_;
+  uint8_t async_txbuf_[8];
+  uint8_t async_rxbuf_[8];
 
   static void spiEndCallbackStatic(SPIDriver *spi_driver);
   void spiEndCallback(SPIDriver *spi_driver);

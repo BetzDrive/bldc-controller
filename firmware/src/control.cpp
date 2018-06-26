@@ -63,11 +63,12 @@ void runInnerControlLoop() {
   control_thread_ptr = chThdSelf();
 
   if (results.encoder_mode == encoder_mode_as5047d) {
-    chSysLock();
-
     /*
      * getPipelinedRegisterReadResultI requires startPipelinedRegisterReadI to be called beforehand
      */
+
+    chSysLock();
+
     encoder_as5047d.startPipelinedRegisterReadI(0x3fff);
 
     chSysUnlock();
@@ -75,7 +76,12 @@ void runInnerControlLoop() {
     uint8_t txbuf[8];
 
     encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
-    encoder_mlx90363.sendMessage(txbuf);
+
+    chSysLock();
+
+    encoder_mlx90363.startAsyncExchangeMessageI(txbuf);
+
+    chSysUnlock();
   }
 
   while (true) {
@@ -121,7 +127,14 @@ void estimateState() {
       uint8_t rxbuf[8];
 
       encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
-      encoder_mlx90363.exchangeMessage(txbuf, rxbuf);
+
+      chSysLock();
+
+      encoder_mlx90363.getAsyncExchangeMessageResultI(rxbuf);
+      encoder_mlx90363.startAsyncExchangeMessageI(txbuf);
+
+      chSysUnlock();
+
       mlx90363_status_t status = encoder_mlx90363.parseAlphaMessage(rxbuf, &raw_enc_value, nullptr);
       raw_enc_value = encoder_period - raw_enc_value; // MLX90363 angles increase in opposite direction
 

@@ -220,6 +220,7 @@ void startEncoder() {
     // Encoder is MLX90363
 
     results.encoder_mode = encoder_mode_mlx90363;
+    encoder_mlx90363.startAsync(); // All accesses will be asynchronous from now on
     return;
   }
 
