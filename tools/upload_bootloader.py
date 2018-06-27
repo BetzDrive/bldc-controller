@@ -26,20 +26,23 @@ if __name__ == '__main__':
     except ValueError:
         board_ids = [int(board_id_str) for board_id_str in args.board_id.split(',')]
 
-    client.leaveBootloader(board_ids)
-    time.sleep(0.2) # Wait for the controller to reset
-    ser.reset_input_buffer()
+    for board_id in board_ids:
+        client.leaveBootloader(board_ids)
+        time.sleep(0.2) # Wait for the controller to reset
+        ser.reset_input_buffer()
 
-    flash_sector_maps = client.getFlashSectorMap(board_ids)
+        flash_sector_maps = client.getFlashSectorMap(board_ids)
 
-    with open(args.bin_file, 'rb') as bin_file:
-        firmware_image = bin_file.read()
+        with open(args.bin_file, 'rb') as bin_file:
+            firmware_image = bin_file.read()
 
-    success = client.writeFlash(board_ids, args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
+        success = client.writeFlash(board_ids, args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
 
-    for i in range(len(board_ids)):
         print 'Board {}'.format(board_ids[i])
-    print success
+        if success:
+            print "Success"
+        else:
+            print "Failed"
 
 
     ser.close()
