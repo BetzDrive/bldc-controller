@@ -27,18 +27,18 @@ if __name__ == '__main__':
         board_ids = [int(board_id_str) for board_id_str in args.board_id.split(',')]
 
     for board_id in board_ids:
-        client.leaveBootloader(board_ids)
+        client.leaveBootloader([board_id])
         time.sleep(0.2) # Wait for the controller to reset
         ser.reset_input_buffer()
 
-        flash_sector_maps = client.getFlashSectorMap(board_ids)
+        flash_sector_maps = client.getFlashSectorMap([board_id])
 
         with open(args.bin_file, 'rb') as bin_file:
             firmware_image = bin_file.read()
 
-        success = client.writeFlash(board_ids, args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
+        success = client.writeFlash([board_id], args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
 
-        print 'Board {}'.format(board_ids[i])
+        print 'Board {}'.format(board_id)
         if success:
             print "Success"
         else:
