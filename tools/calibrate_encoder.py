@@ -92,8 +92,6 @@ if __name__ == '__main__':
     forward_raw_angles = np.array(forward_raw_angles)
     backward_raw_angles = np.array(backward_raw_angles)
 
-    # raw_angles = np.array([14532, 14718, 14912, 15106, 15298, 15496, 15694, 15886, 16084, 16284, 92, 284, 488, 681, 873, 1074, 1261, 1453, 1655, 1850, 2040, 2238, 2430, 2622, 2820, 3017, 3209, 3412, 3602, 3799, 3998, 4190, 4384, 4585, 4779, 4968, 5170, 5359, 5551, 5748, 5945, 6136, 6329, 6525, 6719, 6917, 7109, 7305, 7504, 7697, 7893, 8092, 8285, 8479, 8682, 8874, 9063, 9268, 9461, 9650, 9852, 10047, 10238, 10435, 10631, 10819, 11017, 11210, 11406, 11603, 11797, 11992, 12192, 12382, 12575, 12781, 12966, 13159, 13364, 13552, 13743, 13941, 14135, 14324])
-
     # Convert to radians
     forward_angles = forward_raw_angles / encoder_ticks_per_rev * 2 * np.pi
     backward_angles = backward_raw_angles / encoder_ticks_per_rev * 2 * np.pi
@@ -105,6 +103,11 @@ if __name__ == '__main__':
     # Average forward and backward measurements
     angles = (forward_angles + backward_angles) / 2
 
+    # Shift smallest encoder value to front of array
+    wrapped_angles = angles % (2 * np.pi)
+    zero_index = np.argmin(wrapped_angles)
+    angles = np.unwrap(np.roll(wrapped_angles, -zero_index))
+
     # Guess erevs/mrev
     angle_slope = np.mean(np.diff(angles))
     steps_per_mrev = int(np.round(2 * np.pi / angle_slope))
@@ -114,7 +117,7 @@ if __name__ == '__main__':
     elec_angles = angles * erevs_per_mrev
 
     # Subtract expected trend
-    elec_angle_residuals = elec_angles - np.r_[:len(elec_angles)] * (2 * np.pi / 6)
+    elec_angle_residuals = elec_angles - (np.r_[:len(elec_angles)] + zero_index) * (2 * np.pi / 6)
 
     # Find smallest raw angle aligned with phase A
     elec_angle_offset = np.mean(elec_angle_residuals)

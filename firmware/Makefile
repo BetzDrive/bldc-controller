@@ -104,13 +104,14 @@ CSRC = $(PORTSRC) \
        $(COMMON_SRC)/crc16.c \
        $(SRC)/usbcfg.c \
        $(SRC)/shell.c \
-       $(SRC)/LSM6DS3_ACC_GYRO_driver.c
+       $(SRC)/LSM6DS3_ACC_GYRO_driver.c \
+       $(SRC)/crc_mlx.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(COMMON_SRC)/constants.cpp \
-		 $(SRC)/main.cpp \
+		     $(SRC)/main.cpp \
          $(SRC)/peripherals.cpp \
          $(SRC)/DRV8301.cpp \
          $(SRC)/AS5047D.cpp \
@@ -124,7 +125,8 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/PID.cpp \
          $(SRC)/LM75B.cpp \
          $(SRC)/LSM6DS3Sensor.cpp \
-         $(SRC)/Recorder.cpp
+         $(SRC)/Recorder.cpp \
+         $(SRC)/MLX90363.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -253,7 +255,7 @@ upload: build/$(PROJECT).bin
 		init;\
 		reset halt;\
 		flash probe 0;\
-		flash write_image erase build/motor_controller.bin 0x08008000;\
-		verify_image build/motor_controller.bin 0x08008000;\
+		flash write_image erase build/$(PROJECT).bin 0x08008000;\
+		verify_image build/$(PROJECT).bin 0x08008000;\
 		reset run;\
 		shutdown"

@@ -27,6 +27,9 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           errors |= COMM_ERRORS_INVALID_ARGS;
         }
       }
+    } else if (addr >= 0x1200 && addr < 0x1200 + enc_ang_corr_table_size) {
+      // Encoder Angle Correction Table Values
+      handleVarAccess(calibration.enc_ang_corr_table_values[addr - 0x1200], buf, index, buf_len, access_type, errors);
     } else {
       switch (addr) {
         case 0x0000: // Register Map Version
@@ -98,11 +101,17 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x1022: // Motor Torque Constant (N*m/A)
           handleVarAccess(calibration.motor_torque_const, buf, index, buf_len, access_type, errors);
           break;
-        case 0x1030: // Control Watchdog Timeout (ms)
-          handleVarAccess(calibration.control_watchdog_timeout, buf, index, buf_len, access_type, errors);
+        case 0x1030: // Control Timeout (ms)
+          handleVarAccess(calibration.control_timeout, buf, index, buf_len, access_type, errors);
           break;
         case 0x1040: // Velocity Filter Parameter
           handleVarAccess(calibration.velocity_filter_param, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x1100: // Encoder Angle Correction Scale (rad)
+          handleVarAccess(calibration.enc_ang_corr_scale, buf, index, buf_len, access_type, errors);
+          break;
+        case 0x1101: // Encoder Angle Correction Offset (rad)
+          handleVarAccess(calibration.enc_ang_corr_offset, buf, index, buf_len, access_type, errors);
           break;
 
         case 0x2000: // Control Mode
@@ -134,10 +143,10 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           break;
 
         case 0x3000: // Rotor Position (rad)
-          handleVarAccess(results.encoder_pos_radians, buf, index, buf_size, access_type, errors);
+          handleVarAccess(results.rotor_pos, buf, index, buf_size, access_type, errors);
           break;
         case 0x3001: // Rotor Velocity (rad/sec)
-          handleVarAccess(results.encoder_vel_radians, buf, index, buf_size, access_type, errors);
+          handleVarAccess(results.rotor_vel, buf, index, buf_size, access_type, errors);
           break;
         case 0x3002: // Direct Current Measurement (A)
           handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
@@ -161,7 +170,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           handleVarAccess(results.xl_z, buf, index, buf_size, access_type, errors);
           break;
         case 0x3009: { // Recorder start
-          uint8_t success = (uint8_t) recorder.startRecord();
+          uint8_t success = (uint8_t) recorder.startRecording();
           handleVarAccess(success, buf, index, buf_size, access_type, errors);
           break;
         }
@@ -176,9 +185,13 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
           handleVarAccess(flag, buf, index, buf_size, access_type, errors);
           break;
         }
-        case 0x3010: // Raw Encoder Position
-          handleVarAccess(results.raw_encoder_pos, buf, index, buf_size, access_type, errors);
+        case 0x3010: // Raw Encoder Value
+          handleVarAccess(results.raw_enc_value, buf, index, buf_size, access_type, errors);
           break;
+        case 0x3011: // Encoder Mode
+          handleVarAccess(results.encoder_mode, buf, index, buf_size, access_type, errors);
+          break;
+
         default:
           errors |= COMM_ERRORS_INVALID_ARGS;
           return;

@@ -17,7 +17,7 @@ void runVelocityControl();
 
 void runCurrentControl();
 
-void resetControlWatchdog();
+void resetControlTimeout();
 
 void brakeMotor();
 

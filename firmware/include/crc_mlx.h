@@ -2,43 +2,43 @@
  * \file
  * Functions and types for CRC checks.
  *
- * Generated on Fri Jun  8 14:55:37 2018
+ * Generated on Thu Jun 21 19:28:07 2018
  * by pycrc v0.9.1, https://pycrc.org
  * using the configuration:
- *  - Width         = 16
- *  - Poly          = 0x8005
- *  - XorIn         = 0x0000
- *  - ReflectIn     = True
- *  - XorOut        = 0x0000
- *  - ReflectOut    = True
+ *  - Width         = 8
+ *  - Poly          = 0x2f
+ *  - XorIn         = 0xff
+ *  - ReflectIn     = False
+ *  - XorOut        = 0xff
+ *  - ReflectOut    = False
  *  - Algorithm     = table-driven
  *
- * This file defines the functions crc16_init(), crc16_update() and crc16_finalize().
+ * This file defines the functions crc_mlx_init(), crc_mlx_update() and crc_mlx_finalize().
  *
- * The crc16_init() function returns the inital \c crc value and must be called
- * before the first call to crc16_update().
- * Similarly, the crc16_finalize() function must be called after the last call
- * to crc16_update(), before the \c crc is being used.
+ * The crc_mlx_init() function returns the inital \c crc value and must be called
+ * before the first call to crc_mlx_update().
+ * Similarly, the crc_mlx_finalize() function must be called after the last call
+ * to crc_mlx_update(), before the \c crc is being used.
  * is being used.
  *
- * The crc16_update() function can be called any number of times (including zero
- * times) in between the crc16_init() and crc16_finalize() calls.
+ * The crc_mlx_update() function can be called any number of times (including zero
+ * times) in between the crc_mlx_init() and crc_mlx_finalize() calls.
  *
  * This pseudo-code shows an example usage of the API:
  * \code{.c}
- * crc16_t crc;
+ * crc_mlx_t crc;
  * unsigned char data[MAX_DATA_LEN];
  * size_t data_len;
  *
- * crc = crc16_init();
+ * crc = crc_mlx_init();
  * while ((data_len = read_data(data, MAX_DATA_LEN)) > 0) {
- *     crc = crc16_update(crc, data, data_len);
+ *     crc = crc_mlx_update(crc, data, data_len);
  * }
- * crc = crc16_finalize(crc);
+ * crc = crc_mlx_finalize(crc);
  * \endcode
  */
-#ifndef _CRC16_H_
-#define _CRC16_H_
+#ifndef _CRC_MLX_H_
+#define _CRC_MLX_H_
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -60,9 +60,9 @@ extern "C" {
 /**
  * The type of the CRC values.
  *
- * This type must be big enough to contain at least 16 bits.
+ * This type must be big enough to contain at least 8 bits.
  */
-typedef uint_fast16_t crc16_t;
+typedef uint_fast8_t crc_mlx_t;
 
 
 /**
@@ -70,9 +70,9 @@ typedef uint_fast16_t crc16_t;
  *
  * \return     The initial crc value.
  */
-static inline crc16_t crc16_init(void)
+static inline crc_mlx_t crc_mlx_init(void)
 {
-    return 0x0000;
+    return 0xff;
 }
 
 
@@ -84,7 +84,7 @@ static inline crc16_t crc16_init(void)
  * \param[in] data_len Number of bytes in the \a data buffer.
  * \return             The updated crc value.
  */
-crc16_t crc16_update(crc16_t crc, const void *data, size_t data_len);
+crc_mlx_t crc_mlx_update(crc_mlx_t crc, const void *data, size_t data_len);
 
 
 /**
@@ -93,9 +93,9 @@ crc16_t crc16_update(crc16_t crc, const void *data, size_t data_len);
  * \param[in] crc  The current crc value.
  * \return     The final crc value.
  */
-static inline crc16_t crc16_finalize(crc16_t crc)
+static inline crc_mlx_t crc_mlx_finalize(crc_mlx_t crc)
 {
-    return crc;
+    return crc ^ 0xff;
 }
 
 
@@ -103,4 +103,4 @@ static inline crc16_t crc16_finalize(crc16_t crc)
 }           /* closing brace for extern "C" */
 #endif
 
-#endif      /* _CRC16_H_ */
+#endif      /* _CRC_MLX_H_ */

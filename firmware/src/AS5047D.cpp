@@ -55,6 +55,10 @@ uint16_t AS5047D::getAngle() {
   return readRegister(0x3fff);
 }
 
+uint16_t AS5047D::getDiagnostics() {
+  return readRegister(0x3ffc);
+}
+
 void AS5047D::startPipelinedRegisterReadI(uint16_t addr) {
   prepareTxbufForRead(pipeline_txbuf_, addr);
 

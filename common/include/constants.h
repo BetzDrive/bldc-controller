@@ -20,7 +20,7 @@ constexpr uint32_t rs485_baud = 1000000;
 constexpr uint16_t encoder_period = 1U << 14;
 
 /* Need to flip the sign because encoder position increases clockwise */
-constexpr float encoder_pos_to_radians = -2.0f * pi / encoder_period;
+constexpr float rad_per_enc_tick = -2.0f * pi / encoder_period;
 
 constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
 
@@ -84,6 +84,14 @@ constexpr uint8_t control_mode_torque = 2;
 constexpr uint8_t control_mode_velocity = 3;
 constexpr uint8_t control_mode_position = 4;
 constexpr uint8_t control_mode_position_velocity = 5;
+
+/* Encoder modes */
+constexpr uint8_t encoder_mode_none = 0;
+constexpr uint8_t encoder_mode_as5047d = 1;
+constexpr uint8_t encoder_mode_mlx90363 = 2;
+
+/* Encoder angle correction */
+constexpr size_t enc_ang_corr_table_size = 257;
 
 /* Address of non-volatile parameters storage */
 /* extern const void *nvparams_start; */
