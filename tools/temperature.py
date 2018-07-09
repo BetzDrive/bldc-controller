@@ -21,7 +21,7 @@ s.reset_input_buffer()
 
 while True:
     try:
-        temperature = struct.unpack('<f', client.readRegisters([address], [0x3005], [1])[0])
+        temperature = client.getTemperature([address])
         print(temperature[0])
         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
     except IOError:

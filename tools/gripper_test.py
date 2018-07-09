@@ -4,6 +4,7 @@ import serial
 import sys
 import time
 from math import sin, cos, pi
+from matplotlib.pyplot at plt
 
 MAX_CYCLES = 1000
 
@@ -56,26 +57,30 @@ num_grips = 0
 start_pos = struct.unpack('<f', client.readRegisters([address], [0x3000], [1])[0])[0]
 overheated = False
 
-while num_grips < MAX_CYCLES:
+di_list = []
+qi_list = []
+time_list = []
+
+while num_grips < 1: # MAX_CYCLES:
     address = addresses[0]
     if not overheated:
         duty_cycle = duty_cycles[0]
     else:
         duty_cycle = 0.0
     # Close the gripper for 1 second
-    current_list = []
     last_time = time.time()
     while (time.time() - last_time < 1):
         try:
             client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', duty_cycle)])
             state = struct.unpack('<ffffff', client.readRegisters([address], [0x3000], [6])[0])
-            current_list.append(state[2])
+            di_list.append(state[2]) 
+            qi_list.append(state[3])
+            time_list.append(time.time())
         except Exception as e:
             print(str(e))
             pass
 
-    max_current = max(current_list[-10:])
-
+    #max_current = max(qi_list[-10:])
     closed_pos = state[0]
 
     # Open the gripper until position is the starting position 
@@ -83,6 +88,9 @@ while num_grips < MAX_CYCLES:
         try:
             client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', -duty_cycle)])
             state = struct.unpack('<ffffff', client.readRegisters([address], [0x3000], [6])[0])
+            di_list.append(state[2]) 
+            qi_list.append(state[3])
+            time_list.append(time.time())
         except Exception as e:
             print(str(e))
             pass
@@ -102,4 +110,7 @@ while num_grips < MAX_CYCLES:
     print (num_grips)
     print (str(time.time()) + ", " + str(closed_pos) + ", " + str(opened_pos) + ", " + str(temperature) + ", " + str(max_current) + "\n")
     num_grips += 1
-        
+
+plt.plot(di_list, time_list)
+plt.plot(qi_list, time_list)
+plt.show()
