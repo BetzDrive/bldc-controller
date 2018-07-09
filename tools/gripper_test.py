@@ -69,12 +69,12 @@ while num_grips < MAX_CYCLES:
         try:
             client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', duty_cycle)])
             state = struct.unpack('<ffffff', client.readRegisters([address], [0x3000], [6])[0])
-            current_list.append(state[3])
+            current_list.append(state[2])
         except Exception as e:
             print(str(e))
             pass
 
-    max_current = max(current_list)
+    max_current = max(current_list[-10:])
 
     closed_pos = state[0]
 
