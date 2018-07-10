@@ -4,7 +4,6 @@ import serial
 import sys
 import time
 from math import sin, cos, pi
-from matplotlib.pyplot at plt
 
 MAX_CYCLES = 1000
 
@@ -111,6 +110,9 @@ while num_grips < 1: # MAX_CYCLES:
     print (str(time.time()) + ", " + str(closed_pos) + ", " + str(opened_pos) + ", " + str(temperature) + ", " + str(max_current) + "\n")
     num_grips += 1
 
-plt.plot(di_list, time_list)
-plt.plot(qi_list, time_list)
-plt.show()
+with open("gripper_current_log.txt", "a") as myfile:
+    for i in range(len(time_list)):
+        myfile.write(str(time_list[i]) + ", " + str(di_list[i]) + ", " + str(qi_list[i]) + "\n")
+    myfile.close()
+
+    
