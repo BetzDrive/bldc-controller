@@ -191,6 +191,9 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
         case 0x3011: // Encoder Mode
           handleVarAccess(results.encoder_mode, buf, index, buf_size, access_type, errors);
           break;
+        case 0x3012: // Encoder Diagnostics
+          handleVarAccess(results.encoder_diag, buf, index, buf_size, access_type, errors);
+          break;
 
         default:
           errors |= COMM_ERRORS_INVALID_ARGS;

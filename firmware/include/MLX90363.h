@@ -20,6 +20,8 @@ constexpr mlx90363_status_t MLX90363_STATUS_WRONG_OPCODE = 2;
 using mlx90363_opcode_t = uint8_t;
 constexpr mlx90363_opcode_t MLX90363_OPCODE_NOP = 16;
 constexpr mlx90363_opcode_t MLX90363_OPCODE_ECHO = 17;
+constexpr mlx90363_opcode_t MLX90363_OPCODE_DIAGDETAILS = 22;
+constexpr mlx90363_opcode_t MLX90363_OPCODE_DIAGANSWER = 23;
 constexpr mlx90363_opcode_t MLX90363_OPCODE_GET1 = 19;
 constexpr mlx90363_opcode_t MLX90363_OPCODE_READY = 44;
 
@@ -42,9 +44,11 @@ public:
   void getAsyncExchangeMessageResultI(uint8_t *rxbuf);
   void createNopMessage(uint8_t *txbuf, uint16_t key);
   void createGet1AlphaMessage(uint8_t *txbuf, uint16_t timeout);
+  void createDiagnosticDetailsMessage(uint8_t *txbuf);
   mlx90363_status_t parseEchoMessage(const uint8_t *rxbuf, uint16_t *key_echo);
   mlx90363_status_t parseReadyMessage(const uint8_t *rxbuf, uint8_t *fw_version, uint8_t *hw_version);
   mlx90363_status_t parseAlphaMessage(const uint8_t *rxbuf, uint16_t *alpha, uint8_t *vg);
+  mlx90363_status_t parseDiagnosticsAnswerMessage(const uint8_t *rxbuf, uint32_t *diag_bits, uint8_t *fsmerc, uint8_t *anadiagcnt);
   uint8_t computeMessageCRC(const uint8_t *buf);
 
 private:
