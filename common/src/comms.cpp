@@ -602,10 +602,9 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
   datagram[index++] = function_code_;
 
   size_t error_index;
-  size_t buf_len;
+  size_t read_len;
 
-  resp_count_ = 1;              // Reset response counter
-  
+  resp_count_ = 1; // Reset response counter
 
   switch (state_) {
     case State::RESPONDING:
@@ -626,8 +625,8 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
       error_index = index;
       index += 2;
 
-      server_->readRegisters(start_addr_, reg_count_, &datagram[index], buf_len, max_datagram_len - index, errors);
-      index += buf_len;
+      read_len = server_->readRegisters(start_addr_, reg_count_, &datagram[index], max_datagram_len - index, errors);
+      index += read_len;
 
       /* Copy error code into response */
       datagram[error_index++] = (uint8_t)(errors & 0xff);
