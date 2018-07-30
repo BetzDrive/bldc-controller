@@ -14,7 +14,7 @@ struct Results {
   uint8_t encoder_mode = encoder_mode_none; // Encoder mode
   uint16_t raw_enc_value = 0;               // Raw encoder value, wraps around
   float enc_pos = 0;                        // Corrected encoder position, wraps around (radians)
-  uint16_t encoder_diag = 0;                // Encoder diagnostics
+  uint32_t encoder_diag = 0;                // Encoder diagnostics
 
   int16_t rotor_revs = 0;                   // Total number of rotor revolutions
   float rotor_pos = 0;                      // Rotor position (radians)

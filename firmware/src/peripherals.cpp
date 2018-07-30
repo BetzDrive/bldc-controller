@@ -205,6 +205,7 @@ void startEncoder() {
 
   uint8_t txbuf[8];
   uint8_t rxbuf[8];
+  mlx90363_status_t mlx_status;
 
   // Try running the MLX90363's echo command
   encoder_mlx90363.start();
@@ -214,12 +215,31 @@ void startEncoder() {
   encoder_mlx90363.receiveMessage(rxbuf);
 
   uint16_t key_echo;
-  mlx90363_status_t status = encoder_mlx90363.parseEchoMessage(rxbuf, &key_echo);
+  mlx_status = encoder_mlx90363.parseEchoMessage(rxbuf, &key_echo);
 
-  if (status == MLX90363_STATUS_OK && key_echo == 0xabcd) {
+  if (mlx_status == MLX90363_STATUS_OK && key_echo == 0xabcd) {
     // Encoder is MLX90363
 
     results.encoder_mode = encoder_mode_mlx90363;
+
+    halPolledDelay(US2RTT(120));
+    encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
+    encoder_mlx90363.sendMessage(txbuf);
+    halPolledDelay(US2RTT(1067));
+    encoder_mlx90363.createDiagnosticDetailsMessage(txbuf);
+    encoder_mlx90363.sendMessage(txbuf);
+    halPolledDelay(US2RTT(120));
+    encoder_mlx90363.receiveMessage(rxbuf);
+
+    uint32_t diag_bits;
+    mlx_status = encoder_mlx90363.parseDiagnosticsAnswerMessage(rxbuf, &diag_bits, nullptr, nullptr);
+
+    if (mlx_status == MLX90363_STATUS_OK) {
+      results.encoder_diag = diag_bits;
+    } else {
+      results.encoder_diag = 0xffffffff;
+    }
+
     encoder_mlx90363.startAsync(); // All accesses will be asynchronous from now on
     return;
   }

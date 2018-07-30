@@ -7,7 +7,11 @@
 
 namespace motor_driver {
 
-void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t& buf_len, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
+size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
+  (void)buf;
+  (void)buf_size;
+  (void)access_type;
+
   size_t index = 0;
 
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
@@ -16,7 +20,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
       
       default:
         errors |= COMM_ERRORS_INVALID_ARGS;
-        return;
+        return 0;
     }
 
     if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) {
@@ -26,9 +30,7 @@ void commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *bu
 
   // TODO: check if there is still data left
 
-  if (access_type == RegAccessType::READ) {
-    buf_len = index;
-  }
+  return index; // Number of bytes read/written
 }
 
 } // namespace motor_driver

@@ -70,6 +70,17 @@ void MLX90363::createGet1AlphaMessage(uint8_t *txbuf, uint16_t timeout) {
   txbuf[7] = computeMessageCRC(txbuf);
 }
 
+void MLX90363::createDiagnosticDetailsMessage(uint8_t *txbuf) {
+  txbuf[0] = 0;
+  txbuf[1] = 0;
+  txbuf[2] = 0;
+  txbuf[3] = 0;
+  txbuf[4] = 0;
+  txbuf[5] = 0;
+  txbuf[6] = (3 << 6) | MLX90363_OPCODE_DIAGDETAILS;
+  txbuf[7] = computeMessageCRC(txbuf);
+}
+
 mlx90363_status_t MLX90363::parseEchoMessage(const uint8_t *rxbuf, uint16_t *key_echo) {
   mlx90363_status_t status = MLX90363_STATUS_OK;
 
@@ -128,6 +139,34 @@ mlx90363_status_t MLX90363::parseAlphaMessage(const uint8_t *rxbuf, uint16_t *al
 
   if (vg != nullptr) {
     *vg = rxbuf[4];
+  }
+
+  return status;
+}
+
+mlx90363_status_t MLX90363::parseDiagnosticsAnswerMessage(const uint8_t *rxbuf, uint32_t *diag_bits, uint8_t *fsmerc, uint8_t *anadiagcnt) {
+  mlx90363_status_t status = MLX90363_STATUS_OK;
+
+  if (rxbuf[7] != computeMessageCRC(rxbuf)) {
+    status |= MLX90363_STATUS_WRONG_CRC;
+    return status;
+  }
+
+  if (rxbuf[6] != ((3 << 6) | MLX90363_OPCODE_DIAGANSWER)) {
+    status |= MLX90363_STATUS_WRONG_OPCODE;
+    return status;
+  }
+
+  if (diag_bits != nullptr) {
+    *diag_bits = ((uint32_t)rxbuf[2] << 16) | ((uint32_t)rxbuf[1] << 8) | (uint32_t)rxbuf[0];
+  }
+
+  if (fsmerc != nullptr) {
+    *fsmerc = rxbuf[3] >> 6;
+  }
+
+  if (anadiagcnt != nullptr) {
+    *anadiagcnt = rxbuf[3] & 0x3f;
   }
 
   return status;
