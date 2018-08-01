@@ -41,21 +41,22 @@ The CRC is computed over the entire packet excluding the CRC itself.
 
 | Function | Name | Description | Request Payload | Response Payload |
 |--------|-----------------------------|-------------------------------------------------------|-----------|---|
-| `0x00` | `COMM_FC_NOP` |  |  |  |
-| `0x01` | `COMM_FC_REG_READ` | Register read |  |  |
-| `0x02` | `COMM_FC_REG_WRITE` | Register write |  |  |
-| `0x03` | `COMM_FC_REG_READ_WRITE` | Simultaneous reg read/write |  |  |
-| `0x80` | `COMM_FC_SYSTEM_RESET` |  |  |  |
-| `0x81` | `COMM_FC_JUMP_TO_ADDR` |  |  |  |
-| `0x82` | `COMM_FC_FLASH_SECTOR_COUNT` |  |  |  |
-| `0x83` | `COMM_FC_FLASH_SECTOR_START` |  |  |  |
-| `0x84` | `COMM_FC_FLASH_SECTOR_SIZE` |  |  |  |
-| `0x85` | `COMM_FC_FLASH_SECTOR_ERASE` |  |  |  |
-| `0x86` | `COMM_FC_FLASH_PROGRAM` |  |  |  |
-| `0x87` | `COMM_FC_FLASH_READ` |  |  |  |
-| `0x88` | `COMM_FC_FLASH_VERIFY` |  |  |  |
-| `0x89` | `COMM_FC_FLASH_VERIFY_ERASED` |  |  |  |
+| `0x00` | `COMM_FC_NOP` | Do nothing | N/A | N/A |
+| `0x01` | `COMM_FC_REG_READ` | Read registers | Start address (`uint16_t`), register count (`uint8_t`) | Register values (`void *`) |
+| `0x02` | `COMM_FC_REG_WRITE` | Write registers | Start address (`uint16_t`), register count (`uint8_t`), register values (`void *`) | N/A |
+| `0x03` | `COMM_FC_REG_READ_WRITE` | Read and write registers simultaneously | Read start address (`uint16_t`), read register count (`uint8_t`), write start address (`uint16_t`), write register count (`uint8_t`), write register values (`void *`) | Read register values (`void *`) |
+| `0x80` | `COMM_FC_SYSTEM_RESET` | Enter the bootloader | N/A | N/A |
+| `0x81` | `COMM_FC_JUMP_TO_ADDR` | Jump to an address and execute code (used to leave bootloader) | Jump address (`uint32_t`) | N/A |
+| `0x82` | `COMM_FC_FLASH_SECTOR_COUNT` | Get the number of flash sectors | N/A | Flash sector count (`uint32_t`) |
+| `0x83` | `COMM_FC_FLASH_SECTOR_START` | Get the start address of a flash sector | Flash sector number (`uint32_t`) | Start address (`uint32_t`) |
+| `0x84` | `COMM_FC_FLASH_SECTOR_SIZE` | Get the size of a flash sector | Flash sector number (`uint32_t`) | Flash sector size (`uint32_t`) |
+| `0x85` | `COMM_FC_FLASH_SECTOR_ERASE` | Erase a flash sector | Flash sector number (`uint32_t`) | N/A |
+| `0x86` | `COMM_FC_FLASH_PROGRAM` | Program flash memory (must be erased first) | Start address (`uint32_t`), memory values (`void *`) | N/A |
+| `0x87` | `COMM_FC_FLASH_READ` | Read memory values | Start address (`uint32_t`), length (`uint32_t`) | Memory values (`void *`) |
+| `0x88` | `COMM_FC_FLASH_VERIFY` | Verify memory values | Start address (`uint32_t`), memory values (`void *`) | N/A |
+| `0x89` | `COMM_FC_FLASH_VERIFY_ERASED` | Verify that flash memory is erased (all `0xff`) | Start address (`uint32_t`), length (`uint32_t`) | N/A |
 
+The errors field in the response packet will be zero if an operation succeeded.
 
 -------
 
