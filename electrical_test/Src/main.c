@@ -145,8 +145,6 @@ int main(void) {
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15 | GPIO_PIN_14 | GPIO_PIN_13, GPIO_PIN_SET);
 
   uint8_t* buf[256];
-
-  /* USER CODE END 2 */
   
   uint32_t count = 0;
   uint32_t adc_value = 0;
@@ -175,6 +173,8 @@ int main(void) {
   adc_channels[6] = ADC_CHANNEL_8;
   
   uint32_t mot_state = 0;
+  
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
