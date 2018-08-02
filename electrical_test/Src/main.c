@@ -86,7 +86,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 #define N_ADC_CHANNEL 7
 
-#define PWM_HIGH 90
+#define PWM_HIGH 95
+#define PWM_LOW 5
 
 static void set_motor_state(uint32_t state) {
   TIM_OC_InitTypeDef sConfigOC;
@@ -103,7 +104,7 @@ static void set_motor_state(uint32_t state) {
   if (state & 1)
     sConfigOC.Pulse = PWM_HIGH;
   else 
-    sConfigOC.Pulse = 0;
+    sConfigOC.Pulse = PWM_LOW;
   
   // MOT_PWM_A
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
@@ -120,7 +121,7 @@ static void set_motor_state(uint32_t state) {
   if (state & 2)
     sConfigOC.Pulse = PWM_HIGH;
   else 
-    sConfigOC.Pulse = 0;
+    sConfigOC.Pulse = PWM_LOW;
 
   // MOT_PWM_B
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
@@ -137,7 +138,7 @@ static void set_motor_state(uint32_t state) {
   if (state & 4)
     sConfigOC.Pulse = PWM_HIGH;
   else 
-    sConfigOC.Pulse = 0;
+    sConfigOC.Pulse = PWM_LOW;
   
   // MOT_PWM_C
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
@@ -210,6 +211,7 @@ int main(void)
   
   uint32_t count = 0;
   uint32_t adc_value = 0;
+  uint32_t adc_values[N_ADC_CHANNEL];
 
   uint8_t adc_names[N_ADC_CHANNEL][64];
   strcpy(adc_names[0], "VSENSE_VIN");
@@ -236,6 +238,9 @@ int main(void)
   
   uint32_t mot_state = 0;
   
+  GPIO_PinState octw_state;
+  GPIO_PinState fault_state;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -244,13 +249,18 @@ int main(void)
 
     // Set motor state
     mot_state = (mot_state + 1) % 4;
-    set_motor_state(1 << mot_state);
+    
+    //set_motor_state(1);
+    set_motor_state(2);
 
     // Toggle LED
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 /*| GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0*/, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
     HAL_Delay(200);
+    
+    octw_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9);
+    fault_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8);
 
-    sprintf(buf, "count:%d state:%d\r\n", count, mot_state);
+    sprintf(buf, "count:%d state:%d octw:%d fault:%d\r\n", count, mot_state, octw_state, fault_state);
     HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
     count += 1;
     
@@ -263,14 +273,18 @@ int main(void)
 
       HAL_ADC_Start(&hadc1);
       if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-        adc_value = HAL_ADC_GetValue(&hadc1);
-        sprintf(buf, "adc ch:%d name:%s val:%d\r\n", i, adc_names[i], adc_value);
-        HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
+        adc_values[i] = HAL_ADC_GetValue(&hadc1);
       }
     }
     
+    sprintf(buf, "VA:%04d VB:%04d VC:%04d VIN:%04d\r\n", adc_values[1], adc_values[2], adc_values[3], adc_values[0]);
+    HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
+    
+    sprintf(buf, "IA:%04d IB:%04d IC:%04d\r\n", adc_values[4], adc_values[5], adc_values[6]);
+    HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
+    
     // Toggle LED
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 /*| GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0*/, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
     HAL_Delay(200);
 
   /* USER CODE END WHILE */
