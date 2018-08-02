@@ -75,6 +75,23 @@ static void MX_I2C1_Init(void);
 
 #define N_ADC_CHANNEL 7
 
+static void set_motor_state(uint32_t state) {
+  if (state & 1)
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
+  else 
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
+
+  if (state & 2)
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+  else 
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+
+  if (state & 4)
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+  else 
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -82,8 +99,7 @@ static void MX_I2C1_Init(void);
   *
   * @retval None
   */
-int main(void)
-{
+int main(void) {
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -110,6 +126,7 @@ int main(void)
   MX_SPI3_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
+  
   /* USER CODE BEGIN 2 */
 
   // Set RS485_DIR to drive
@@ -120,6 +137,12 @@ int main(void)
 
   // Set LEDs off by default
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0, GPIO_PIN_SET);
+  
+  // Enable 12V Supply
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+  
+  // Disable Resets
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15 | GPIO_PIN_14 | GPIO_PIN_13, GPIO_PIN_SET);
 
   uint8_t* buf[256];
 
@@ -151,16 +174,24 @@ int main(void)
   adc_channels[5] = ADC_CHANNEL_15;
   adc_channels[6] = ADC_CHANNEL_8;
   
+  uint32_t mot_state = 0;
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    sprintf(buf, "count:%d\r\n", count);
-    
+  while (1) {
+
+    // Set motor state
+    mot_state = (mot_state + 1) % 4;
+    set_motor_state(1 << mot_state);
+
+    sprintf(buf, "count:%d state:%d\r\n", count, mot_state);
     HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
-    
     count += 1;
     
+    // Toggle LED
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 /*| GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0*/, GPIO_PIN_RESET);
+    HAL_Delay(200);
+
     for(int i = 0; i < N_ADC_CHANNEL; i++) {
       sConfig.Channel = adc_channels[i];
 
@@ -175,11 +206,11 @@ int main(void)
         HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
       }
     }
-
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 /*| GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0*/, GPIO_PIN_RESET);
-    HAL_Delay(200);
+    
+    // Toggle LED
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 /*| GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0*/, GPIO_PIN_SET);
     HAL_Delay(200);
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -332,7 +363,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
