@@ -73,6 +73,8 @@ static void MX_I2C1_Init(void);
 
 /* USER CODE BEGIN 0 */
 
+#define N_ADC_CHANNEL 7
+
 /* USER CODE END 0 */
 
 /**
@@ -110,17 +112,74 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
-  /* USER CODE END 2 */
+  // Set RS485_DIR to drive
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_2, GPIO_PIN_SET);
 
+  // Enable RS485_SHUNT
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
+
+  // Set LEDs off by default
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0, GPIO_PIN_SET);
+
+  uint8_t* buf[256];
+
+  /* USER CODE END 2 */
+  
+  uint32_t count = 0;
+  uint32_t adc_value = 0;
+
+  uint8_t adc_names[N_ADC_CHANNEL][64];
+  strcpy(adc_names[0], "VSENSE_VIN");
+  strcpy(adc_names[1], "VSENSE_A");
+  strcpy(adc_names[2], "VSENSE_B");
+  strcpy(adc_names[3], "VSENSE_C");
+  strcpy(adc_names[4], "ISENSE_A");
+  strcpy(adc_names[5], "ISENSE_B");
+  strcpy(adc_names[6], "ISENSE_C");
+  
+  ADC_ChannelConfTypeDef sConfig;
+  sConfig.Channel = ADC_CHANNEL_13;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  
+  uint32_t adc_channels[7];
+  adc_channels[0] = ADC_CHANNEL_13;
+	adc_channels[1] = ADC_CHANNEL_10;
+  adc_channels[2] = ADC_CHANNEL_11;
+  adc_channels[3] = ADC_CHANNEL_12;
+  adc_channels[4] = ADC_CHANNEL_14;
+  adc_channels[5] = ADC_CHANNEL_15;
+  adc_channels[6] = ADC_CHANNEL_8;
+  
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-  
-  	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0, GPIO_PIN_RESET);
-    HAL_Delay(500);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0, GPIO_PIN_SET);
-    HAL_Delay(500);
+    sprintf(buf, "count:%d\r\n", count);
+    
+    HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
+    
+    count += 1;
+    
+    for(int i = 0; i < N_ADC_CHANNEL; i++) {
+      sConfig.Channel = adc_channels[i];
+
+      if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        _Error_Handler(__FILE__, __LINE__);
+      }
+
+      HAL_ADC_Start(&hadc1);
+      if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
+        adc_value = HAL_ADC_GetValue(&hadc1);
+        sprintf(buf, "adc ch:%d name:%s val:%d\r\n", i, adc_names[i], adc_value);
+        HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
+      }
+    }
+
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 /*| GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0*/, GPIO_PIN_RESET);
+    HAL_Delay(200);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 /*| GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0*/, GPIO_PIN_SET);
+    HAL_Delay(200);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -214,7 +273,7 @@ static void MX_ADC1_Init(void)
 
     /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
     */
-  sConfig.Channel = ADC_CHANNEL_14;
+  sConfig.Channel = ADC_CHANNEL_13;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -273,7 +332,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
