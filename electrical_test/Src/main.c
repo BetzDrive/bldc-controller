@@ -210,7 +210,7 @@ int main(void)
   // Disable Motor Resets
   //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15 | GPIO_PIN_14 | GPIO_PIN_13, GPIO_PIN_SET);
 
-	uint8_t buf[256];
+	uint8_t str_buf[128];
  
   uint32_t count = 0;
   uint32_t adc_value = 0;
@@ -244,9 +244,13 @@ int main(void)
   GPIO_PinState octw_state;
   GPIO_PinState fault_state;
 
-  uint8_t i2c_buf[256];
+  uint8_t i2c_buf[32];
   HAL_StatusTypeDef last_i2c_write_status;
   HAL_StatusTypeDef last_i2c_read_status;
+
+  uint8_t spi_tx_buf[32];
+  uint8_t spi_rx_buf[32];
+  HAL_StatusTypeDef last_spi_status;
 
   /* USER CODE END 2 */
 
@@ -265,16 +269,21 @@ int main(void)
     octw_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9);
     fault_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8);
 
-    sprintf(buf, "count:%d state:%d octw:%d fault:%d\r\n", count, mot_state, octw_state, fault_state);
-    HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
+    sprintf(str_buf, "count:%d state:%d octw:%d fault:%d\r\n", count, mot_state, octw_state, fault_state);
+    HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
     count += 1;
     
     i2c_buf[0] = ACCEL_WHOAMI_ADDR;
     last_i2c_write_status = HAL_I2C_Master_Transmit(&hi2c1, ACCEL_I2C_ADDR, i2c_buf, 1, 1000);
     last_i2c_read_status = HAL_I2C_Master_Receive(&hi2c1, ACCEL_I2C_ADDR, i2c_buf, 1, 1000);
 
-    sprintf(buf, "WS:%d RS:%d RD:0x%02X\r\n", last_i2c_write_status, last_i2c_read_status, i2c_buf[0]);
-    HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
+    sprintf(str_buf, "WS:%d RS:%d RD:0x%02X\r\n", last_i2c_write_status, last_i2c_read_status, i2c_buf[0]);
+    HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
+
+    last_spi_status = HAL_SPI_TransmitReceive(&hspi3, spi_tx_buf, spi_rx_buf, 2, 1000);
+
+    sprintf(str_buf, "TRS:%d RD:0x%02X%02X\r\n", last_spi_status, spi_rx_buf[0], spi_rx_buf[1]);
+    HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
 
     /*
     for(int i = 0; i < N_ADC_CHANNEL; i++) {
@@ -433,10 +442,10 @@ static void MX_SPI3_Init(void)
   hspi3.Init.Mode = SPI_MODE_MASTER;
   hspi3.Init.Direction = SPI_DIRECTION_2LINES;
   hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi3.Init.CLKPolarity = SPI_POLARITY_HIGH;
   hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi3.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
   hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
