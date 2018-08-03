@@ -153,6 +153,9 @@ static void set_motor_state(uint32_t state) {
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
 }
 
+#define ACCEL_I2C_ADDR 0xD4
+#define ACCEL_WHOAMI_ADDR 0x0F
+
 /* USER CODE END 0 */
 
 /**
@@ -207,8 +210,8 @@ int main(void)
   // Disable Motor Resets
   //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15 | GPIO_PIN_14 | GPIO_PIN_13, GPIO_PIN_SET);
 
-	uint8_t* buf[256];
-  
+	uint8_t buf[256];
+ 
   uint32_t count = 0;
   uint32_t adc_value = 0;
   uint32_t adc_values[N_ADC_CHANNEL];
@@ -241,6 +244,10 @@ int main(void)
   GPIO_PinState octw_state;
   GPIO_PinState fault_state;
 
+  uint8_t i2c_buf[256];
+  HAL_StatusTypeDef last_i2c_write_status;
+  HAL_StatusTypeDef last_i2c_read_status;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -262,6 +269,14 @@ int main(void)
     HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
     count += 1;
     
+    i2c_buf[0] = ACCEL_WHOAMI_ADDR;
+    last_i2c_write_status = HAL_I2C_Master_Transmit(&hi2c1, ACCEL_I2C_ADDR, i2c_buf, 1, 1000);
+    last_i2c_read_status = HAL_I2C_Master_Receive(&hi2c1, ACCEL_I2C_ADDR, i2c_buf, 1, 1000);
+
+    sprintf(buf, "WS:%d RS:%d RD:0x%02X\r\n", last_i2c_write_status, last_i2c_read_status, i2c_buf[0]);
+    HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
+
+    /*
     for(int i = 0; i < N_ADC_CHANNEL; i++) {
       sConfig.Channel = adc_channels[i];
 
@@ -280,7 +295,8 @@ int main(void)
     
     sprintf(buf, "IA:%04d IB:%04d IC:%04d\r\n", adc_values[4], adc_values[5], adc_values[6]);
     HAL_UART_Transmit(&huart1, buf, strlen(buf), 0xFFFF);
-    
+    */
+
     // Toggle LED
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
     HAL_Delay(200);
