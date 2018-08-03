@@ -202,10 +202,10 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0, GPIO_PIN_SET);
   
   // Enable 12V Supply
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+  //HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
   
   // Disable Motor Resets
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15 | GPIO_PIN_14 | GPIO_PIN_13, GPIO_PIN_SET);
+  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15 | GPIO_PIN_14 | GPIO_PIN_13, GPIO_PIN_SET);
 
 	uint8_t* buf[256];
   
@@ -248,10 +248,8 @@ int main(void)
   while (1) {
 
     // Set motor state
-    mot_state = (mot_state + 1) % 4;
-    
-    //set_motor_state(1);
-    set_motor_state(2);
+    //mot_state = (mot_state + 1) % 4;
+    //set_motor_state(3);
 
     // Toggle LED
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
