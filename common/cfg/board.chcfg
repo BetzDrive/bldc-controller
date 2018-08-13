@@ -84,7 +84,7 @@
         Mode="Input"
         Alternate="0" />
       <pin8
-        ID="MDRV_INH_C"
+        ID="MDRV_PWM_C"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
@@ -92,7 +92,7 @@
         Mode="Alternate"
         Alternate="1" />
       <pin9
-        ID="MDRV_INH_B"
+        ID="MDRV_PWM_B"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
@@ -100,7 +100,7 @@
         Mode="Alternate"
         Alternate="1" />
       <pin10
-        ID="MDRV_INH_A"
+        ID="MDRV_PWM_A"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
@@ -254,7 +254,7 @@
         Mode="Input"
         Alternate="0" />
       <pin13
-        ID="MDRV_INL_C"
+        ID="MDRV_RST_C"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
@@ -262,7 +262,7 @@
         Mode="Alternate"
         Alternate="1" />
       <pin14
-        ID="MDRV_INL_B"
+        ID="MDRV_RST_B"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
@@ -270,7 +270,7 @@
         Mode="Alternate"
         Alternate="1" />
       <pin15
-        ID="MDRV_INL_A"
+        ID="MDRV_RST_A"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
