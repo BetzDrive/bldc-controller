@@ -62,9 +62,9 @@
 #define GPIOA_PIN5                  5
 #define GPIOA_PIN6                  6
 #define GPIOA_PIN7                  7
-#define GPIOA_MDRV_INH_C            8
-#define GPIOA_MDRV_INH_B            9
-#define GPIOA_MDRV_INH_A            10
+#define GPIOA_MDRV_PWM_C            8
+#define GPIOA_MDRV_PWM_B            9
+#define GPIOA_MDRV_PWM_A            10
 #define GPIOA_USB_DM                11
 #define GPIOA_USB_DP                12
 #define GPIOA_SWDIO                 13
@@ -84,9 +84,9 @@
 #define GPIOB_PIN10                 10
 #define GPIOB_PIN11                 11
 #define GPIOB_PIN12                 12
-#define GPIOB_MDRV_INL_C            13
-#define GPIOB_MDRV_INL_B            14
-#define GPIOB_MDRV_INL_A            15
+#define GPIOB_MDRV_RST_C            13
+#define GPIOB_MDRV_RST_B            14
+#define GPIOB_MDRV_RST_A            15
 
 #define GPIOC_VSENSE_A              0
 #define GPIOC_VSENSE_B              1
@@ -240,9 +240,9 @@
  * PA5  - PIN5                      (input pullup).
  * PA6  - PIN6                      (input pullup).
  * PA7  - PIN7                      (input pullup).
- * PA8  - MDRV_INH_C                (alternate 1).
- * PA9  - MDRV_INH_B                (alternate 1).
- * PA10 - MDRV_INH_A                (alternate 1).
+ * PA8  - MDRV_PWM_C                (alternate 1).
+ * PA9  - MDRV_PWM_B                (alternate 1).
+ * PA10 - MDRV_PWM_A                (alternate 1).
  * PA11 - USB_DM                    (alternate 10).
  * PA12 - USB_DP                    (alternate 10).
  * PA13 - SWDIO                     (alternate 0).
@@ -257,9 +257,9 @@
                                      PIN_MODE_INPUT(GPIOA_PIN5) |           \
                                      PIN_MODE_INPUT(GPIOA_PIN6) |           \
                                      PIN_MODE_INPUT(GPIOA_PIN7) |           \
-                                     PIN_MODE_ALTERNATE(GPIOA_MDRV_INH_C) | \
-                                     PIN_MODE_ALTERNATE(GPIOA_MDRV_INH_B) | \
-                                     PIN_MODE_ALTERNATE(GPIOA_MDRV_INH_A) | \
+                                     PIN_MODE_ALTERNATE(GPIOA_MDRV_PWM_C) | \
+                                     PIN_MODE_ALTERNATE(GPIOA_MDRV_PWM_B) | \
+                                     PIN_MODE_ALTERNATE(GPIOA_MDRV_PWM_A) | \
                                      PIN_MODE_ALTERNATE(GPIOA_USB_DM) |     \
                                      PIN_MODE_ALTERNATE(GPIOA_USB_DP) |     \
                                      PIN_MODE_ALTERNATE(GPIOA_SWDIO) |      \
@@ -273,9 +273,9 @@
                                      PIN_OTYPE_PUSHPULL(GPIOA_PIN5) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOA_PIN6) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOA_PIN7) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_MDRV_INH_C) | \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_MDRV_INH_B) | \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_MDRV_INH_A) | \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_MDRV_PWM_C) | \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_MDRV_PWM_B) | \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_MDRV_PWM_A) | \
                                      PIN_OTYPE_PUSHPULL(GPIOA_USB_DM) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOA_USB_DP) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOA_SWDIO) |      \
@@ -289,9 +289,9 @@
                                      PIN_OSPEED_100M(GPIOA_PIN5) |          \
                                      PIN_OSPEED_100M(GPIOA_PIN6) |          \
                                      PIN_OSPEED_100M(GPIOA_PIN7) |          \
-                                     PIN_OSPEED_100M(GPIOA_MDRV_INH_C) |    \
-                                     PIN_OSPEED_100M(GPIOA_MDRV_INH_B) |    \
-                                     PIN_OSPEED_100M(GPIOA_MDRV_INH_A) |    \
+                                     PIN_OSPEED_100M(GPIOA_MDRV_PWM_C) |    \
+                                     PIN_OSPEED_100M(GPIOA_MDRV_PWM_B) |    \
+                                     PIN_OSPEED_100M(GPIOA_MDRV_PWM_A) |    \
                                      PIN_OSPEED_100M(GPIOA_USB_DM) |        \
                                      PIN_OSPEED_100M(GPIOA_USB_DP) |        \
                                      PIN_OSPEED_100M(GPIOA_SWDIO) |         \
@@ -305,9 +305,9 @@
                                      PIN_PUPDR_PULLUP(GPIOA_PIN5) |         \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN6) |         \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN7) |         \
-                                     PIN_PUPDR_FLOATING(GPIOA_MDRV_INH_C) | \
-                                     PIN_PUPDR_FLOATING(GPIOA_MDRV_INH_B) | \
-                                     PIN_PUPDR_FLOATING(GPIOA_MDRV_INH_A) | \
+                                     PIN_PUPDR_FLOATING(GPIOA_MDRV_PWM_C) | \
+                                     PIN_PUPDR_FLOATING(GPIOA_MDRV_PWM_B) | \
+                                     PIN_PUPDR_FLOATING(GPIOA_MDRV_PWM_A) | \
                                      PIN_PUPDR_FLOATING(GPIOA_USB_DM) |     \
                                      PIN_PUPDR_FLOATING(GPIOA_USB_DP) |     \
                                      PIN_PUPDR_FLOATING(GPIOA_SWDIO) |      \
@@ -321,9 +321,9 @@
                                      PIN_ODR_HIGH(GPIOA_PIN5) |             \
                                      PIN_ODR_HIGH(GPIOA_PIN6) |             \
                                      PIN_ODR_HIGH(GPIOA_PIN7) |             \
-                                     PIN_ODR_LOW(GPIOA_MDRV_INH_C) |        \
-                                     PIN_ODR_LOW(GPIOA_MDRV_INH_B) |        \
-                                     PIN_ODR_LOW(GPIOA_MDRV_INH_A) |        \
+                                     PIN_ODR_LOW(GPIOA_MDRV_PWM_C) |        \
+                                     PIN_ODR_LOW(GPIOA_MDRV_PWM_B) |        \
+                                     PIN_ODR_LOW(GPIOA_MDRV_PWM_A) |        \
                                      PIN_ODR_HIGH(GPIOA_USB_DM) |           \
                                      PIN_ODR_HIGH(GPIOA_USB_DP) |           \
                                      PIN_ODR_HIGH(GPIOA_SWDIO) |            \
@@ -337,9 +337,9 @@
                                      PIN_AFIO_AF(GPIOA_PIN5, 0) |           \
                                      PIN_AFIO_AF(GPIOA_PIN6, 0) |           \
                                      PIN_AFIO_AF(GPIOA_PIN7, 0))
-#define VAL_GPIOA_AFRH              (PIN_AFIO_AF(GPIOA_MDRV_INH_C, 1) |     \
-                                     PIN_AFIO_AF(GPIOA_MDRV_INH_B, 1) |     \
-                                     PIN_AFIO_AF(GPIOA_MDRV_INH_A, 1) |     \
+#define VAL_GPIOA_AFRH              (PIN_AFIO_AF(GPIOA_MDRV_PWM_C, 1) |     \
+                                     PIN_AFIO_AF(GPIOA_MDRV_PWM_B, 1) |     \
+                                     PIN_AFIO_AF(GPIOA_MDRV_PWM_A, 1) |     \
                                      PIN_AFIO_AF(GPIOA_USB_DM, 10) |        \
                                      PIN_AFIO_AF(GPIOA_USB_DP, 10) |        \
                                      PIN_AFIO_AF(GPIOA_SWDIO, 0) |          \
@@ -362,9 +362,9 @@
  * PB10 - PIN10                     (input pullup).
  * PB11 - PIN11                     (input pullup).
  * PB12 - PIN12                     (input pullup).
- * PB13 - MDRV_INL_C                (alternate 1).
- * PB14 - MDRV_INL_B                (alternate 1).
- * PB15 - MDRV_INL_A                (alternate 1).
+ * PB13 - MDRV_RST_C                (output pushpull maximum).
+ * PB14 - MDRV_RST_B                (output pushpull maximum).
+ * PB15 - MDRV_RST_A                (output pushpull maximum).
  */
 #define VAL_GPIOB_MODER             (PIN_MODE_ANALOG(GPIOB_ISENSE_C) |      \
                                      PIN_MODE_INPUT(GPIOB_PIN1) |           \
@@ -379,9 +379,9 @@
                                      PIN_MODE_INPUT(GPIOB_PIN10) |          \
                                      PIN_MODE_INPUT(GPIOB_PIN11) |          \
                                      PIN_MODE_INPUT(GPIOB_PIN12) |          \
-                                     PIN_MODE_ALTERNATE(GPIOB_MDRV_INL_C) | \
-                                     PIN_MODE_ALTERNATE(GPIOB_MDRV_INL_B) | \
-                                     PIN_MODE_ALTERNATE(GPIOB_MDRV_INL_A))
+                                     PIN_MODE_OUTPUT(GPIOB_MDRV_RST_C) | \
+                                     PIN_MODE_OUTPUT(GPIOB_MDRV_RST_B) | \
+                                     PIN_MODE_OUTPUT(GPIOB_MDRV_RST_A))
 #define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_ISENSE_C) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN1) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN2) |       \
@@ -395,9 +395,9 @@
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN10) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN11) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN12) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_MDRV_INL_C) | \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_MDRV_INL_B) | \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_MDRV_INL_A))
+                                     PIN_OTYPE_PUSHPULL(GPIOB_MDRV_RST_C) | \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_MDRV_RST_B) | \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_MDRV_RST_A))
 #define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_100M(GPIOB_ISENSE_C) |      \
                                      PIN_OSPEED_100M(GPIOB_PIN1) |          \
                                      PIN_OSPEED_100M(GPIOB_PIN2) |          \
@@ -411,9 +411,9 @@
                                      PIN_OSPEED_100M(GPIOB_PIN10) |         \
                                      PIN_OSPEED_100M(GPIOB_PIN11) |         \
                                      PIN_OSPEED_100M(GPIOB_PIN12) |         \
-                                     PIN_OSPEED_100M(GPIOB_MDRV_INL_C) |    \
-                                     PIN_OSPEED_100M(GPIOB_MDRV_INL_B) |    \
-                                     PIN_OSPEED_100M(GPIOB_MDRV_INL_A))
+                                     PIN_OSPEED_100M(GPIOB_MDRV_RST_C) |    \
+                                     PIN_OSPEED_100M(GPIOB_MDRV_RST_B) |    \
+                                     PIN_OSPEED_100M(GPIOB_MDRV_RST_A))
 #define VAL_GPIOB_PUPDR             (PIN_PUPDR_FLOATING(GPIOB_ISENSE_C) |   \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN1) |         \
                                      PIN_PUPDR_PULLDOWN(GPIOB_PIN2) |       \
@@ -427,9 +427,9 @@
                                      PIN_PUPDR_PULLUP(GPIOB_PIN10) |        \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN11) |        \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN12) |        \
-                                     PIN_PUPDR_FLOATING(GPIOB_MDRV_INL_C) | \
-                                     PIN_PUPDR_FLOATING(GPIOB_MDRV_INL_B) | \
-                                     PIN_PUPDR_FLOATING(GPIOB_MDRV_INL_A))
+                                     PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_C) | \
+                                     PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_B) | \
+                                     PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_A))
 #define VAL_GPIOB_ODR               (PIN_ODR_HIGH(GPIOB_ISENSE_C) |         \
                                      PIN_ODR_HIGH(GPIOB_PIN1) |             \
                                      PIN_ODR_HIGH(GPIOB_PIN2) |             \
@@ -443,9 +443,9 @@
                                      PIN_ODR_HIGH(GPIOB_PIN10) |            \
                                      PIN_ODR_HIGH(GPIOB_PIN11) |            \
                                      PIN_ODR_HIGH(GPIOB_PIN12) |            \
-                                     PIN_ODR_LOW(GPIOB_MDRV_INL_C) |        \
-                                     PIN_ODR_LOW(GPIOB_MDRV_INL_B) |        \
-                                     PIN_ODR_LOW(GPIOB_MDRV_INL_A))
+                                     PIN_ODR_LOW(GPIOB_MDRV_RST_C) |        \
+                                     PIN_ODR_LOW(GPIOB_MDRV_RST_B) |        \
+                                     PIN_ODR_LOW(GPIOB_MDRV_RST_A))
 #define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_ISENSE_C, 0) |       \
                                      PIN_AFIO_AF(GPIOB_PIN1, 0) |           \
                                      PIN_AFIO_AF(GPIOB_PIN2, 0) |           \
@@ -459,9 +459,9 @@
                                      PIN_AFIO_AF(GPIOB_PIN10, 0) |          \
                                      PIN_AFIO_AF(GPIOB_PIN11, 0) |          \
                                      PIN_AFIO_AF(GPIOB_PIN12, 0) |          \
-                                     PIN_AFIO_AF(GPIOB_MDRV_INL_C, 1) |     \
-                                     PIN_AFIO_AF(GPIOB_MDRV_INL_B, 1) |     \
-                                     PIN_AFIO_AF(GPIOB_MDRV_INL_A, 1))
+                                     PIN_AFIO_AF(GPIOB_MDRV_RST_C, 1) |     \
+                                     PIN_AFIO_AF(GPIOB_MDRV_RST_B, 1) |     \
+                                     PIN_AFIO_AF(GPIOB_MDRV_RST_A, 1))
 
 /*
  * GPIOC setup:
