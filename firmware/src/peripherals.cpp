@@ -41,7 +41,7 @@ PWMConfig motor_pwm_config = {
   0
 };
 
-DRV8301 gate_driver(
+DRV8312 gate_driver(
   SPID3,
   PWMD1,
   2,
@@ -77,6 +77,11 @@ AS5047D encoder_as5047d(
 );
 
 MLX90363 encoder_mlx90363(
+  SPID3,
+  {GPIOA, GPIOA_ENC_CSN}
+);
+
+AEAT6600 encoder_aeat6600(
   SPID3,
   {GPIOA, GPIOA_ENC_CSN}
 );

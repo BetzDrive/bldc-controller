@@ -108,7 +108,7 @@
         Mode="Alternate"
         Alternate="1" />
       <pin11
-        ID="USB_DM"
+        ID="ENC_ALIGN"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -116,7 +116,7 @@
         Mode="Alternate"
         Alternate="10" />
       <pin12
-        ID="USB_DP"
+        ID="ENC_PROG"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -259,24 +259,24 @@
         Level="Low"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Alternate"
-        Alternate="1" />
+        Mode="Output"
+        Alternate="0" />
       <pin14
         ID="MDRV_RST_B"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Alternate"
-        Alternate="1" />
+        Mode="Output"
+        Alternate="0" />
       <pin15
         ID="MDRV_RST_A"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Alternate"
-        Alternate="1" />
+        Mode="Output"
+        Alternate="0" />
     </GPIOB>
     <GPIOC>
       <pin0

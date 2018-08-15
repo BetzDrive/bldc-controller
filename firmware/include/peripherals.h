@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "hal.h"
-#include "DRV8301.h"
+#include "DRV8312.h"
 #include "AS5047D.h"
 #include "MLX90363.h"
 #include "LM75B.h"
@@ -18,7 +18,7 @@ constexpr UARTDriver *rs485_uart_driver = &UARTD1;
 
 extern PWMConfig motor_pwm_config;
 
-extern DRV8301 gate_driver;
+extern DRV8312 gate_driver;
 
 extern const PWMConfig led_pwm_config;
 

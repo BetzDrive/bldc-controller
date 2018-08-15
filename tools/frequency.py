@@ -67,7 +67,7 @@ while True:
     # Update user every 1000 packets.
     for _ in range(1000):
         try:
-            states = client.setCommandAndGetState(motor_ids, [0.0]*len(motor_ids))
+            states = client.setCommandAndGetState(motor_ids, [0.3]*len(motor_ids))
             for state in states:
                 if state == None:
                     errors += 1
