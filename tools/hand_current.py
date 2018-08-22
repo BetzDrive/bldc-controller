@@ -5,6 +5,8 @@ import sys
 import time
 from math import sin, cos, pi
 
+arduino= serial.Serial("COM3", 9600) #Meng added
+
 PROTOCOL_V2 = 2
 
 if len(sys.argv) != 4:
@@ -51,7 +53,7 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     client.writeRegisters([address], [0x1030], [1], [struct.pack('<H', 1000)])
     # print("Motor %d ready: supply voltage=%fV", address, client.getVoltage(address))
 
-    client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', duty_cycle)])
+    
     client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
 
     # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
@@ -83,7 +85,11 @@ while True:
     for address in addresses:
         try:
             data = struct.unpack('<ff', client.readRegisters([address], [0x3000], [2])[0])
-            # print(address, data)
+            line_data = arduino.readline().decode().split(",") #Meng added
+            print(line_data)
+            #current = line_data/1080*duty_cycle #Meng added
+            #client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', current)]) #Meng added
+        
         except IOError:
             pass
 
