@@ -4,18 +4,13 @@ import serial
 import sys
 import time
 
-port_default = "/dev/ttyUSB0"
-
-if len(sys.argv) < 2:
+if len(sys.argv) < 3:
         print("give me a serial port and motor_ids(es)")
         exit()
 
-motor_ids = [int(x) for x in sys.argv[1].split(",")]
+motor_ids = [int(x) for x in sys.argv[2].split(",")]
 
-if len(sys.argv) >= 3:
-    port = sys.argv[2]
-else:
-    port = port_default
+port = sys.argv[1]
 
 s = serial.Serial(port=port, baudrate=1000000, timeout=0.1)
 
