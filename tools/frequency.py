@@ -55,6 +55,9 @@ last_time = time.time()
 
 thous_packs = 0
 
+states = client.setCommandAndGetState(motor_ids, [0.0]*len(motor_ids))
+time.sleep(1)
+
 while True:
     client.sum_time = 0
     errors = 0
