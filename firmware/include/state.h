@@ -34,6 +34,10 @@ struct Results {
 
   float temperature = 0;                    // Temperature in degrees Celsius
 
+  uint32_t sample_count = 0;
+  uint32_t read_count = 0;
+  float phase_currents[8000];
+
   Results() {}
 };
 

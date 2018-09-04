@@ -62,28 +62,14 @@ void resumeInnerControlLoop() {
 void runInnerControlLoop() {
   control_thread_ptr = chThdSelf();
 
-  if (results.encoder_mode == encoder_mode_as5047d) {
-    /*
-     * getPipelinedRegisterReadResultI requires startPipelinedRegisterReadI to be called beforehand
-     */
+  chSysLock();
 
-    chSysLock();
+  // getPipelinedResultI requires startPipelinedAngleReadI to be called beforehand
+  encoder_aeat6600.startPipelinedAngleReadI();
 
-    encoder_as5047d.startPipelinedRegisterReadI(0x3fff);
+  chSysUnlock();
 
-    chSysUnlock();
-  } else if (results.encoder_mode == encoder_mode_mlx90363) {
-    uint8_t txbuf[8];
-
-    encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
-
-    chSysLock();
-
-    encoder_mlx90363.startAsyncExchangeMessageI(txbuf);
-
-    chSysUnlock();
-  }
-
+  int count = 0;
   while (true) {
     /*
      * Wait for resumeInnerControlLoop to be called
@@ -92,9 +78,12 @@ void runInnerControlLoop() {
 
     if (calibration.control_timeout != 0 && (chTimeNow() - last_control_timeout_reset) >= MS2ST(calibration.control_timeout)) {
       brakeMotor();
-    }
+    } 
 
-    estimateState();
+    if (count++ < 4) {
+      estimateState();
+      count = 0;
+    }
 
     runPositionControl();
 
@@ -111,48 +100,12 @@ void estimateState() {
 
   uint16_t raw_enc_value;
 
-  if (results.encoder_mode == encoder_mode_as5047d) {
-    chSysLock(); // Required for function calls with "I" suffix
+  chSysLock(); // Required for function calls with "I" suffix
 
-    raw_enc_value = encoder_as5047d.getPipelinedRegisterReadResultI();
-    encoder_as5047d.startPipelinedRegisterReadI(0x3fff);
+  raw_enc_value = encoder_aeat6600.getPipelinedResultI();
+  encoder_aeat6600.startPipelinedAngleReadI();
 
-    chSysUnlock();
-  } else if (results.encoder_mode == encoder_mode_mlx90363) {
-    static int cycles_since_update = 0;
-
-    // MLX90363 can only provide a new position every 20 cycles
-    if (cycles_since_update >= 20) {
-      uint8_t txbuf[8];
-      uint8_t rxbuf[8];
-
-      encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
-
-      chSysLock();
-
-      encoder_mlx90363.getAsyncExchangeMessageResultI(rxbuf);
-      encoder_mlx90363.startAsyncExchangeMessageI(txbuf);
-
-      chSysUnlock();
-
-      mlx90363_status_t status = encoder_mlx90363.parseAlphaMessage(rxbuf, &raw_enc_value, nullptr);
-      raw_enc_value = encoder_period - raw_enc_value; // MLX90363 angles increase in opposite direction
-
-      if (status != MLX90363_STATUS_OK) {
-        // If an error occurred, use the previous encoder position
-        raw_enc_value = results.raw_enc_value;
-      }
-
-      cycles_since_update = 0;
-    } else {
-      // Use the previous encoder position
-      raw_enc_value = results.raw_enc_value;
-    }
-
-    cycles_since_update++;
-  } else {
-    raw_enc_value = 0; // TODO
-  }
+  chSysUnlock();
 
   results.raw_enc_value = raw_enc_value;
 
@@ -201,7 +154,9 @@ void estimateState() {
     adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
   }
 
-  results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
+  results.average_ia = (float)adc_ia_sum;//adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
+  if (results.sample_count < 8000)
+    results.phase_currents[results.sample_count++] = results.average_ia;
   results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
   results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
   results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
@@ -322,10 +277,10 @@ void runCurrentControl() {
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
+    pid_iq.setBias(iq_sp * calibration.motor_resistance + (0 * results.rotor_vel * calibration.motor_torque_const));
 
-    float vd = pid_id.compute();
-    float vq = pid_iq.compute();
+    float vd = 0; //pid_id.compute();
+    float vq = 10; //pid_iq.compute();
 
     float vd_norm = vd / results.average_vin;
     float vq_norm = vq / results.average_vin;
@@ -341,8 +296,8 @@ void runCurrentControl() {
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
 
     gate_driver.setPWMDutyCycle(0, duty0);
-    gate_driver.setPWMDutyCycle(1, duty1);
-    gate_driver.setPWMDutyCycle(2, duty2);
+    gate_driver.setPWMDutyCycle(1, 0);//duty1);
+    gate_driver.setPWMDutyCycle(2, 0);//duty2);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;

@@ -126,7 +126,8 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/LM75B.cpp \
          $(SRC)/LSM6DS3Sensor.cpp \
          $(SRC)/Recorder.cpp \
-         $(SRC)/MLX90363.cpp
+         $(SRC)/MLX90363.cpp \
+         $(SRC)/AEAT6600.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler

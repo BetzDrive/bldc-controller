@@ -2,5 +2,8 @@
 *.pyc
 *.swp
 *.swo
-spinner_log.txt
-
+.metadata/
+.cproject
+.project
+.settings/
+results/

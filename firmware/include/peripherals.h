@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include "hal.h"
 #include "DRV8312.h"
-#include "AS5047D.h"
-#include "MLX90363.h"
+#include "AEAT6600.h"
 #include "LM75B.h"
 #include "LSM6DS3Sensor.h"
 #include "constants.h"
@@ -22,9 +21,7 @@ extern DRV8312 gate_driver;
 
 extern const PWMConfig led_pwm_config;
 
-extern AS5047D encoder_as5047d;
-
-extern MLX90363 encoder_mlx90363;
+extern AEAT6600 encoder_aeat6600;
 
 extern LM75B temp_sensor;
 
@@ -63,7 +60,7 @@ inline float adcValueToVoltage(float adc_value) {
  * Converts an ADC value to current (in amperes)
  */
 inline float adcValueToCurrent(float adc_value) {
-  return (adc_value - (adc_max_value >> 1)) * ivsense_current_per_count;
+  return (ivsense_count_zero_current - adc_value) * ivsense_current_per_count;
 }
 
 } // namespace motor_driver

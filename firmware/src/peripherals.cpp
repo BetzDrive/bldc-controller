@@ -31,9 +31,9 @@ PWMConfig motor_pwm_config = {
   motor_pwm_clock_freq / motor_pwm_cycle_freq, 	// PWM period (ticks)
   motorPWMPeriodicCallback,                		  // PWM callback
   {
-    {PWM_OUTPUT_ACTIVE_HIGH | PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH, NULL},
-    {PWM_OUTPUT_ACTIVE_HIGH | PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH, NULL},
-    {PWM_OUTPUT_ACTIVE_HIGH | PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH, NULL},
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
   },
   TIM_CR2_MMS_0,                                // CR2 (select enable signal as TRGO output)
@@ -42,12 +42,13 @@ PWMConfig motor_pwm_config = {
 };
 
 DRV8312 gate_driver(
-  SPID3,
   PWMD1,
   2,
   1,
   0,
-  {GPIOC, GPIOC_MDRV_NSCS},
+  {GPIOB, GPIOB_MDRV_RST_A},
+  {GPIOB, GPIOB_MDRV_RST_B},
+  {GPIOB, GPIOB_MDRV_RST_C},
   {GPIOC, GPIOC_MDRV_EN},
   {GPIOC, GPIOC_MDRV_NFAULT},
   {GPIOC, GPIOC_MDRV_NOCTW}
@@ -70,16 +71,6 @@ const PWMConfig led_pwm_config = {
   0,
   0
 };
-
-AS5047D encoder_as5047d(
-  SPID3,
-  {GPIOA, GPIOA_ENC_CSN}
-);
-
-MLX90363 encoder_mlx90363(
-  SPID3,
-  {GPIOA, GPIOA_ENC_CSN}
-);
 
 AEAT6600 encoder_aeat6600(
   SPID3,
@@ -148,7 +139,6 @@ LM75B temp_sensor(I2CD1);
 
 LSM6DS3Sensor acc_gyr(&I2CD1);
 
-
 void initPeripherals() {
   chBSemInit(&ivsense_adc_samples_bsem, true);
 }
@@ -175,7 +165,8 @@ void startPeripherals() {
   gate_driver.start();
 
   // Start encoder
-  startEncoder();
+  //startEncoder();
+  encoder_aeat6600.start();
 
   // Start temperature sensor
   temp_sensor.start();
@@ -201,57 +192,6 @@ void startPeripherals() {
 
   // Start motor PWM timer, which also starts the ADC trigger timer
   PWMD1.tim->CR1 |= TIM_CR1_CEN;
-}
-
-void startEncoder() {
-  /*
-   * Encoder autodetection
-   */
-
-  uint8_t txbuf[8];
-  uint8_t rxbuf[8];
-  mlx90363_status_t mlx_status;
-
-  // Try running the MLX90363's echo command
-  encoder_mlx90363.start();
-  encoder_mlx90363.createNopMessage(txbuf, 0xabcd);
-  encoder_mlx90363.sendMessage(txbuf);
-  halPolledDelay(US2RTT(120));
-  encoder_mlx90363.receiveMessage(rxbuf);
-
-  uint16_t key_echo;
-  mlx_status = encoder_mlx90363.parseEchoMessage(rxbuf, &key_echo);
-
-  if (mlx_status == MLX90363_STATUS_OK && key_echo == 0xabcd) {
-    // Encoder is MLX90363
-
-    results.encoder_mode = encoder_mode_mlx90363;
-
-    halPolledDelay(US2RTT(120));
-    encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
-    encoder_mlx90363.sendMessage(txbuf);
-    halPolledDelay(US2RTT(1067));
-    encoder_mlx90363.createDiagnosticDetailsMessage(txbuf);
-    encoder_mlx90363.sendMessage(txbuf);
-    halPolledDelay(US2RTT(120));
-    encoder_mlx90363.receiveMessage(rxbuf);
-
-    uint32_t diag_bits;
-    mlx_status = encoder_mlx90363.parseDiagnosticsAnswerMessage(rxbuf, &diag_bits, nullptr, nullptr);
-
-    if (mlx_status == MLX90363_STATUS_OK) {
-      results.encoder_diag = diag_bits;
-    } else {
-      results.encoder_diag = 0xffffffff;
-    }
-
-    encoder_mlx90363.startAsync(); // All accesses will be asynchronous from now on
-    return;
-  }
-
-  // Assume the encoder is AS5047D
-  encoder_as5047d.start();
-  results.encoder_mode = encoder_mode_as5047d;
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {

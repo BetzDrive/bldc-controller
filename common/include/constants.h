@@ -46,8 +46,8 @@ constexpr size_t ivsense_channel_vc = 5;    // Phase C voltage channel index
 constexpr size_t ivsense_channel_vin = 6;   // Supply voltage channel index
 
 constexpr float ivsense_voltage_ratio = (2.21e3f + 39.2e3f) / 2.21e3f;      // Ratio of actual voltage to ADC input voltage
-constexpr float ivsense_current_shunt_value = 0.002f;                       // Current shunt resistor value, ohms
-constexpr float ivsense_current_amp_gain = 50.0f;                           // Current shunt amplifier gain, V/V
+constexpr float ivsense_current_shunt_value = 0.001f;                       // Current shunt resistor value, ohms
+constexpr float ivsense_current_amp_gain = 20.0f;                           // Current shunt amplifier gain, V/V
 constexpr float adc_vref_voltage = 3.3f;                                    // ADC reference voltage, volts
 constexpr unsigned int adc_max_value = 1u << 12;                            // ADC maximum value
 
@@ -57,11 +57,17 @@ constexpr float ivsense_voltage_max = adc_vref_voltage * ivsense_voltage_ratio;
 /* Maximum expected current measurement */
 constexpr float ivsense_current_max = adc_vref_voltage / ivsense_current_amp_gain / ivsense_current_shunt_value;
 
+constexpr float ivsense_current_zero_voltage = 8.0f; // Current at 0V from ADC
+constexpr float ivsense_zero_current_voltage = 1.93f; // Voltage at 0 Current
+
 /* Actual voltage per ADC count */
 constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;
 
 /* Actual current per ADC count */
-constexpr float ivsense_current_per_count = ivsense_current_max / adc_max_value;
+constexpr float ivsense_current_per_count = ivsense_current_zero_voltage / (ivsense_zero_current_voltage / adc_vref_voltage * adc_max_value);
+
+/* ADC Value zero current is centered on */
+constexpr float ivsense_count_zero_current = ivsense_zero_current_voltage / adc_vref_voltage * adc_max_value;
 
 constexpr size_t recorder_channel_count = 9;
 
@@ -89,6 +95,7 @@ constexpr uint8_t control_mode_position_velocity = 5;
 constexpr uint8_t encoder_mode_none = 0;
 constexpr uint8_t encoder_mode_as5047d = 1;
 constexpr uint8_t encoder_mode_mlx90363 = 2;
+constexpr uint8_t encoder_mode_aeat6600 = 3;
 
 /* Encoder angle correction */
 constexpr size_t enc_ang_corr_table_size = 257;
