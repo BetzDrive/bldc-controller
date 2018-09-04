@@ -385,24 +385,26 @@ class BLDCControllerClient:
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
+        if (errors & COMM_ERRORS_OP_FAILED) != 0:
+            raise ProtocolError('operation failed')
+
+        if (errors & COMM_ERRORS_MALFORMED) != 0:
+            raise ProtocolError('malformed request')
+
+        if (errors & COMM_ERRORS_INVALID_FC) != 0:
+            raise ProtocolError('invalid function code')
+
+        if (errors & COMM_ERRORS_INVALID_ARGS) != 0:
+            raise ProtocolError('invalid arguments')
+
+        if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
+            raise ProtocolError('buffer length mismatch')
+        
         # Raise an exception if another type of error occurred
         if (errors & ~COMM_ERRORS_OP_FAILED) != 0:
             raise ProtocolError('other error flags set', errors)
 
-        # if (errors & COMM_ERRORS_OP_FAILED) != 0:
-        #     raise ProtocolError('operation failed')
 
-        # if (errors & COMM_ERRORS_MALFORMED) != 0:
-        #     raise ProtocolError('malformed request')
-
-        # if (errors & COMM_ERRORS_INVALID_FC) != 0:
-        #     raise ProtocolError('invalid function code')
-
-        # if (errors & COMM_ERRORS_INVALID_ARGS) != 0:
-        #     raise ProtocolError('invalid arguments')
-
-        # if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
-        #     raise ProtocolError('buffer length mismatch')
 
         return success, message[6:]
 

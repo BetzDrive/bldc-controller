@@ -54,6 +54,12 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', duty_cycle)])
     client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
 
+    # Setting gains for motor
+    client.writeRegisters([address], [0x1003], [1], [struct.pack('<f', 80)])  # DI Kp
+    client.writeRegisters([address], [0x1004], [1], [struct.pack('<f', 400)]) # DI Ki
+    client.writeRegisters([address], [0x1005], [1], [struct.pack('<f', 80)])  # QI Kp
+    client.writeRegisters([address], [0x1006], [1], [struct.pack('<f', 400)]) # QI Ki
+
     # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
     # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
     # if address in has_21_erevs_per_mrev:
