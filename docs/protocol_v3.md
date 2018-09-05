@@ -134,6 +134,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x2006` | Torque Setpoint (N*m) | `float` |
 | `0x2007` | Velocity Setpoint (rad/s) | `float` |
 | `0x2008` | Position Setpoint (rad) | `float` |
+| `0x2009` | PWM Drive (V) | `float` |
 
 **Read Only Registers `(0x3***)`**
 
@@ -164,6 +165,8 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | 2 | Torque Control | Torque Setpoint |
 | 3 | Velocity Control | Velocity Setpoint |
 | 4 | Position Control | Position Setpoint |
+| 5 | Position Velocity Control | Position Velocity Setpoints |
+| 6 | PWM Drive | PWM Drive |
 
 -------
 
