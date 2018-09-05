@@ -165,7 +165,8 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | 2 | Torque Control | Torque Setpoint |
 | 3 | Velocity Control | Velocity Setpoint |
 | 4 | Position Control | Position Setpoint |
-| 5 | PWM Drive | PWM Drive |
+| 5 | Position Velocity Control | Position Velocity Setpoints |
+| 6 | PWM Drive | PWM Drive |
 
 -------
 
