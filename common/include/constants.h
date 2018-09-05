@@ -84,6 +84,7 @@ constexpr uint8_t control_mode_torque = 2;
 constexpr uint8_t control_mode_velocity = 3;
 constexpr uint8_t control_mode_position = 4;
 constexpr uint8_t control_mode_position_velocity = 5;
+constexpr uint8_t control_mode_pwm_drive = 6;
 
 /* Encoder modes */
 constexpr uint8_t encoder_mode_none = 0;

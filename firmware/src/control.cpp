@@ -315,17 +315,29 @@ void runCurrentControl() {
       id_sp = 0.0f;
       iq_sp = parameters.torque_sp / calibration.motor_torque_const;
     }
+    
+    float vd = 0.0;
+    float vq = 0.0;
+    if (parameters.control_mode == control_mode_pwm_drive) {
 
-    pid_id.setSetPoint(id_sp);
-    pid_id.setProcessValue(id);
-    pid_id.setBias(id_sp * calibration.motor_resistance);
+      vd = 0;
+      vq = parameters.pwm_drive;
 
-    pid_iq.setSetPoint(iq_sp);
-    pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
+    } else {
 
-    float vd = pid_id.compute();
-    float vq = pid_iq.compute();
+      pid_id.setSetPoint(id_sp);
+      pid_id.setProcessValue(id);
+      pid_id.setBias(id_sp * calibration.motor_resistance);
+
+      pid_iq.setSetPoint(iq_sp);
+      pid_iq.setProcessValue(iq);
+      pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
+
+      vd = pid_id.compute();
+      vq = pid_iq.compute();
+    }
+
+    
 
     float vd_norm = vd / results.average_vin;
     float vq_norm = vq / results.average_vin;

@@ -81,6 +81,7 @@ struct Parameters {
   float torque_sp = 0.0f;                             // Torque control setpoint (N*m)
   float velocity_sp = 0.0f;                           // Velocity control setpoint (rad/s)
   float position_sp = 0.0f;                           // Position control setpoint (rad)
+  float pwm_drive = 0.0f;
 
   Parameters() {}
 };
