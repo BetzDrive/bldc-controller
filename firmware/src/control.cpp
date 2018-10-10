@@ -144,23 +144,33 @@ void estimateState() {
   unsigned int adc_vc_sum = 0;
   unsigned int adc_vin_sum = 0;
 
-  for (size_t i = 0; i < ivsense_adc_samples_count; i++) {
-    adc_ia_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ia];
-    adc_ib_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ib];
-    adc_ic_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ic];
-    adc_va_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_va];
-    adc_vb_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vb];
-    adc_vc_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vc];
-    adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
+  rolladc.ia[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_ia];
+  rolladc.ib[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_ib];
+  rolladc.ic[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_ic];
+  rolladc.va[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_va];
+  rolladc.vb[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_vb];
+  rolladc.vc[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_vc];
+  rolladc.vin[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
+
+  rolladc.count++;
+
+  for (size_t i = 0; i < ivsense_rolling_average_count; i++) {
+    adc_ia_sum += rolladc.ia[i];
+    adc_ib_sum += rolladc.ib[i];
+    adc_ic_sum += rolladc.ic[i];
+    adc_va_sum += rolladc.va[i];
+    adc_vb_sum += rolladc.vb[i];
+    adc_vc_sum += rolladc.vc[i];
+    adc_vin_sum += rolladc.vin[i];
   }
 
-  results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
-  results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
-  results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
-  results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
-  results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
-  results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
-  results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
+  results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_rolling_average_count);
+  results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_rolling_average_count);
+  results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_rolling_average_count);
+  results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_rolling_average_count);
+  results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_rolling_average_count);
+  results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_rolling_average_count);
+  results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_rolling_average_count);
 
   /*
    * Record data
@@ -275,7 +285,7 @@ void runCurrentControl() {
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance + 0 * (results.rotor_vel * calibration.motor_torque_const));
+    pid_iq.setBias(iq_sp * calibration.motor_resistance); // + 0 * (results.rotor_vel * calibration.motor_torque_const));
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();

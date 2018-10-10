@@ -33,7 +33,7 @@ constexpr float current_control_interval = 1.0f / current_control_freq;
 constexpr float velocity_control_interval = current_control_interval;
 constexpr float position_control_interval = current_control_interval;
 
-constexpr size_t ivsense_rolling_average_count = 1;
+constexpr size_t ivsense_rolling_average_count = 5;
 
 constexpr unsigned int ivsense_samples_per_cycle = 1;
 
