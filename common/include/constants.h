@@ -26,10 +26,14 @@ constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
 
 constexpr unsigned int motor_pwm_cycle_freq = 40000; // Hz
 
+constexpr unsigned int adc_pwm_cycle_freq = motor_pwm_clock_freq / 2; // Hz
+
 constexpr float current_control_freq = motor_pwm_cycle_freq / 2.0f; // Current control runs every two PWM cycles
 constexpr float current_control_interval = 1.0f / current_control_freq;
 constexpr float velocity_control_interval = current_control_interval;
 constexpr float position_control_interval = current_control_interval;
+
+constexpr size_t ivsense_rolling_average_count = 1;
 
 constexpr unsigned int ivsense_samples_per_cycle = 1;
 
@@ -58,7 +62,7 @@ constexpr float ivsense_voltage_max = adc_vref_voltage * ivsense_voltage_ratio;
 constexpr float ivsense_current_max = adc_vref_voltage / ivsense_current_amp_gain / ivsense_current_shunt_value;
 
 constexpr float ivsense_current_zero_voltage = 8.0f; // Current at 0V from ADC
-constexpr float ivsense_zero_current_voltage = 1.93f; // Voltage at 0 Current
+constexpr float ivsense_zero_current_voltage = 1.92732f; // Voltage at 0 Current
 
 /* Actual voltage per ADC count */
 constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;

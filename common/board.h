@@ -307,7 +307,7 @@
  * PA3  - LED_Y                     (output pushpull maximum).
  * PA4  - PIN4                      (input pullup).
  * PA5  - PIN5                      (input pullup).
- * PA6  - PIN6                      (input pullup).
+ * PA6  - PIN6                      (alternate 2).
  * PA7  - PIN7                      (input pullup).
  * PA8  - MDRV_PWM_C                (alternate 1).
  * PA9  - MDRV_PWM_B                (alternate 1).
@@ -324,7 +324,7 @@
                                      PIN_MODE_OUTPUT(GPIOA_LED_Y) |         \
                                      PIN_MODE_INPUT(GPIOA_PIN4) |           \
                                      PIN_MODE_INPUT(GPIOA_PIN5) |           \
-                                     PIN_MODE_INPUT(GPIOA_PIN6) |           \
+                                     PIN_MODE_ALTERNATE(GPIOA_PIN6) |       \
                                      PIN_MODE_INPUT(GPIOA_PIN7) |           \
                                      PIN_MODE_ALTERNATE(GPIOA_MDRV_PWM_C) | \
                                      PIN_MODE_ALTERNATE(GPIOA_MDRV_PWM_B) | \
@@ -372,7 +372,7 @@
                                      PIN_PUPDR_FLOATING(GPIOA_LED_Y) |      \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN4) |         \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN5) |         \
-                                     PIN_PUPDR_PULLUP(GPIOA_PIN6) |         \
+                                     PIN_PUPDR_FLOATING(GPIOA_PIN6) |       \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN7) |         \
                                      PIN_PUPDR_FLOATING(GPIOA_MDRV_PWM_C) | \
                                      PIN_PUPDR_FLOATING(GPIOA_MDRV_PWM_B) | \
@@ -388,7 +388,7 @@
                                      PIN_ODR_HIGH(GPIOA_LED_Y) |            \
                                      PIN_ODR_HIGH(GPIOA_PIN4) |             \
                                      PIN_ODR_HIGH(GPIOA_PIN5) |             \
-                                     PIN_ODR_HIGH(GPIOA_PIN6) |             \
+                                     PIN_ODR_LOW(GPIOA_PIN6) |              \
                                      PIN_ODR_HIGH(GPIOA_PIN7) |             \
                                      PIN_ODR_LOW(GPIOA_MDRV_PWM_C) |        \
                                      PIN_ODR_LOW(GPIOA_MDRV_PWM_B) |        \
@@ -404,7 +404,7 @@
                                      PIN_AFIO_AF(GPIOA_LED_Y, 0U) |         \
                                      PIN_AFIO_AF(GPIOA_PIN4, 0U) |          \
                                      PIN_AFIO_AF(GPIOA_PIN5, 0U) |          \
-                                     PIN_AFIO_AF(GPIOA_PIN6, 0U) |          \
+                                     PIN_AFIO_AF(GPIOA_PIN6, 2U) |          \
                                      PIN_AFIO_AF(GPIOA_PIN7, 0U))
 #define VAL_GPIOA_AFRH              (PIN_AFIO_AF(GPIOA_MDRV_PWM_C, 1U) |    \
                                      PIN_AFIO_AF(GPIOA_MDRV_PWM_B, 1U) |    \

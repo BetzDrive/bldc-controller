@@ -31,12 +31,12 @@ PWMConfig motor_pwm_config = {
   motor_pwm_clock_freq / motor_pwm_cycle_freq, 	// PWM period (ticks)
   motorPWMPeriodicCallback,                		  // PWM callback
   {
-    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
-    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
-    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
+    {PWM_OUTPUT_ACTIVE_LOW, NULL},
+    {PWM_OUTPUT_ACTIVE_LOW, NULL},
+    {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
   },
-  TIM_CR2_MMS_0,                                // CR2 (select enable signal as TRGO output)
+  0,                                // CR2 (select enable signal as TRGO output)
   0,                                            // BDTR
   0
 };
@@ -121,7 +121,7 @@ static const ADCConversionGroup ivsense_adc_group = {
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
-  motor_pwm_cycle_freq * ivsense_samples_per_cycle,       // PWM clock frequency
+  adc_pwm_cycle_freq,                                     // PWM clock frequency
   2,                                                      // PWM period (ticks)
   NULL,                                                   // PWM callback
   {
@@ -130,7 +130,7 @@ static const PWMConfig adc_trigger_pwm_config = {
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
   },
-  TIM_CR2_MMS_1,                                          // CR2 (select update signal as TRGO output)
+  0, 
   0,                                                      // BDTR
   0
 };
@@ -158,6 +158,7 @@ void startPeripherals() {
 
   // Configure motor PWM timer and pause it
   pwmStart(&PWMD1, &motor_pwm_config);
+
   PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
   PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS) | TIM_CR1_CMS_0 | TIM_CR1_CMS_1; // Enable center-aligned PWM
 
@@ -183,8 +184,14 @@ void startPeripherals() {
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
   PWMD3.tim->CR1 &= ~TIM_CR1_CEN;
-  // Enable counter on TIM1 (motor PWM) TRGO rising edge
-  PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS) | TIM_SMCR_SMS_1 | TIM_SMCR_SMS_2;
+
+  // From section 18.3.15 of the STM32f405 reference manual
+  // Set up Timer 1 (Motor PWM Output) as a master for Timer 3 (ADC Sampler)
+  PWMD1.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM1_MMS = 001) Set Timer 1 to send trigger on count
+  PWMD3.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM3_MMS = 010) Set Update signal as TRGO Output
+  PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS)     // Enable counter on TIM1 (motor PWM) TRGO rising edge
+                    | TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1 | TIM_SMCR_SMS_0   // (TIM3_SMS = 111) External clock mode
+                    ;
 
   // Reset timer counters
   PWMD1.tim->CNT = 0;
@@ -192,6 +199,7 @@ void startPeripherals() {
 
   // Start motor PWM timer, which also starts the ADC trigger timer
   PWMD1.tim->CR1 |= TIM_CR1_CEN;
+  PWMD3.tim->CR1 |= TIM_CR1_CEN;
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
@@ -206,6 +214,10 @@ void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue) {
 
 void setStatusLEDColor(uint32_t color) {
   setStatusLEDColor(color >> 16, color >> 8, color);
+}
+
+void setADCOn() {
+  pwmEnableChannel(&PWMD3, 0, 1);
 }
 
 void setCommsActivityLED(bool on) {

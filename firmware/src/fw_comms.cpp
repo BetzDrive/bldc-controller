@@ -185,22 +185,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           handleVarAccess(flag, buf, index, buf_size, access_type, errors);
           break;
         }
-        case 0x3010: // Raw Encoder Value
-          handleVarAccess(results.raw_enc_value, buf, index, buf_size, access_type, errors);
-          break;
-        case 0x3020: // Average Current Phase A 
-          if (results.read_count < 8000)
-            handleVarAccess(results.phase_currents[results.read_count++], buf, index, buf_size, access_type, errors);
-          else {
-            results.read_count = 0;
-            results.sample_count = 0;
-          }
-          break;
-        case 0x3021: // Average Current Phase A 
-          handleVarAccess(results.read_count, buf, index, buf_size, access_type, errors);
-          break;
-
-
+        
         default:
           errors |= COMM_ERRORS_INVALID_ARGS;
           return 0;

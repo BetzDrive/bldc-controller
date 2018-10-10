@@ -154,9 +154,7 @@ void estimateState() {
     adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
   }
 
-  results.average_ia = (float)adc_ia_sum;//adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
-  if (results.sample_count < 8000)
-    results.phase_currents[results.sample_count++] = results.average_ia;
+  results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
   results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
   results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
   results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
@@ -277,10 +275,10 @@ void runCurrentControl() {
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance + (0 * results.rotor_vel * calibration.motor_torque_const));
+    pid_iq.setBias(iq_sp * calibration.motor_resistance + 0 * (results.rotor_vel * calibration.motor_torque_const));
 
-    float vd = 0; //pid_id.compute();
-    float vq = 10; //pid_iq.compute();
+    float vd = pid_id.compute();
+    float vq = pid_iq.compute();
 
     float vd_norm = vd / results.average_vin;
     float vq_norm = vq / results.average_vin;
@@ -296,8 +294,8 @@ void runCurrentControl() {
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
 
     gate_driver.setPWMDutyCycle(0, duty0);
-    gate_driver.setPWMDutyCycle(1, 0);//duty1);
-    gate_driver.setPWMDutyCycle(2, 0);//duty2);
+    gate_driver.setPWMDutyCycle(1, duty1);
+    gate_driver.setPWMDutyCycle(2, duty2);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;

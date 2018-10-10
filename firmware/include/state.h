@@ -34,11 +34,20 @@ struct Results {
 
   float temperature = 0;                    // Temperature in degrees Celsius
 
-  uint32_t sample_count = 0;
-  uint32_t read_count = 0;
-  float phase_currents[8000];
-
   Results() {}
+};
+
+struct RolledADC {
+  uint16_t count = 0;
+  float ia[ivsense_rolling_average_count];
+  float ib[ivsense_rolling_average_count];
+  float ic[ivsense_rolling_average_count];
+  float va[ivsense_rolling_average_count];
+  float vb[ivsense_rolling_average_count];
+  float vc[ivsense_rolling_average_count];
+  float vin[ivsense_rolling_average_count];
+
+  RolledADC(){}
 };
 
 struct Calibration {
@@ -93,6 +102,11 @@ struct Parameters {
  * Result values written by the control thread
  */
 extern Results results;
+
+/**
+ * Rolling average of adc values 
+ */
+extern RolledADC rolladc;
 
 /**
  * Calibration values

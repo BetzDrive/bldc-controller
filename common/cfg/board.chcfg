@@ -72,11 +72,11 @@
       <pin6
         ID=""
         Type="PushPull"
-        Level="High"
+        Level="Low"
         Speed="Maximum"
-        Resistor="PullUp"
-        Mode="Input"
-        Alternate="0" />
+        Resistor="Floating"
+        Mode="Alternate"
+        Alternate="2" />
       <pin7
         ID=""
         Type="PushPull"

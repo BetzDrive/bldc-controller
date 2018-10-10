@@ -45,6 +45,8 @@ void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue);
 
 void setStatusLEDColor(uint32_t color);
 
+void setADCOn();
+
 void setCommsActivityLED(bool on);
 
 void setRS485TransmitMode(bool transmit);
