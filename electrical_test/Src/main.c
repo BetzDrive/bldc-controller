@@ -86,7 +86,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 #define N_ADC_CHANNEL 7
 
-#define PWM_HIGH 95
+#define PWM_HIGH 50
 #define PWM_LOW 5
 
 static void set_motor_state(uint32_t state) {
@@ -258,32 +258,40 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1) {
 
+    // Cycle reset lines to clear any fault
+    //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15 | GPIO_PIN_14 | GPIO_PIN_13, GPIO_PIN_RESET);
+    //HAL_Delay(10);
+    //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15 | GPIO_PIN_14 | GPIO_PIN_13, GPIO_PIN_SET);
+    
     // Set motor state
     //mot_state = (mot_state + 1) % 4;
-    //set_motor_state(3);
-
+    
+    //set_motor_state(7);
+    
     // Toggle LED
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
-    HAL_Delay(200);
+    HAL_Delay(190);
     
-    octw_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9);
-    fault_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8);
+    // Read motor driver overcurrent and fault bits
+    //octw_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9);
+    //fault_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8);
 
-    sprintf(str_buf, "count:%d state:%d octw:%d fault:%d\r\n", count, mot_state, octw_state, fault_state);
-    HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
+    //sprintf(str_buf, "count:%d state:%d octw:%d fault:%d\r\n", count, mot_state, octw_state, fault_state);
+    //HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
     count += 1;
     
-    i2c_buf[0] = ACCEL_WHOAMI_ADDR;
-    last_i2c_write_status = HAL_I2C_Master_Transmit(&hi2c1, ACCEL_I2C_ADDR, i2c_buf, 1, 1000);
-    last_i2c_read_status = HAL_I2C_Master_Receive(&hi2c1, ACCEL_I2C_ADDR, i2c_buf, 1, 1000);
+    // Read accelerometer via I2C
+    //i2c_buf[0] = ACCEL_WHOAMI_ADDR;
+    //last_i2c_write_status = HAL_I2C_Master_Transmit(&hi2c1, ACCEL_I2C_ADDR, i2c_buf, 1, 1000);
+    //last_i2c_read_status = HAL_I2C_Master_Receive(&hi2c1, ACCEL_I2C_ADDR, i2c_buf, 1, 1000);
 
-    sprintf(str_buf, "WS:%d RS:%d RD:0x%02X\r\n", last_i2c_write_status, last_i2c_read_status, i2c_buf[0]);
-    HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
+    //sprintf(str_buf, "WS:%d RS:%d RD:0x%02X\r\n", last_i2c_write_status, last_i2c_read_status, i2c_buf[0]);
+    //HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
 
-    last_spi_status = HAL_SPI_TransmitReceive(&hspi3, spi_tx_buf, spi_rx_buf, 2, 1000);
-
-    sprintf(str_buf, "TRS:%d RD:0x%02X%02X\r\n", last_spi_status, spi_rx_buf[0], spi_rx_buf[1]);
-    HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
+    // Read magnetometer via SPI
+    //last_spi_status = HAL_SPI_TransmitReceive(&hspi3, spi_tx_buf, spi_rx_buf, 2, 1000);
+    //sprintf(str_buf, "TRS:%d RD:0x%02X%02X\r\n", last_spi_status, spi_rx_buf[0], spi_rx_buf[1]);
+    //HAL_UART_Transmit(&huart1, str_buf, strlen(str_buf), 0xFFFF);
 
     /*
     for(int i = 0; i < N_ADC_CHANNEL; i++) {
@@ -467,7 +475,7 @@ static void MX_TIM1_Init(void)
   TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig;
 
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 34;
+  htim1.Init.Prescaler = 16;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 100;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -542,7 +550,7 @@ static void MX_TIM2_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 34;
+  htim2.Init.Prescaler = 16;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 100;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
