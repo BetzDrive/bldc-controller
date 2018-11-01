@@ -9,7 +9,7 @@ from math import sin, cos, pi
 PROTOCOL_V2 = 2
 
 if len(sys.argv) != 4:
-        print("give me a serial port, address, and duty cycle")
+        print("give me a serial port, address, and current command")
         exit()
 
 port = sys.argv[1]
@@ -17,14 +17,14 @@ s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 
 try:
     addresses = [int(sys.argv[2])]
-    duty_cycles = [float(sys.argv[3])]
+    current_commands = [float(sys.argv[3])]
 except ValueError:
     addresses = [int(address_str) for address_str in sys.argv[2].split(',')]
-    duty_cycles = [float(duty_cycle_str) for duty_cycle_str in sys.argv[3].split(',')]
+    current_commands = [float(current_command_str) for current_command_str in sys.argv[3].split(',')]
 
 client = BLDCControllerClient(s)
 
-for address, duty_cycle in zip(addresses, duty_cycles):
+for address, current_command in zip(addresses, current_commands):
     client.leaveBootloader([address])
     time.sleep(0.2)
     s.reset_input_buffer()
@@ -52,7 +52,7 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     client.writeRegisters([address], [0x1030], [1], [struct.pack('<H', 1000)])
     # print("Motor %d ready: supply voltage=%fV", address, client.getVoltage(address))
 
-    client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', duty_cycle)])
+    client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', current_command)])
     client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
 
     # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
@@ -61,7 +61,7 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.55))
     # else:
     #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.45))
-    # client.writeRegisters(address, 0x2007, 1, struct.pack('<f', duty_cycle))
+    # client.writeRegisters(address, 0x2007, 1, struct.pack('<f', current_command))
     # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 3) ) # Velocity control
 
     # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 2.0))
@@ -73,7 +73,7 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     # else:
     #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.00))
     # client.writeRegisters(address, 0x1012, 1, struct.pack('<f', 20.0))
-    # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
+    # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', current_command))
     # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 4) ) # Position control
 
     # print struct.unpack('<f', client.readRegisters(address, 0x1003, 1))
@@ -112,9 +112,9 @@ while True:
 #     t += ts
 
 # while True:
-#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
+#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', current_command))
 #     time.sleep(2)
-#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', -duty_cycle))
+#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', -current_command))
 #     time.sleep(2)
 
 # while True:

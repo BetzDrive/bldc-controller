@@ -50,10 +50,10 @@ To calibrate the motor board, a motor must first be attached. The results of cal
 
 After completing these steps, the motor should be controllable.
 
-## Torque Control
-Use this to spin a motor at a given torque target. A substantial starting pointis 0.5 and increase above this with proper supervision! A negative duty cycle will reverse the direction.
+## Current Command
+Use this script to spin a motor with a given current command. A substantial starting point is 0.5 and increase above this with proper supervision! A negative command will reverse the direction.
 
-`duty_cycle.py <serial_port> <board_id> <duty_cycle>`
+`current_command.py <serial_port> <board_id> <command>`
 
 ## Upload Bootloader
 Use this with caution. If this fails and a power cycle or reboot occurs, the board will have to be programmed directly. In the case of a failed upload, try again immediately. To be safe, first upload and test on an easy-to-remove link such as the gripper or base which are not as difficult to access in case of a failure.
