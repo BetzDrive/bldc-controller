@@ -65,7 +65,7 @@ void runInnerControlLoop() {
   chSysLock();
 
   // getPipelinedResultI requires startPipelinedAngleReadI to be called beforehand
-  encoder_aeat6600.startPipelinedAngleReadI();
+  encoder_as5047d.startPipelinedAngleReadI(0x3fff);
 
   chSysUnlock();
 
@@ -102,8 +102,8 @@ void estimateState() {
 
   chSysLock(); // Required for function calls with "I" suffix
 
-  raw_enc_value = encoder_aeat6600.getPipelinedResultI();
-  encoder_aeat6600.startPipelinedAngleReadI();
+  raw_enc_value = encoder_as5047d.getPipelinedResultI();
+  encoder_as5047d.startPipelinedAngleReadI(0x3fff);
 
   chSysUnlock();
 

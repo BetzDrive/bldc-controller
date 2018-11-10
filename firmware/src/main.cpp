@@ -134,8 +134,6 @@ int main(void) {
   // Set comms activity callback
   comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
 
-  setADCOn();
-
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
   chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);

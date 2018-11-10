@@ -72,7 +72,7 @@ const PWMConfig led_pwm_config = {
   0
 };
 
-AEAT6600 encoder_aeat6600(
+AS5047D encoder_as5047d(
   SPID3,
   {GPIOA, GPIOA_ENC_CSN}
 );
@@ -167,7 +167,7 @@ void startPeripherals() {
 
   // Start encoder
   //startEncoder();
-  encoder_aeat6600.start();
+  encoder_as5047d.start();
 
   // Start temperature sensor
   temp_sensor.start();
@@ -214,10 +214,6 @@ void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue) {
 
 void setStatusLEDColor(uint32_t color) {
   setStatusLEDColor(color >> 16, color >> 8, color);
-}
-
-void setADCOn() {
-  pwmEnableChannel(&PWMD3, 0, 1);
 }
 
 void setCommsActivityLED(bool on) {

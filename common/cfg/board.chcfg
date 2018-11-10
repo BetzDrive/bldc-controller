@@ -232,20 +232,20 @@
         Mode="Alternate"
         Alternate="4" />
       <pin10
-        ID=""
+        ID="DISCO_BUS_IN"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Input"
         Alternate="0" />
       <pin11
-        ID=""
+        ID="DISCO_BUS_OUT"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
-        Mode="Input"
+        Resistor="Floating"
+        Mode="Output"
         Alternate="0" />
       <pin12
         ID="ENC_MAG_LO"

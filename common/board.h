@@ -89,8 +89,8 @@
 #define GPIOB_RS485_RX              7U
 #define GPIOB_I2C_SCL               8U
 #define GPIOB_I2C_SDA               9U
-#define GPIOB_PIN10                 10U
-#define GPIOB_PIN11                 11U
+#define GPIOB_DISCO_BUS_IN          10U
+#define GPIOB_DISCO_BUS_OUT         11U
 #define GPIOB_ENC_MAG_LO            12U
 #define GPIOB_MDRV_RST_C            13U
 #define GPIOB_MDRV_RST_B            14U
@@ -238,6 +238,8 @@
 #define LINE_RS485_RX               PAL_LINE(GPIOB, 7U)
 #define LINE_I2C_SCL                PAL_LINE(GPIOB, 8U)
 #define LINE_I2C_SDA                PAL_LINE(GPIOB, 9U)
+#define LINE_DISCO_BUS_IN           PAL_LINE(GPIOB, 10U)
+#define LINE_DISCO_BUS_OUT          PAL_LINE(GPIOB, 11U)
 #define LINE_ENC_MAG_LO             PAL_LINE(GPIOB, 12U)
 #define LINE_MDRV_RST_C             PAL_LINE(GPIOB, 13U)
 #define LINE_MDRV_RST_B             PAL_LINE(GPIOB, 14U)
@@ -428,8 +430,8 @@
  * PB7  - RS485_RX                  (alternate 7).
  * PB8  - I2C_SCL                   (alternate 4).
  * PB9  - I2C_SDA                   (alternate 4).
- * PB10 - PIN10                     (input pullup).
- * PB11 - PIN11                     (input pullup).
+ * PB10 - DISCO_BUS_IN              (input floating).
+ * PB11 - DISCO_BUS_OUT             (output pushpull maximum).
  * PB12 - ENC_MAG_LO                (input pullup).
  * PB13 - MDRV_RST_C                (output pushpull maximum).
  * PB14 - MDRV_RST_B                (output pushpull maximum).
@@ -445,8 +447,8 @@
                                      PIN_MODE_ALTERNATE(GPIOB_RS485_RX) |   \
                                      PIN_MODE_ALTERNATE(GPIOB_I2C_SCL) |    \
                                      PIN_MODE_ALTERNATE(GPIOB_I2C_SDA) |    \
-                                     PIN_MODE_INPUT(GPIOB_PIN10) |          \
-                                     PIN_MODE_INPUT(GPIOB_PIN11) |          \
+                                     PIN_MODE_INPUT(GPIOB_DISCO_BUS_IN) |   \
+                                     PIN_MODE_OUTPUT(GPIOB_DISCO_BUS_OUT) | \
                                      PIN_MODE_INPUT(GPIOB_ENC_MAG_LO) |     \
                                      PIN_MODE_OUTPUT(GPIOB_MDRV_RST_C) |    \
                                      PIN_MODE_OUTPUT(GPIOB_MDRV_RST_B) |    \
@@ -461,8 +463,8 @@
                                      PIN_OTYPE_PUSHPULL(GPIOB_RS485_RX) |   \
                                      PIN_OTYPE_OPENDRAIN(GPIOB_I2C_SCL) |   \
                                      PIN_OTYPE_OPENDRAIN(GPIOB_I2C_SDA) |   \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN10) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN11) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_DISCO_BUS_IN) |\
+                                     PIN_OTYPE_PUSHPULL(GPIOB_DISCO_BUS_OUT) |\
                                      PIN_OTYPE_PUSHPULL(GPIOB_ENC_MAG_LO) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_MDRV_RST_C) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_MDRV_RST_B) | \
@@ -477,8 +479,8 @@
                                      PIN_OSPEED_HIGH(GPIOB_RS485_RX) |      \
                                      PIN_OSPEED_HIGH(GPIOB_I2C_SCL) |       \
                                      PIN_OSPEED_HIGH(GPIOB_I2C_SDA) |       \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN10) |         \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN11) |         \
+                                     PIN_OSPEED_HIGH(GPIOB_DISCO_BUS_IN) |  \
+                                     PIN_OSPEED_HIGH(GPIOB_DISCO_BUS_OUT) | \
                                      PIN_OSPEED_HIGH(GPIOB_ENC_MAG_LO) |    \
                                      PIN_OSPEED_HIGH(GPIOB_MDRV_RST_C) |    \
                                      PIN_OSPEED_HIGH(GPIOB_MDRV_RST_B) |    \
@@ -493,8 +495,8 @@
                                      PIN_PUPDR_PULLUP(GPIOB_RS485_RX) |     \
                                      PIN_PUPDR_FLOATING(GPIOB_I2C_SCL) |    \
                                      PIN_PUPDR_FLOATING(GPIOB_I2C_SDA) |    \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN10) |        \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN11) |        \
+                                     PIN_PUPDR_FLOATING(GPIOB_DISCO_BUS_IN) |\
+                                     PIN_PUPDR_FLOATING(GPIOB_DISCO_BUS_OUT) |\
                                      PIN_PUPDR_PULLUP(GPIOB_ENC_MAG_LO) |   \
                                      PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_C) | \
                                      PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_B) | \
@@ -509,8 +511,8 @@
                                      PIN_ODR_HIGH(GPIOB_RS485_RX) |         \
                                      PIN_ODR_HIGH(GPIOB_I2C_SCL) |          \
                                      PIN_ODR_HIGH(GPIOB_I2C_SDA) |          \
-                                     PIN_ODR_HIGH(GPIOB_PIN10) |            \
-                                     PIN_ODR_HIGH(GPIOB_PIN11) |            \
+                                     PIN_ODR_HIGH(GPIOB_DISCO_BUS_IN) |     \
+                                     PIN_ODR_HIGH(GPIOB_DISCO_BUS_OUT) |    \
                                      PIN_ODR_HIGH(GPIOB_ENC_MAG_LO) |       \
                                      PIN_ODR_LOW(GPIOB_MDRV_RST_C) |        \
                                      PIN_ODR_LOW(GPIOB_MDRV_RST_B) |        \
@@ -525,8 +527,8 @@
                                      PIN_AFIO_AF(GPIOB_RS485_RX, 7U))
 #define VAL_GPIOB_AFRH              (PIN_AFIO_AF(GPIOB_I2C_SCL, 4U) |       \
                                      PIN_AFIO_AF(GPIOB_I2C_SDA, 4U) |       \
-                                     PIN_AFIO_AF(GPIOB_PIN10, 0U) |         \
-                                     PIN_AFIO_AF(GPIOB_PIN11, 0U) |         \
+                                     PIN_AFIO_AF(GPIOB_DISCO_BUS_IN, 0U) |  \
+                                     PIN_AFIO_AF(GPIOB_DISCO_BUS_OUT, 0U) | \
                                      PIN_AFIO_AF(GPIOB_ENC_MAG_LO, 0U) |    \
                                      PIN_AFIO_AF(GPIOB_MDRV_RST_C, 0U) |    \
                                      PIN_AFIO_AF(GPIOB_MDRV_RST_B, 0U) |    \
