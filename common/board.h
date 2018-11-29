@@ -430,7 +430,7 @@
  * PB7  - RS485_RX                  (alternate 7).
  * PB8  - I2C_SCL                   (alternate 4).
  * PB9  - I2C_SDA                   (alternate 4).
- * PB10 - DISCO_BUS_IN              (input floating).
+ * PB10 - DISCO_BUS_IN              (input pullup).
  * PB11 - DISCO_BUS_OUT             (output pushpull maximum).
  * PB12 - ENC_MAG_LO                (input pullup).
  * PB13 - MDRV_RST_C                (output pushpull maximum).
@@ -495,7 +495,7 @@
                                      PIN_PUPDR_PULLUP(GPIOB_RS485_RX) |     \
                                      PIN_PUPDR_FLOATING(GPIOB_I2C_SCL) |    \
                                      PIN_PUPDR_FLOATING(GPIOB_I2C_SDA) |    \
-                                     PIN_PUPDR_FLOATING(GPIOB_DISCO_BUS_IN) |\
+                                     PIN_PUPDR_PULLUP(GPIOB_DISCO_BUS_IN) | \
                                      PIN_PUPDR_FLOATING(GPIOB_DISCO_BUS_OUT) |\
                                      PIN_PUPDR_PULLUP(GPIOB_ENC_MAG_LO) |   \
                                      PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_C) | \

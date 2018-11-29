@@ -216,6 +216,25 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   return crc16_finalize(crc);
 }
 
+/*          Server Functions            */
+void Server::initDisco() {
+  // Initialize disco bus to have output low according to spec 
+  palClearPad(disco_out_.port, disco_out_.pin);
+  received_id_ = false;
+
+}
+
+void Server::setDisco() {
+  palSetPad(disco_out_.port, disco_out_.pin);
+  received_id_ = true;
+}
+
+bool Server::getDisco() {
+    return (PAL_HIGH == palReadPad(disco_out_.port, disco_out_.pin));
+}
+
+/*       Protocol FSM Functions         */
+
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_t flags, comm_errors_t& errors) {
   /* If message from another board, decrement counter and exit. */
   if (flags & COMM_FG_SEND) {
@@ -465,6 +484,22 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       dest_addr |= (uint32_t)datagram[index++] << 24;
 
       dest_len = datagram_len - index;
+
+#ifdef BOOTLOADER
+      // If we wrote to the board_id's address, check the state of the disco bus:
+      //    if the input is high, pass through the command 
+      //    if the input is low, ignore the command by setting state to IDLE
+      if ((uint8_t*) dest_addr == board_id_ptr) {
+        if (!comms_server.getDisco()) {
+          state_ = State::IDLE;
+          break;
+        } 
+        else {
+          if (datagram[index] == *board_id_ptr)
+            comms_server.setDisco();
+        }
+      }
+#endif
 
       success = (flashWrite(dest_addr, (char *)&datagram[index], dest_len) == FLASH_RETURN_SUCCESS);
 
@@ -773,8 +808,17 @@ void runComms() {
 
 UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
 
-Server comms_server(*board_id_ptr, commsRegAccessHandler);
-
+#ifdef BOOTLOADER
+// Wait in bootloader for a id to be assigned from the disco bus
+Server comms_server(COMM_ID_BROADCAST, commsRegAccessHandler, 
+                  {GPIOB, GPIOB_DISCO_BUS_IN}, 
+                  {GPIOB, GPIOB_DISCO_BUS_OUT});
+#else
+// Out of the bootloader, use whatever ID is stored in memory
+Server comms_server(*board_id_ptr, commsRegAccessHandler, 
+                  {GPIOB, GPIOB_DISCO_BUS_IN}, 
+                  {GPIOB, GPIOB_DISCO_BUS_OUT});
+#endif
 ProtocolFSM comms_protocol_fsm(comms_server);
 
 } // namespace motor_driver
