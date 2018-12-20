@@ -150,7 +150,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x3009` | Recorder start | `bool` |
 | `0x300a` | Recorder ready/length | `uint16_t` |
 | `0x300b` | Recorder reset | `bool` |
-| `0x300c` | Rotor Position (raw) | `uint16_t` |
+| `0x3010` | Rotor Position (raw) | `uint16_t` |
 
 -------
 
