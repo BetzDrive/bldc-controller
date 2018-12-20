@@ -124,6 +124,7 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/SVM.cpp \
          $(SRC)/PID.cpp \
          $(SRC)/LM75B.cpp \
+         $(SRC)/MCP9808.cpp \
          $(SRC)/LSM6DS3Sensor.cpp \
          $(SRC)/Recorder.cpp \
          $(SRC)/MLX90363.cpp \
