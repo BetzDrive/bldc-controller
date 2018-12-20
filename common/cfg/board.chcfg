@@ -242,7 +242,7 @@
       <pin11
         ID="DISCO_BUS_OUT"
         Type="PushPull"
-        Level="High"
+        Level="Low"
         Speed="Maximum"
         Resistor="Floating"
         Mode="Output"

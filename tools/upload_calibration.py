@@ -17,6 +17,8 @@ def is_int(i):
 def flash_board(client, board_id, data):
     client.resetSystem([board_id])
     time.sleep(0.2) # Wait for the controller to reset
+    client.enumerateBoards([board_id])
+    time.sleep(0.2)
     ser.reset_input_buffer()
 
     old_board_id = client.readFlash([board_id], COMM_NVPARAMS_OFFSET, 1)

@@ -219,18 +219,15 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
 /*          Server Functions            */
 void Server::initDisco() {
   // Initialize disco bus to have output low according to spec 
-  palClearPad(disco_out_.port, disco_out_.pin);
-  received_id_ = false;
-
+  palWritePad(disco_out_.port, disco_out_.pin, PAL_LOW);
 }
 
 void Server::setDisco() {
-  palSetPad(disco_out_.port, disco_out_.pin);
-  received_id_ = true;
+  palWritePad(disco_out_.port, disco_out_.pin, PAL_HIGH);
 }
 
 bool Server::getDisco() {
-    return (PAL_HIGH == palReadPad(disco_out_.port, disco_out_.pin));
+    return (PAL_HIGH == palReadPad(disco_in_.port, disco_in_.pin));
 }
 
 /*       Protocol FSM Functions         */
@@ -255,7 +252,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
   bool found_board = false;
 
   comm_id_t id;
-    
+
+
+  // Loop through full packet for the message intended for this board 
   while ( ((datagram_len - index) >= sub_msg_header_len_) && !found_board ) {
     uint16_t sub_msg_len = (uint16_t)datagram[index] | ((uint16_t)datagram[index + 1] << 8);
     index += 2;
@@ -263,7 +262,37 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
 
     id = datagram[index++];
 
-    if (id != 0 && id != server_->getID()) {
+    #ifdef BOOTLOADER
+      comm_fc_t function_code = datagram[index];
+      // If the board has not been initialized yet (received an ID), check the state of the disco bus:
+      //    if the input is high, pass through the command and set the id!
+      //    if the input is low, ignore the command
+      if (function_code == COMM_FC_ENUMERATE && id != COMM_ID_BROADCAST && server_->getID() == COMM_ID_BROADCAST) {
+        if (server_->getDisco()) {
+          // Only update the flash if the IDs are different!
+          bool success = true;
+          if (id != *board_id_ptr && id != COMM_ID_BROADCAST) {
+            // Write the ID to the board!
+            uint32_t id_addr = reinterpret_cast<uintptr_t>(board_id_ptr);
+            success &= (flashErase(id_addr, sizeof(id)) == FLASH_RETURN_SUCCESS);
+            success &= (flashWrite(id_addr, (char *)&id, sizeof(id)) == FLASH_RETURN_SUCCESS);
+          }
+          if (success) {
+            server_->setID(id);
+            server_->setDisco();
+            u8_value_ = server_->getID(); 
+            state_ = State::RESPONDING_U8;
+          }
+          return;
+        }
+        else {
+          state_ = State::IDLE;
+        }
+        continue;
+      }
+    #endif
+
+    if (id != COMM_ID_BROADCAST && id != server_->getID()) {
       // We only wish to increment as long as we have not received our packet.
       if (state_ == State::IDLE) resp_count_++;
 
@@ -484,23 +513,6 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       dest_addr |= (uint32_t)datagram[index++] << 24;
 
       dest_len = datagram_len - index;
-
-#ifdef BOOTLOADER
-      // If we wrote to the board_id's address, check the state of the disco bus:
-      //    if the input is high, pass through the command 
-      //    if the input is low, ignore the command by setting state to IDLE
-      if ((uint8_t*) dest_addr == board_id_ptr) {
-        if (!comms_server.getDisco()) {
-          state_ = State::IDLE;
-          break;
-        } 
-        else {
-          if (datagram[index] == *board_id_ptr)
-            comms_server.setDisco();
-        }
-      }
-#endif
-
       success = (flashWrite(dest_addr, (char *)&datagram[index], dest_len) == FLASH_RETURN_SUCCESS);
 
       if (!success) {
@@ -774,6 +786,11 @@ template void handleVarAccess<float>(float& var, uint8_t *buf, size_t& index, si
 
 void startComms() {
   comms_endpoint.start();
+#ifdef BOOTLOADER
+  comms_server.initDisco();
+#else
+  comms_server.setDisco();
+#endif
 }
 
 void runComms() {

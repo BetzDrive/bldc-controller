@@ -143,10 +143,7 @@ using RegAccessHandler = size_t (*)(comm_addr_t start_addr, size_t reg_count, ui
 
 class Server {
 public:
-  Server(comm_id_t id, RegAccessHandler access_handler, IOPin disco_in, IOPin disco_out) : id_(id), access_handler_(access_handler), disco_in_(disco_in), disco_out_(disco_out)
-  { 
-    initDisco();
-  }
+  Server(comm_id_t id, RegAccessHandler access_handler, IOPin disco_in, IOPin disco_out) : id_(id), access_handler_(access_handler), disco_in_(disco_in), disco_out_(disco_out) {}
 
   comm_id_t getID() const {
     return id_;

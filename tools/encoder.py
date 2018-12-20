@@ -15,8 +15,12 @@ address = int(sys.argv[2])
 
 client = BLDCControllerClient(s)
 
+client.enterBootloader([address])
+time.sleep(0.5)
+client.enumerateBoards([address])
+time.sleep(0.5)
 client.leaveBootloader([address])
-time.sleep(0.2)
+time.sleep(1)
 s.reset_input_buffer()
 
 while True:

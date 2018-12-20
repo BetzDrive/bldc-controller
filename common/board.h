@@ -512,7 +512,7 @@
                                      PIN_ODR_HIGH(GPIOB_I2C_SCL) |          \
                                      PIN_ODR_HIGH(GPIOB_I2C_SDA) |          \
                                      PIN_ODR_HIGH(GPIOB_DISCO_BUS_IN) |     \
-                                     PIN_ODR_HIGH(GPIOB_DISCO_BUS_OUT) |    \
+                                     PIN_ODR_LOW(GPIOB_DISCO_BUS_OUT) |     \
                                      PIN_ODR_HIGH(GPIOB_ENC_MAG_LO) |       \
                                      PIN_ODR_LOW(GPIOB_MDRV_RST_C) |        \
                                      PIN_ODR_LOW(GPIOB_MDRV_RST_B) |        \

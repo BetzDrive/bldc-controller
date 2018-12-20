@@ -32,6 +32,7 @@ COMM_FC_FLASH_PROGRAM = 0x86
 COMM_FC_FLASH_READ = 0x87
 COMM_FC_FLASH_VERIFY = 0x88
 COMM_FC_FLASH_VERIFY_ERASED = 0x89
+COMM_FC_ENUMERATE = 0xFF
 
 COMM_FLAG_SEND = 0x00 
 
@@ -142,6 +143,12 @@ class BLDCControllerClient:
         ret = self.readWriteRegisters(server_ids, [0x3000 for sid in server_ids], [9 for sid in server_ids], [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
         states = [struct.unpack('<ffffffiii', data) for data in ret]
         return states
+
+    # Bootloader only
+    def enumerateBoards(self, server_ids):
+        responses = self.doTransaction(server_ids, [COMM_FC_ENUMERATE]*len(server_ids), ['']*len(server_ids))
+        data = [response[1] for response in responses]
+        return data
 
     def leaveBootloader(self, server_ids):
         self.jumpToAddress(server_ids, [COMM_FIRMWARE_OFFSET for sid in server_ids])
