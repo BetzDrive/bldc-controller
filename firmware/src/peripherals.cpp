@@ -72,7 +72,7 @@ const PWMConfig led_pwm_config = {
   0
 };
 
-AS5047D encoder_as5047d(
+AS5047D encoder(
   SPID3,
   {GPIOA, GPIOA_ENC_CSN}
 );
@@ -135,7 +135,7 @@ static const PWMConfig adc_trigger_pwm_config = {
   0
 };
 
-LM75B temp_sensor(I2CD1);
+MCP9808 temp_sensor(I2CD1);
 
 LSM6DS3Sensor acc_gyr(&I2CD1);
 
@@ -167,7 +167,7 @@ void startPeripherals() {
 
   // Start encoder
   //startEncoder();
-  encoder_as5047d.start();
+  encoder.start();
 
   // Start temperature sensor
   temp_sensor.start();

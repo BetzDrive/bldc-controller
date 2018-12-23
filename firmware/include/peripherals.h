@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include "hal.h"
 #include "DRV8312.h"
-#include "AEAT6600.h"
-#include "LM75B.h"
+#include "AS5047D.h"
+#include "MCP9808.h"
 #include "LSM6DS3Sensor.h"
 #include "constants.h"
 
@@ -21,9 +21,9 @@ extern DRV8312 gate_driver;
 
 extern const PWMConfig led_pwm_config;
 
-extern AEAT6600 encoder_aeat6600;
+extern AS5047D encoder;
 
-extern LM75B temp_sensor;
+extern MCP9808 temp_sensor;
 
 extern LSM6DS3Sensor acc_gyr;
 
