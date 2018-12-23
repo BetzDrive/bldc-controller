@@ -13,15 +13,15 @@ s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 
 address = int(sys.argv[2])
 
-client = BLDCControllerClient(s, True)
+client = BLDCControllerClient(s)
 
-client.leaveBootloader(address)
+client.leaveBootloader([address])
 time.sleep(0.2)
 s.reset_input_buffer()
 
 while True:
     try:
-        x_x, x_y, x_z = struct.unpack('<iii', client.readRegisters(address, 0x3006, 3))
+        x_x, x_y, x_z = struct.unpack('<iii', client.readRegisters([address], [0x3006], [3])[0])
         print("x accel: ", x_x)
         print("y accel: ", x_y)
         print("z accel: ", x_z)
