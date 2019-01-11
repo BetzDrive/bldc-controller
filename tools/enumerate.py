@@ -18,7 +18,7 @@ client = BLDCControllerClient(s)
 for addr in address:
     client.enterBootloader([addr])
     time.sleep(0.2)
-    print(struct.unpack('<B', client.enumerateBoards([addr])[0]))
+    print(struct.unpack('<B', client.enumerateBoards([addr])[0])[0])
     time.sleep(0.2)
 
 # try:

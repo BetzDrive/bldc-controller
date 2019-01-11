@@ -146,8 +146,8 @@ class BLDCControllerClient:
 
     # Bootloader only
     def enumerateBoards(self, server_ids):
-        responses = self.doTransaction(server_ids, [COMM_FC_ENUMERATE]*len(server_ids), ['']*len(server_ids))
-        data = [response[1] for response in responses]
+        responses = self.doTransaction([0]*len(server_ids), [COMM_FC_ENUMERATE]*len(server_ids), [struct.pack('<B', sid) for sid in server_ids])
+        data = [struct.unpack('<B', response[1]) for response in responses]
         return data
 
     def leaveBootloader(self, server_ids):

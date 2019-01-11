@@ -34,6 +34,14 @@ if __name__ == '__main__':
 
     client = BLDCControllerClient(ser)
 
+    client.enterBootloader([args.board_id])
+    time.sleep(0.2)
+    try:
+        print (client.enumerateBoards([args.board_id]))
+    except:
+        print("Failed to receive enumerate response")
+    time.sleep(0.2)
+
     client.leaveBootloader([args.board_id])
     time.sleep(0.2) # Wait for the controller to reset
     ser.reset_input_buffer()
@@ -42,7 +50,7 @@ if __name__ == '__main__':
         a, b, c = phase_state
         client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle)])
 
-    client.writeRegisters([args.board_id], [0x1030], [1], [struct.pack('<H', 3000)]) # Control watchdog timeout
+    client.writeRegisters([args.board_id], [0x1030], [1], [struct.pack('<H', 1000)]) # Control watchdog timeout
     client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', 0, 0, 0)])
     client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 1)])
 
