@@ -39,13 +39,13 @@ struct Results {
 
 struct RolledADC {
   uint16_t count = 0;
-  float ia[ivsense_rolling_average_count];
-  float ib[ivsense_rolling_average_count];
-  float ic[ivsense_rolling_average_count];
-  float va[ivsense_rolling_average_count];
-  float vb[ivsense_rolling_average_count];
-  float vc[ivsense_rolling_average_count];
-  float vin[ivsense_rolling_average_count];
+  float ia[ivsense_rolling_average_count] = {0};
+  float ib[ivsense_rolling_average_count] = {0};
+  float ic[ivsense_rolling_average_count] = {0};
+  float va[ivsense_rolling_average_count] = {0};
+  float vb[ivsense_rolling_average_count] = {0};
+  float vc[ivsense_rolling_average_count] = {0};
+  float vin[ivsense_rolling_average_count] = {0};
 
   RolledADC(){}
 };

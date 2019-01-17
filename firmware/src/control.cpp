@@ -80,10 +80,7 @@ void runInnerControlLoop() {
       brakeMotor();
     } 
 
-    if (count++ < 4) {
-      estimateState();
-      count = 0;
-    }
+    estimateState();
 
     runPositionControl();
 
@@ -132,45 +129,41 @@ void estimateState() {
 
   /*
    * Calculate average voltages and currents
+   * This will have odd behavior if the following conditions are not met:
+   * 1) count starts at zero 
+   * 2) average arrays are not initialized to zero
    */
 
   // TODO: should this be RMS voltage and current?
 
-  unsigned int adc_ia_sum = 0;
-  unsigned int adc_ib_sum = 0;
-  unsigned int adc_ic_sum = 0;
-  unsigned int adc_va_sum = 0;
-  unsigned int adc_vb_sum = 0;
-  unsigned int adc_vc_sum = 0;
-  unsigned int adc_vin_sum = 0;
+  unsigned int last_ia  = rolladc.ia [rolladc.count];
+  unsigned int last_ib  = rolladc.ib [rolladc.count];
+  unsigned int last_ic  = rolladc.ic [rolladc.count];
+  unsigned int last_va  = rolladc.va [rolladc.count];
+  unsigned int last_vb  = rolladc.vb [rolladc.count];
+  unsigned int last_vc  = rolladc.vc [rolladc.count];
+  unsigned int last_vin = rolladc.vin[rolladc.count];
 
-  rolladc.ia[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_ia];
-  rolladc.ib[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_ib];
-  rolladc.ic[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_ic];
-  rolladc.va[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_va];
-  rolladc.vb[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_vb];
-  rolladc.vc[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_vc];
-  rolladc.vin[rolladc.count%ivsense_rolling_average_count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
+  rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
+  rolladc.ib [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ib ];
+  rolladc.ic [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ic ];
+  rolladc.va [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_va ];
+  rolladc.vb [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vb ];
+  rolladc.vc [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vc ];
+  rolladc.vin[rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
 
-  rolladc.count++;
 
-  for (size_t i = 0; i < ivsense_rolling_average_count; i++) {
-    adc_ia_sum += rolladc.ia[i];
-    adc_ib_sum += rolladc.ib[i];
-    adc_ic_sum += rolladc.ic[i];
-    adc_va_sum += rolladc.va[i];
-    adc_vb_sum += rolladc.vb[i];
-    adc_vc_sum += rolladc.vc[i];
-    adc_vin_sum += rolladc.vin[i];
-  }
+  // The new average is equal to the addition of the old value minus the last value (delta) over the count and then converted to a current.
+  // For the first (ivsense_rolling_average_count) values, the average will be wrong.
+  results.average_ia  += adcValueToCurrent((float)(rolladc.ia [rolladc.count] - last_ia ) / ivsense_rolling_average_count);
+  results.average_ib  += adcValueToCurrent((float)(rolladc.ib [rolladc.count] - last_ib ) / ivsense_rolling_average_count);
+  results.average_ic  += adcValueToCurrent((float)(rolladc.ic [rolladc.count] - last_ic ) / ivsense_rolling_average_count);
+  results.average_va  += adcValueToVoltage((float)(rolladc.va [rolladc.count] - last_va ) / ivsense_rolling_average_count);
+  results.average_vb  += adcValueToVoltage((float)(rolladc.vb [rolladc.count] - last_vb ) / ivsense_rolling_average_count);
+  results.average_vc  += adcValueToVoltage((float)(rolladc.vc [rolladc.count] - last_vc ) / ivsense_rolling_average_count);
+  results.average_vin += adcValueToVoltage((float)(rolladc.vin[rolladc.count] - last_vin) / ivsense_rolling_average_count);
 
-  results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_rolling_average_count);
-  results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_rolling_average_count);
-  results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_rolling_average_count);
-  results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_rolling_average_count);
-  results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_rolling_average_count);
-  results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_rolling_average_count);
-  results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_rolling_average_count);
+  rolladc.count = (rolladc.count + 1) % ivsense_rolling_average_count;
 
   /*
    * Record data
@@ -320,7 +313,10 @@ void brakeMotor() {
   parameters.foc_d_current_sp = 0.0f;
   parameters.foc_q_current_sp = 0.0f;
   calibration.motor_torque_const = 0.0f; // Damps the motor to prevent a voltage spike
-  parameters.control_mode = control_mode_foc_current;
+  parameters.control_mode = control_mode_raw_phase_pwm;
+  parameters.phase0 = 0.0f;
+  parameters.phase1 = 0.0f;
+  parameters.phase2 = 0.0f;
 }
 
 } // namespace motor_driver

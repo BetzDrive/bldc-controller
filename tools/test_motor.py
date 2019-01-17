@@ -60,8 +60,8 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = struct.unpack('<H', client.readRegisters([args.board_id], [0x3010], [1])[0])[0]
-        print (raw_angle)
+        #raw_angle = struct.unpack('<H', client.readRegisters([args.board_id], [0x3010], [1])[0])[0]
+        #print (raw_angle)
 
 
 

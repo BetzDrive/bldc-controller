@@ -29,7 +29,7 @@ void UARTEndpoint::start() {
 void UARTEndpoint::transmit() {
   tx_buf_[0] = 0xff; // Sync flag
   tx_buf_[1] = COMM_VERSION; // Protocol version
-  tx_buf_[2] = COMM_FG_SEND; // Flag byte 
+  tx_buf_[2] = COMM_FG_SEND; // Flag byte
   tx_buf_[3] = (tx_len_ + 2) & 0xff;
   tx_buf_[4] = ((tx_len_ + 2) >> 8) & 0xff;
   tx_buf_[5] = tx_len_ & 0xff;
@@ -218,7 +218,7 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
 
 /*          Server Functions            */
 void Server::initDisco() {
-  // Initialize disco bus to have output low according to spec 
+  // Initialize disco bus to have output low according to spec
   palWritePad(disco_out_.port, disco_out_.pin, PAL_LOW);
 }
 
@@ -241,7 +241,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
     resp_count_ = 0;
     state_ = State::IDLE;
   }
-    
+
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
   static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
   static_assert(sizeof(comm_fc_t) == 1, "Assuming comm_fc_t is uint8_t");
@@ -254,43 +254,13 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
   comm_id_t id;
 
 
-  // Loop through full packet for the message intended for this board 
+  // Loop through full packet for the message intended for this board
   while ( ((datagram_len - index) >= sub_msg_header_len_) && !found_board ) {
     uint16_t sub_msg_len = (uint16_t)datagram[index] | ((uint16_t)datagram[index + 1] << 8);
     index += 2;
     next_msg += sub_msg_len + sizeof(sub_msg_len);
 
     id = datagram[index++];
-
-    #ifdef BOOTLOADER
-      comm_fc_t function_code = datagram[index];
-      // If the board has not been initialized yet (received an ID), check the state of the disco bus:
-      //    if the input is high, pass through the command and set the id!
-      //    if the input is low, ignore the command
-      if (function_code == COMM_FC_ENUMERATE && id != COMM_ID_BROADCAST && server_->getID() == COMM_ID_BROADCAST) {
-        if (server_->getDisco()) {
-          // Only update the flash if the IDs are different!
-          bool success = true;
-          if (id != *board_id_ptr && id != COMM_ID_BROADCAST) {
-            // Write the ID to the board!
-            uint32_t id_addr = reinterpret_cast<uintptr_t>(board_id_ptr);
-            success &= (flashErase(id_addr, sizeof(id)) == FLASH_RETURN_SUCCESS);
-            success &= (flashWrite(id_addr, (char *)&id, sizeof(id)) == FLASH_RETURN_SUCCESS);
-          }
-          if (success) {
-            server_->setID(id);
-            server_->setDisco();
-            u8_value_ = server_->getID(); 
-            state_ = State::RESPONDING_U8;
-          }
-          return;
-        }
-        else {
-          state_ = State::IDLE;
-        }
-        continue;
-      }
-    #endif
 
     if (id != COMM_ID_BROADCAST && id != server_->getID()) {
       // We only wish to increment as long as we have not received our packet.
@@ -308,7 +278,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
     resp_count_ = 0;
     return;
   }
-  
+
   function_code_ = datagram[index++];
 
   broadcast_ = (id == 0);
@@ -325,6 +295,12 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
   uint32_t sector_num, dest_addr;
   size_t dest_len;
   bool success;
+
+  /* Bootloader only vars */
+#ifdef BOOTLOADER
+  uint32_t id_addr;
+  uint8_t new_id;
+#endif
 
   switch (function_code_) {
     case COMM_FC_NOP:
@@ -608,6 +584,35 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
 
       break;
 
+    case COMM_FC_ENUMERATE:
+      /* Enumerate board ID */
+      state_ = State::IDLE;
+
+      /* Do nothing if not bootloader */
+#ifdef BOOTLOADER
+      // If the board has not been initialized yet (received an ID), check the state of the disco bus:
+      //    if the input is high, pass through the command and set the id!
+      //    if the input is low, ignore the command
+      if (server_->getDisco()) {
+        new_id = datagram[index++];
+        // Only update the flash if the IDs are different!
+        success = true;
+        if (new_id != *board_id_ptr && new_id != COMM_ID_BROADCAST) {
+          // Write the ID to the board!
+          id_addr = reinterpret_cast<uintptr_t>(board_id_ptr);
+          success &= (flashErase(id_addr, sizeof(new_id)) == FLASH_RETURN_SUCCESS);
+          success &= (flashWrite(id_addr, (char *)&new_id, sizeof(new_id)) == FLASH_RETURN_SUCCESS);
+        }
+        if (success) {
+          server_->setID(new_id);
+          server_->setDisco();
+          u8_value_ = server_->getID();
+          state_ = State::RESPONDING_U8;
+        }
+      }
+#endif
+      break;
+
     default:
       /* Invalid function code */
 
@@ -827,13 +832,13 @@ UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud)
 
 #ifdef BOOTLOADER
 // Wait in bootloader for a id to be assigned from the disco bus
-Server comms_server(COMM_ID_BROADCAST, commsRegAccessHandler, 
-                  {GPIOB, GPIOB_DISCO_BUS_IN}, 
+Server comms_server(COMM_ID_BROADCAST, commsRegAccessHandler,
+                  {GPIOB, GPIOB_DISCO_BUS_IN},
                   {GPIOB, GPIOB_DISCO_BUS_OUT});
 #else
 // Out of the bootloader, use whatever ID is stored in memory
-Server comms_server(*board_id_ptr, commsRegAccessHandler, 
-                  {GPIOB, GPIOB_DISCO_BUS_IN}, 
+Server comms_server(*board_id_ptr, commsRegAccessHandler,
+                  {GPIOB, GPIOB_DISCO_BUS_IN},
                   {GPIOB, GPIOB_DISCO_BUS_OUT});
 #endif
 ProtocolFSM comms_protocol_fsm(comms_server);
