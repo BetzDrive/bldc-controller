@@ -28,7 +28,6 @@ def flash_board(client, board_id, data):
     success = client.eraseFlash([board_id], COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
 
     buf = old_board_id + struct.pack('<H', len(data)) + data
-    print(len(data))
 
     success = success and client.programFlash([board_id], COMM_NVPARAMS_OFFSET, buf)
 
@@ -41,8 +40,7 @@ def flash_board(client, board_id, data):
         print("Wrote:")
         time.sleep(0.2)
         ser.reset_input_buffer()
-        l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET+1, 2))[0]
-        print(json.loads(client.readFlash([board_id], COMM_NVPARAMS_OFFSET+3, l)))
+        print(json.loads(d))
     else:
         print("Failed ", board_id)
 
@@ -67,6 +65,17 @@ if __name__ == '__main__':
     ser.reset_input_buffer()
 
     client = BLDCControllerClient(ser)
+
+    time.sleep(0.2)
+    try:
+        print (client.enumerateBoards([args.board_id]))
+    except:
+        print("Failed to receive enumerate response")
+    time.sleep(0.2)
+
+    ser.reset_input_buffer()
+
+
     if args.board_id == 'all':
         for id in calibrations:
             try:

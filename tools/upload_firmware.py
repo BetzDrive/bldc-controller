@@ -29,6 +29,12 @@ if __name__ == '__main__':
     for board_id in board_ids:
         client.enterBootloader([board_id])
         time.sleep(0.2) # Wait for the controller to reset
+        try:
+            print (client.enumerateBoards([board_id]))
+        except:
+            print("Failed to receive enumerate response")
+        time.sleep(0.2)
+
         ser.reset_input_buffer()
 
         flash_sector_maps = client.getFlashSectorMap([board_id])

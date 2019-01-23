@@ -21,10 +21,18 @@ except ValueError:
 
 client = BLDCControllerClient(s)
 
+time.sleep(0.2)
+try:
+    print (client.enumerateBoards(addresses))
+except:
+    print("Failed to receive enumerate response")
+time.sleep(0.2)
+
+
 for address, duty_cycle in zip(addresses, duty_cycles):
     client.leaveBootloader([address])
-    time.sleep(0.2)
     s.reset_input_buffer()
+    time.sleep(0.2)
 
     calibration_obj = client.readCalibration([address])
 
@@ -53,10 +61,10 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
 
     # Setting gains for motor
-    client.writeRegisters([address], [0x1003], [1], [struct.pack('<f', 300)])  # DI Kp
-    client.writeRegisters([address], [0x1004], [1], [struct.pack('<f', 0.0005)]) # DI Ki
-    client.writeRegisters([address], [0x1005], [1], [struct.pack('<f', 300)])  # QI Kp
-    client.writeRegisters([address], [0x1006], [1], [struct.pack('<f', 0.0005)]) # QI Ki
+    client.writeRegisters([address], [0x1003], [1], [struct.pack('<f', 1)])  # DI Kp
+    client.writeRegisters([address], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
+    client.writeRegisters([address], [0x1005], [1], [struct.pack('<f', 1)])  # QI Kp
+    client.writeRegisters([address], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
 
     # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
     # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
