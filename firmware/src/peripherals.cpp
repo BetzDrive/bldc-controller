@@ -125,7 +125,7 @@ static const PWMConfig adc_trigger_pwm_config = {
   2,                                                      // PWM period (ticks)
   NULL,                                                   // PWM callback
   {
-    {PWM_OUTPUT_DISABLED, NULL},
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
@@ -158,9 +158,10 @@ void startPeripherals() {
 
   // Configure motor PWM timer and pause it
   pwmStart(&PWMD1, &motor_pwm_config);
-
   PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
-  PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS) | TIM_CR1_CMS_0 | TIM_CR1_CMS_1; // Enable center-aligned PWM
+
+  PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS) | TIM_CR1_CMS_0 | TIM_CR1_CMS_1 // (TIM1_CMS = 11) Enable center-aligned PWM
+                  ;
 
   // Start gate driver
   gate_driver.start();
@@ -179,19 +180,25 @@ void startPeripherals() {
   // Start ADC
   adcStart(&ADCD1, NULL);
   adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, ivsense_sample_buf_depth);
-
   // Configure ADC trigger timer and pause it
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
   PWMD3.tim->CR1 &= ~TIM_CR1_CEN;
 
+  PWMD3.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS) | TIM_CR1_CMS_0 | TIM_CR1_CMS_1 // (TIM3_CMS = 11) Enable center-aligned PWM
+                  ;
+
   // From section 18.3.15 of the STM32f405 reference manual
   // Set up Timer 1 (Motor PWM Output) as a master for Timer 3 (ADC Sampler)
-  PWMD1.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM1_MMS = 001) Set Timer 1 to send trigger on count
+  PWMD1.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM1_MMS = 010) Set Timer 1 to send trigger on count
   PWMD3.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM3_MMS = 010) Set Update signal as TRGO Output
-  PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS)     // Enable counter on TIM1 (motor PWM) TRGO rising edge
+  PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS)     // (TIM3_TS = 000) Enable counter on TIM1 (motor PWM) TRGO rising edge
                     | TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1 | TIM_SMCR_SMS_0   // (TIM3_SMS = 111) External clock mode
+                    | TIM_SMCR_ETP                                       // (TIM3_ETP = 1) Invert Trigger (now falling edge)
                     ;
+
+  // Show pulse from ADC PWM
+  pwmEnableChannel(&PWMD3, 0, 0.5);
 
   // Reset timer counters
   PWMD1.tim->CNT = 0;

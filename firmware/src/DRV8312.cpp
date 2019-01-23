@@ -45,7 +45,7 @@ void DRV8312::setPWMPulseWidth(int phase, int32_t pulse_width) {
 }
 
 void DRV8312::setPWMDutyCycle(int phase, float duty_cycle) {
-  int32_t pulse_width = ::lround(duty_cycle * pwm_driver_->config->period);
+  int32_t pulse_width = ::lround((1-duty_cycle) * pwm_driver_->config->period);
   pulse_width = std::max((int32_t)0, std::min((int32_t)pwm_driver_->config->period, pulse_width));
   setPWMPulseWidth(phase, pulse_width);
 }
