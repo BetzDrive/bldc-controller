@@ -49,29 +49,32 @@ constexpr size_t ivsense_channel_vb = 4;    // Phase B voltage channel index
 constexpr size_t ivsense_channel_vc = 5;    // Phase C voltage channel index
 constexpr size_t ivsense_channel_vin = 6;   // Supply voltage channel index
 
-constexpr float ivsense_voltage_ratio = (2.21e3f + 39.2e3f) / 2.21e3f;      // Ratio of actual voltage to ADC input voltage
-constexpr float ivsense_current_shunt_value = 0.001f;                       // Current shunt resistor value, ohms
-constexpr float ivsense_current_amp_gain = 20.0f;                           // Current shunt amplifier gain, V/V
+constexpr float ivsense_current_shunt_value = 0.01f;                        // Current shunt resistor value, ohms
+constexpr float ivsense_current_amp_gain = 41.2f;                           // Current shunt amplifier gain, V/V
+constexpr float ivsense_current_amp_offset = 0.02f;                         // Voltage offset pre-gain (to handle negative currents)
 constexpr float adc_vref_voltage = 3.3f;                                    // ADC reference voltage, volts
 constexpr unsigned int adc_max_value = 1u << 12;                            // ADC maximum value
 
 /* Maximum expected voltage measurement */
-constexpr float ivsense_voltage_max = adc_vref_voltage * ivsense_voltage_ratio;
+constexpr float ivsense_voltage_max = adc_vref_voltage;
 
 /* Maximum expected current measurement */
-constexpr float ivsense_current_max = adc_vref_voltage / ivsense_current_amp_gain / ivsense_current_shunt_value;
+constexpr float ivsense_current_max = (1 / ivsense_current_shunt_value) * ((1 / ivsense_current_amp_gain) * adc_vref_voltage - ivsense_current_amp_offset);
 
-constexpr float ivsense_current_zero_voltage = 8.0f; // Current at 0V from ADC
-constexpr float ivsense_zero_current_voltage = 1.92732f; // Voltage at 0 Current
+/* Current at zero volts */
+constexpr float ivsense_current_zero_voltage = (1 / ivsense_current_shunt_value) * (ivsense_current_amp_offset);
+
+/* Voltage at zero current */
+constexpr float ivsense_voltage_zero_current = ivsense_current_amp_gain * (ivsense_current_amp_offset);
 
 /* Actual voltage per ADC count */
 constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;
 
 /* Actual current per ADC count */
-constexpr float ivsense_current_per_count = ivsense_current_zero_voltage / (ivsense_zero_current_voltage / adc_vref_voltage * adc_max_value);
+constexpr float ivsense_current_per_count = ivsense_current_zero_voltage / (ivsense_voltage_zero_current / adc_vref_voltage * adc_max_value);
 
 /* ADC Value zero current is centered on */
-constexpr float ivsense_count_zero_current = ivsense_zero_current_voltage / adc_vref_voltage * adc_max_value;
+constexpr float ivsense_count_zero_current = ivsense_voltage_zero_current / adc_vref_voltage * adc_max_value;
 
 constexpr size_t recorder_channel_count = 9;
 
