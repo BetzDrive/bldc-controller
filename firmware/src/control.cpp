@@ -69,7 +69,6 @@ void runInnerControlLoop() {
 
   chSysUnlock();
 
-  int count = 0;
   while (true) {
     /*
      * Wait for resumeInnerControlLoop to be called
@@ -135,14 +134,14 @@ void estimateState() {
    */
 
   // TODO: should this be RMS voltage and current?
-
-  unsigned int last_ia  = rolladc.ia [rolladc.count];
-  unsigned int last_ib  = rolladc.ib [rolladc.count];
-  unsigned int last_ic  = rolladc.ic [rolladc.count];
-  unsigned int last_va  = rolladc.va [rolladc.count];
-  unsigned int last_vb  = rolladc.vb [rolladc.count];
-  unsigned int last_vc  = rolladc.vc [rolladc.count];
-  unsigned int last_vin = rolladc.vin[rolladc.count];
+  // Subtract old values before storing/adding new values
+  results.average_ia  -= adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_ib  -= adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_ic  -= adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_va  -= adcValueToVoltage((float)(rolladc.va [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vb  -= adcValueToVoltage((float)(rolladc.vb [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vc  -= adcValueToVoltage((float)(rolladc.vc [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vin -= adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
 
   rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
   rolladc.ib [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ib ];
@@ -152,23 +151,21 @@ void estimateState() {
   rolladc.vc [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vc ];
   rolladc.vin[rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
 
-
   // The new average is equal to the addition of the old value minus the last value (delta) over the count and then converted to a current.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
-  results.average_ia  += adcValueToCurrent((float)(rolladc.ia [rolladc.count] - last_ia ) / ivsense_rolling_average_count);
-  results.average_ib  += adcValueToCurrent((float)(rolladc.ib [rolladc.count] - last_ib ) / ivsense_rolling_average_count);
-  results.average_ic  += adcValueToCurrent((float)(rolladc.ic [rolladc.count] - last_ic ) / ivsense_rolling_average_count);
-  results.average_va  += adcValueToVoltage((float)(rolladc.va [rolladc.count] - last_va ) / ivsense_rolling_average_count);
-  results.average_vb  += adcValueToVoltage((float)(rolladc.vb [rolladc.count] - last_vb ) / ivsense_rolling_average_count);
-  results.average_vc  += adcValueToVoltage((float)(rolladc.vc [rolladc.count] - last_vc ) / ivsense_rolling_average_count);
-  results.average_vin += adcValueToVoltage((float)(rolladc.vin[rolladc.count] - last_vin) / ivsense_rolling_average_count);
+  results.average_ia  += adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_ib  += adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_ic  += adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_va  += adcValueToVoltage((float)(rolladc.va [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vb  += adcValueToVoltage((float)(rolladc.vb [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vc  += adcValueToVoltage((float)(rolladc.vc [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vin += adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
 
   rolladc.count = (rolladc.count + 1) % ivsense_rolling_average_count;
 
   /*
    * Record data
    */
-
   float recorder_new_data[recorder_channel_count];
 
   recorder_new_data[recorder_channel_ia] = results.average_ia;
@@ -182,6 +179,7 @@ void estimateState() {
   recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
 
   recorder.recordSample(recorder_new_data);
+  
 }
 
 void runPositionControl() {
