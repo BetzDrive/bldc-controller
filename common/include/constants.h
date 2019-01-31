@@ -60,10 +60,10 @@ constexpr unsigned int adc_max_value = 1u << 12;                            // A
 constexpr float ivsense_voltage_max = adc_vref_voltage * ivsense_voltage_ratio;
 
 /* Maximum expected current measurement */
-constexpr float ivsense_current_max = (1 / ivsense_current_shunt_value) * ((1 / ivsense_current_amp_gain) * adc_vref_voltage - ivsense_current_amp_offset);
+constexpr float ivsense_current_max = (1.0f / ivsense_current_shunt_value) * ((1.0f / ivsense_current_amp_gain) * adc_vref_voltage - ivsense_current_amp_offset);
 
 /* Current at zero volts (also the minimum) */
-constexpr float ivsense_current_zero_voltage = (1 / ivsense_current_shunt_value) * (ivsense_current_amp_offset);
+constexpr float ivsense_current_zero_voltage = (1.0f / ivsense_current_shunt_value) * (-ivsense_current_amp_offset);
 
 /* Voltage at zero current */
 constexpr float ivsense_voltage_zero_current = ivsense_current_amp_gain * (ivsense_current_amp_offset);

@@ -135,13 +135,16 @@ void estimateState() {
 
   // TODO: should this be RMS voltage and current?
   // Subtract old values before storing/adding new values
-  results.average_ia  -= adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_ib  -= adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_ic  -= adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_va  -= adcValueToVoltage((float)(rolladc.va [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_vb  -= adcValueToVoltage((float)(rolladc.vb [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_vc  -= adcValueToVoltage((float)(rolladc.vc [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_vin -= adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
+  // Start doing this after rolling over
+  if (rolladc.ia[rolladc.count] != 0) {
+    results.average_ia  -= adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_ib  -= adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_ic  -= adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_va  -= adcValueToVoltage((float)(rolladc.va [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_vb  -= adcValueToVoltage((float)(rolladc.vb [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_vc  -= adcValueToVoltage((float)(rolladc.vc [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_vin -= adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
+  }
 
   rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
   rolladc.ib [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ib ];
@@ -312,6 +315,7 @@ void brakeMotor() {
   parameters.foc_q_current_sp = 0.0f;
   calibration.motor_torque_const = 0.0f; // Damps the motor to prevent a voltage spike
   parameters.control_mode = control_mode_raw_phase_pwm;
+  //parameters.control_mode = control_mode_foc_current;
   parameters.phase0 = 0.0f;
   parameters.phase1 = 0.0f;
   parameters.phase2 = 0.0f;
