@@ -10,6 +10,8 @@ namespace motor_driver {
 struct Results {
   float foc_d_current = 0;                  // Measured FOC direct current (amperes)
   float foc_q_current = 0;                  // Measured FOC quadrature current (amperes)
+  float foc_d_voltage = 0;                  // Measured FOC direct voltage (volts)
+  float foc_q_voltage = 0;                  // Measured FOC quadrature voltage (volts)
 
   uint8_t encoder_mode = encoder_mode_none; // Encoder mode
   uint16_t raw_enc_value = 0;               // Raw encoder value, wraps around
@@ -55,9 +57,9 @@ struct Calibration {
   uint8_t erevs_per_mrev = 1;             // Electrical revolutions per mechanical revolution
   uint8_t flip_phases = false;            // Phases A, B, C are arranged in clockwise instead of ccw order
   float foc_kp_d = 1.0f;                  // Proportional gain for FOC/d PI loop
-  float foc_ki_d = 0.1f;               // Integral gain for FOC/d PI loop
+  float foc_ki_d = 0.0f;               // Integral gain for FOC/d PI loop
   float foc_kp_q = 1.0f;                  // Proportional gain for FOC/q PI loop
-  float foc_ki_q = 0.1f;               // Integral gain for FOC/q PI loop
+  float foc_ki_q = 0.0f;               // Integral gain for FOC/q PI loop
   float velocity_kp = 1.0f;               // Proportional gain for velocity PI loop
   float velocity_ki = 0.01f;              // Integral gain for velocity PI loop
   float position_kp = 5.0f;               // Proportional gain for position PI loop

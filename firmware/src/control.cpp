@@ -169,19 +169,23 @@ void estimateState() {
   /*
    * Record data
    */
-  float recorder_new_data[recorder_channel_count];
+  if (rolladc.count == 0) {
+    float recorder_new_data[recorder_channel_count];
 
-  recorder_new_data[recorder_channel_ia] = results.average_ia;
-  recorder_new_data[recorder_channel_ib] = results.average_ib;
-  recorder_new_data[recorder_channel_ic] = results.average_ic;
-  recorder_new_data[recorder_channel_va] = results.average_va;
-  recorder_new_data[recorder_channel_vb] = results.average_vb;
-  recorder_new_data[recorder_channel_vc] = results.average_vc;
-  recorder_new_data[recorder_channel_vin] = results.average_vin;
-  recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
-  recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
+    recorder_new_data[recorder_channel_ia] = results.average_ia;
+    recorder_new_data[recorder_channel_ib] = results.average_ib;
+    recorder_new_data[recorder_channel_ic] = results.average_ic;
+    recorder_new_data[recorder_channel_va] = results.average_va;
+    recorder_new_data[recorder_channel_vb] = results.average_vb;
+    recorder_new_data[recorder_channel_vc] = results.average_vc;
+    recorder_new_data[recorder_channel_vin] = results.average_vin;
+    recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
+    recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
+    recorder_new_data[recorder_channel_iq] = results.foc_q_current;
+    recorder_new_data[recorder_channel_vq] = results.foc_d_current;
 
-  recorder.recordSample(recorder_new_data);
+    recorder.recordSample(recorder_new_data);
+  }
   
 }
 
@@ -297,12 +301,16 @@ void runCurrentControl() {
     float duty0, duty1, duty2;
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
 
-    gate_driver.setPWMDutyCycle(0, duty0);
-    gate_driver.setPWMDutyCycle(1, duty1);
-    gate_driver.setPWMDutyCycle(2, duty2);
+    float reduction = 0.7;
+    gate_driver.setPWMDutyCycle(0, duty0 * reduction);
+    gate_driver.setPWMDutyCycle(1, duty1 * reduction);
+    gate_driver.setPWMDutyCycle(2, duty2 * reduction);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;
+    results.foc_d_voltage = vd_norm;
+    results.foc_q_voltage = vq_norm;
+
   }
 }
 
@@ -315,7 +323,6 @@ void brakeMotor() {
   parameters.foc_q_current_sp = 0.0f;
   calibration.motor_torque_const = 0.0f; // Damps the motor to prevent a voltage spike
   parameters.control_mode = control_mode_raw_phase_pwm;
-  //parameters.control_mode = control_mode_foc_current;
   parameters.phase0 = 0.0f;
   parameters.phase1 = 0.0f;
   parameters.phase2 = 0.0f;

@@ -77,7 +77,7 @@ constexpr float ivsense_current_per_count = (ivsense_current_max - ivsense_curre
 /* ADC Value zero current is centered on */
 constexpr float ivsense_count_zero_current = ivsense_voltage_zero_current / adc_vref_voltage * adc_max_value;
 
-constexpr size_t recorder_channel_count = 9;
+constexpr size_t recorder_channel_count = 11;
 
 constexpr size_t recorder_channel_ia = 0;           // Phase A current channel index
 constexpr size_t recorder_channel_ib = 1;           // Phase B current channel index
@@ -88,6 +88,8 @@ constexpr size_t recorder_channel_vc = 5;           // Phase C voltage channel i
 constexpr size_t recorder_channel_vin = 6;          // Supply voltage channel index
 constexpr size_t recorder_channel_rotor_pos = 7;    // Rotor position channel index
 constexpr size_t recorder_channel_rotor_vel = 8;    // Rotor velocity channel index
+constexpr size_t recorder_channel_iq = 9;    // Rotor velocity channel index
+constexpr size_t recorder_channel_vq = 10;    // Rotor velocity channel index
 
 constexpr size_t recorder_max_samples = 2000;
 
