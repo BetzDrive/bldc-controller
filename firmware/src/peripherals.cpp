@@ -198,8 +198,8 @@ void startPeripherals() {
   PWMD3.tim->CNT = 0;
 
   // Start motor PWM timer, which also starts the ADC trigger timer
-  PWMD1.tim->CR1 |= TIM_CR1_CEN;
   PWMD3.tim->CR1 |= TIM_CR1_CEN;
+  PWMD1.tim->CR1 |= TIM_CR1_CEN;
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
