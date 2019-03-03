@@ -170,7 +170,6 @@ public:
 
 private:
   comm_id_t id_;
-  bool received_id_;
   RegAccessHandler access_handler_;
   // Disco Bus Pins
   const IOPin disco_in_, disco_out_;

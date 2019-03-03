@@ -593,7 +593,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       // If the board has not been initialized yet (received an ID), check the state of the disco bus:
       //    if the input is high, pass through the command and set the id!
       //    if the input is low, ignore the command
-      if (server_->getDisco()) {
+      if (server_->getDisco() && (server_->getID() == 0)) {
         new_id = datagram[index++];
         // Only update the flash if the IDs are different!
         success = true;
