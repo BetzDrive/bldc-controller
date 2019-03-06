@@ -328,11 +328,13 @@ class BLDCControllerClient:
 
         return responses
 
-    def writeRequest(self, server_ids, func_code, data=['']):
+    def writeRequest(self, server_ids, func_code, data=[]):
         message = ''
         flags = COMM_FLAG_SEND
         for i in range(len(server_ids)):
-            sub_message = struct.pack('<BB', server_ids[i], func_code[i]) + data[i]
+            sub_message = struct.pack('<BB', server_ids[i], func_code[i])
+            if data != []:
+                sub_message = sub_message + data[i]
             message = message + struct.pack('H', len(sub_message)) + sub_message
 
         prefixed_message = struct.pack('<BBBH', 0xFF, COMM_VERSION, flags, len(message)) + message
