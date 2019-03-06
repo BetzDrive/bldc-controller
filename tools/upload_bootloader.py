@@ -27,6 +27,15 @@ if __name__ == '__main__':
         board_ids = [int(board_id_str) for board_id_str in args.board_id.split(',')]
 
     for board_id in board_ids:
+        client.enterBootloader([board_id])
+        time.sleep(0.2) # Wait for the controller to reset
+        try:
+            print (client.enumerateBoards([board_id]))
+        except:
+            print("Failed to receive enumerate response")
+        time.sleep(0.2)
+
+
         client.leaveBootloader([board_id])
         time.sleep(0.2) # Wait for the controller to reset
         ser.reset_input_buffer()
