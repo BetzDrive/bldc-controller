@@ -16,7 +16,7 @@ print(address)
 
 client = BLDCControllerClient(s)
 
-client.enterBootloader(address)
+#client.enterBootloader(address)
 time.sleep(0.2)
 try:
     print (client.enumerateBoards(address))

@@ -318,6 +318,8 @@ class BLDCControllerClient:
         return sector_map 
 
     def doTransaction(self, server_ids, func_code, data):
+        if type(server_ids) != list:
+            server_ids = [server_ids]
         # Send the request to the boards.
         self.writeRequest(server_ids, func_code, data) 
 

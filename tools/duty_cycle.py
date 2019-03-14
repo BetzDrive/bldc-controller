@@ -35,6 +35,7 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     time.sleep(0.2)
 
     calibration_obj = client.readCalibration([address])
+    print(calibration_obj)
 
     client.setZeroAngle([address], [calibration_obj['angle']])
     client.setInvertPhases([address], [calibration_obj['inv']])

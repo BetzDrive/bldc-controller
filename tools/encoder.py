@@ -17,7 +17,10 @@ client = BLDCControllerClient(s)
 
 client.enterBootloader([address])
 time.sleep(0.5)
-client.enumerateBoards([address])
+try:
+    client.enumerateBoards([address])
+except:
+    print("Failed to respond")
 time.sleep(0.5)
 client.leaveBootloader([address])
 time.sleep(1)
