@@ -1,7 +1,7 @@
 # Getting Started
 ```
 cd ~
-git clone https://github.com/berkeley-open-robotics/bldc-controller.git
+git clone https://github.com/berkeleyopenarms/bldc-controller.git
 cd bldc-controller
 git submodule update --recursive --remote --init
 sudo apt-get install gcc-arm-none-eabi
