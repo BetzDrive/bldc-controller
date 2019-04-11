@@ -295,11 +295,11 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
   uint32_t sector_num, dest_addr;
   size_t dest_len;
   bool success;
-
-  /* Bootloader only vars */
+  
+  /* For Enumeration */
+  uint8_t target_id;
 #ifdef BOOTLOADER
   uint32_t id_addr;
-  uint8_t new_id;
 #endif
 
   switch (function_code_) {
@@ -586,7 +586,12 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
 
     case COMM_FC_ENUMERATE:
       /* Enumerate board ID */
-      state_ = State::IDLE;
+      target_id = (uint8_t)datagram[index++];
+
+      if (server_->getID() == target_id) {
+        u8_value_ = server_->getID();
+        state_ = State::RESPONDING_U8;
+      }
 
       /* Do nothing if not bootloader */
 #ifdef BOOTLOADER
@@ -594,23 +599,23 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       //    if the input is high, pass through the command and set the id!
       //    if the input is low, ignore the command
       if (server_->getDisco() && (server_->getID() == 0)) {
-        new_id = datagram[index++];
         // Only update the flash if the IDs are different!
         success = true;
-        if (new_id != *board_id_ptr && new_id != COMM_ID_BROADCAST) {
+        if (target_id != *board_id_ptr && target_id != COMM_ID_BROADCAST) {
           // Write the ID to the board!
           id_addr = reinterpret_cast<uintptr_t>(board_id_ptr);
-          success &= (flashErase(id_addr, sizeof(new_id)) == FLASH_RETURN_SUCCESS);
-          success &= (flashWrite(id_addr, (char *)&new_id, sizeof(new_id)) == FLASH_RETURN_SUCCESS);
+          success &= (flashErase(id_addr, sizeof(target_id)) == FLASH_RETURN_SUCCESS);
+          success &= (flashWrite(id_addr, (char *)&target_id, sizeof(target_id)) == FLASH_RETURN_SUCCESS);
         }
         if (success) {
-          server_->setID(new_id);
+          server_->setID(target_id);
           server_->setDisco();
           u8_value_ = server_->getID();
           state_ = State::RESPONDING_U8;
         }
       }
 #endif
+
       break;
 
     default:
