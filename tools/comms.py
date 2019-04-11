@@ -149,8 +149,8 @@ class BLDCControllerClient:
         responses = []
         for sid in server_ids:
             response = self.doTransaction([0], [COMM_FC_ENUMERATE], [struct.pack('<B', sid)])
-            responses.append(response)
-        data = [struct.unpack('<B', response[1])[0][0] for response in responses]
+            responses.append(struct.unpack('<B',response[0][1])[0])
+        data = responses
         return data
 
     def leaveBootloader(self, server_ids):
