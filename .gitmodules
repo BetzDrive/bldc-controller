@@ -1,4 +1,4 @@
 [submodule "chibios"]
 	path = chibios
-	url = https://github.com/allanzhao/ChibiOS.git
+	url = https://github.com/berkeleyopenarms/ChibiOS.git
 	branch = stable_2.6.x
