@@ -79,7 +79,7 @@
 #define GPIOA_SWCLK                 14U
 #define GPIOA_ENC_CSN               15U
 
-#define GPIOB_ISENSE_C              0U
+#define GPIOB_VSENSE_A              0U
 #define GPIOB_PIN1                  1U
 #define GPIOB_PIN2                  2U
 #define GPIOB_SWO                   3U
@@ -96,12 +96,12 @@
 #define GPIOB_MDRV_RST_B            14U
 #define GPIOB_MDRV_RST_A            15U
 
-#define GPIOC_VSENSE_A              0U
-#define GPIOC_VSENSE_B              1U
-#define GPIOC_VSENSE_C              2U
+#define GPIOC_ISENSE_A              0U
+#define GPIOC_ISENSE_B              1U
+#define GPIOC_ISENSE_C              2U
 #define GPIOC_VSENSE_VIN            3U
-#define GPIOC_ISENSE_A              4U
-#define GPIOC_ISENSE_B              5U
+#define GPIOC_VSENSE_C              4U
+#define GPIOC_VSENSE_B              5U
 #define GPIOC_MDRV_EN               6U
 #define GPIOC_ENC_MAG_HI            7U
 #define GPIOC_MDRV_NFAULT           8U
@@ -230,7 +230,7 @@
 #define LINE_SWDIO                  PAL_LINE(GPIOA, 13U)
 #define LINE_SWCLK                  PAL_LINE(GPIOA, 14U)
 #define LINE_ENC_CSN                PAL_LINE(GPIOA, 15U)
-#define LINE_ISENSE_C               PAL_LINE(GPIOB, 0U)
+#define LINE_VSENSE_A               PAL_LINE(GPIOB, 0U)
 #define LINE_SWO                    PAL_LINE(GPIOB, 3U)
 #define LINE_ENC_A                  PAL_LINE(GPIOB, 4U)
 #define LINE_ENC_B                  PAL_LINE(GPIOB, 5U)
@@ -244,12 +244,12 @@
 #define LINE_MDRV_RST_C             PAL_LINE(GPIOB, 13U)
 #define LINE_MDRV_RST_B             PAL_LINE(GPIOB, 14U)
 #define LINE_MDRV_RST_A             PAL_LINE(GPIOB, 15U)
-#define LINE_VSENSE_A               PAL_LINE(GPIOC, 0U)
-#define LINE_VSENSE_B               PAL_LINE(GPIOC, 1U)
-#define LINE_VSENSE_C               PAL_LINE(GPIOC, 2U)
+#define LINE_ISENSE_A               PAL_LINE(GPIOC, 0U)
+#define LINE_ISENSE_B               PAL_LINE(GPIOC, 1U)
+#define LINE_ISENSE_C               PAL_LINE(GPIOC, 2U)
 #define LINE_VSENSE_VIN             PAL_LINE(GPIOC, 3U)
-#define LINE_ISENSE_A               PAL_LINE(GPIOC, 4U)
-#define LINE_ISENSE_B               PAL_LINE(GPIOC, 5U)
+#define LINE_VSENSE_C               PAL_LINE(GPIOC, 4U)
+#define LINE_VSENSE_B               PAL_LINE(GPIOC, 5U)
 #define LINE_MDRV_EN                PAL_LINE(GPIOC, 6U)
 #define LINE_ENC_MAG_HI             PAL_LINE(GPIOC, 7U)
 #define LINE_MDRV_NFAULT            PAL_LINE(GPIOC, 8U)
@@ -420,7 +420,7 @@
 /*
  * GPIOB setup:
  *
- * PB0  - ISENSE_C                  (analog).
+ * PB0  - VSENSE_A                  (analog).
  * PB1  - PIN1                      (input pullup).
  * PB2  - PIN2                      (input pulldown).
  * PB3  - SWO                       (alternate 0).
@@ -430,14 +430,14 @@
  * PB7  - RS485_RX                  (alternate 7).
  * PB8  - I2C_SCL                   (alternate 4).
  * PB9  - I2C_SDA                   (alternate 4).
- * PB10 - DISCO_BUS_IN              (input pullup).
+ * PB10 - DISCO_BUS_IN              (input floating).
  * PB11 - DISCO_BUS_OUT             (output pushpull maximum).
  * PB12 - ENC_MAG_LO                (input pullup).
  * PB13 - MDRV_RST_C                (output pushpull maximum).
  * PB14 - MDRV_RST_B                (output pushpull maximum).
  * PB15 - MDRV_RST_A                (output pushpull maximum).
  */
-#define VAL_GPIOB_MODER             (PIN_MODE_ANALOG(GPIOB_ISENSE_C) |      \
+#define VAL_GPIOB_MODER             (PIN_MODE_ANALOG(GPIOB_VSENSE_A) |      \
                                      PIN_MODE_INPUT(GPIOB_PIN1) |           \
                                      PIN_MODE_INPUT(GPIOB_PIN2) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_SWO) |        \
@@ -453,7 +453,7 @@
                                      PIN_MODE_OUTPUT(GPIOB_MDRV_RST_C) |    \
                                      PIN_MODE_OUTPUT(GPIOB_MDRV_RST_B) |    \
                                      PIN_MODE_OUTPUT(GPIOB_MDRV_RST_A))
-#define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_ISENSE_C) |   \
+#define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_VSENSE_A) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN1) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN2) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_SWO) |        \
@@ -469,7 +469,7 @@
                                      PIN_OTYPE_PUSHPULL(GPIOB_MDRV_RST_C) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_MDRV_RST_B) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_MDRV_RST_A))
-#define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_HIGH(GPIOB_ISENSE_C) |      \
+#define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_HIGH(GPIOB_VSENSE_A) |      \
                                      PIN_OSPEED_HIGH(GPIOB_PIN1) |          \
                                      PIN_OSPEED_HIGH(GPIOB_PIN2) |          \
                                      PIN_OSPEED_HIGH(GPIOB_SWO) |           \
@@ -485,7 +485,7 @@
                                      PIN_OSPEED_HIGH(GPIOB_MDRV_RST_C) |    \
                                      PIN_OSPEED_HIGH(GPIOB_MDRV_RST_B) |    \
                                      PIN_OSPEED_HIGH(GPIOB_MDRV_RST_A))
-#define VAL_GPIOB_PUPDR             (PIN_PUPDR_FLOATING(GPIOB_ISENSE_C) |   \
+#define VAL_GPIOB_PUPDR             (PIN_PUPDR_FLOATING(GPIOB_VSENSE_A) |   \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN1) |         \
                                      PIN_PUPDR_PULLDOWN(GPIOB_PIN2) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_SWO) |        \
@@ -495,13 +495,13 @@
                                      PIN_PUPDR_PULLUP(GPIOB_RS485_RX) |     \
                                      PIN_PUPDR_FLOATING(GPIOB_I2C_SCL) |    \
                                      PIN_PUPDR_FLOATING(GPIOB_I2C_SDA) |    \
-                                     PIN_PUPDR_PULLUP(GPIOB_DISCO_BUS_IN) | \
+                                     PIN_PUPDR_FLOATING(GPIOB_DISCO_BUS_IN) |\
                                      PIN_PUPDR_FLOATING(GPIOB_DISCO_BUS_OUT) |\
                                      PIN_PUPDR_PULLUP(GPIOB_ENC_MAG_LO) |   \
                                      PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_C) | \
                                      PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_B) | \
                                      PIN_PUPDR_FLOATING(GPIOB_MDRV_RST_A))
-#define VAL_GPIOB_ODR               (PIN_ODR_HIGH(GPIOB_ISENSE_C) |         \
+#define VAL_GPIOB_ODR               (PIN_ODR_HIGH(GPIOB_VSENSE_A) |         \
                                      PIN_ODR_HIGH(GPIOB_PIN1) |             \
                                      PIN_ODR_HIGH(GPIOB_PIN2) |             \
                                      PIN_ODR_HIGH(GPIOB_SWO) |              \
@@ -517,7 +517,7 @@
                                      PIN_ODR_LOW(GPIOB_MDRV_RST_C) |        \
                                      PIN_ODR_LOW(GPIOB_MDRV_RST_B) |        \
                                      PIN_ODR_LOW(GPIOB_MDRV_RST_A))
-#define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_ISENSE_C, 0U) |      \
+#define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_VSENSE_A, 0U) |      \
                                      PIN_AFIO_AF(GPIOB_PIN1, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_PIN2, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_SWO, 0U) |           \
@@ -537,12 +537,12 @@
 /*
  * GPIOC setup:
  *
- * PC0  - VSENSE_A                  (analog).
- * PC1  - VSENSE_B                  (analog).
- * PC2  - VSENSE_C                  (analog).
+ * PC0  - ISENSE_A                  (analog).
+ * PC1  - ISENSE_B                  (analog).
+ * PC2  - ISENSE_C                  (analog).
  * PC3  - VSENSE_VIN                (analog).
- * PC4  - ISENSE_A                  (analog).
- * PC5  - ISENSE_B                  (analog).
+ * PC4  - VSENSE_C                  (analog).
+ * PC5  - VSENSE_B                  (analog).
  * PC6  - MDRV_EN                   (output pushpull maximum).
  * PC7  - ENC_MAG_HI                (input floating).
  * PC8  - MDRV_NFAULT               (input pullup).
@@ -554,12 +554,12 @@
  * PC14 - IMU_INT1                  (input pullup).
  * PC15 - RS485_SHUNT_EN            (output pushpull maximum).
  */
-#define VAL_GPIOC_MODER             (PIN_MODE_ANALOG(GPIOC_VSENSE_A) |      \
-                                     PIN_MODE_ANALOG(GPIOC_VSENSE_B) |      \
-                                     PIN_MODE_ANALOG(GPIOC_VSENSE_C) |      \
-                                     PIN_MODE_ANALOG(GPIOC_VSENSE_VIN) |    \
-                                     PIN_MODE_ANALOG(GPIOC_ISENSE_A) |      \
+#define VAL_GPIOC_MODER             (PIN_MODE_ANALOG(GPIOC_ISENSE_A) |      \
                                      PIN_MODE_ANALOG(GPIOC_ISENSE_B) |      \
+                                     PIN_MODE_ANALOG(GPIOC_ISENSE_C) |      \
+                                     PIN_MODE_ANALOG(GPIOC_VSENSE_VIN) |    \
+                                     PIN_MODE_ANALOG(GPIOC_VSENSE_C) |      \
+                                     PIN_MODE_ANALOG(GPIOC_VSENSE_B) |      \
                                      PIN_MODE_OUTPUT(GPIOC_MDRV_EN) |       \
                                      PIN_MODE_INPUT(GPIOC_ENC_MAG_HI) |     \
                                      PIN_MODE_INPUT(GPIOC_MDRV_NFAULT) |    \
@@ -570,12 +570,12 @@
                                      PIN_MODE_INPUT(GPIOC_TEMP_INT) |       \
                                      PIN_MODE_INPUT(GPIOC_IMU_INT1) |       \
                                      PIN_MODE_OUTPUT(GPIOC_RS485_SHUNT_EN))
-#define VAL_GPIOC_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOC_VSENSE_A) |   \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_VSENSE_B) |   \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_VSENSE_C) |   \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_VSENSE_VIN) | \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_ISENSE_A) |   \
+#define VAL_GPIOC_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOC_ISENSE_A) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ISENSE_B) |   \
+                                     PIN_OTYPE_PUSHPULL(GPIOC_ISENSE_C) |   \
+                                     PIN_OTYPE_PUSHPULL(GPIOC_VSENSE_VIN) | \
+                                     PIN_OTYPE_PUSHPULL(GPIOC_VSENSE_C) |   \
+                                     PIN_OTYPE_PUSHPULL(GPIOC_VSENSE_B) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOC_MDRV_EN) |    \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ENC_MAG_HI) | \
                                      PIN_OTYPE_PUSHPULL(GPIOC_MDRV_NFAULT) |\
@@ -586,12 +586,12 @@
                                      PIN_OTYPE_PUSHPULL(GPIOC_TEMP_INT) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOC_IMU_INT1) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOC_RS485_SHUNT_EN))
-#define VAL_GPIOC_OSPEEDR           (PIN_OSPEED_HIGH(GPIOC_VSENSE_A) |      \
-                                     PIN_OSPEED_HIGH(GPIOC_VSENSE_B) |      \
-                                     PIN_OSPEED_HIGH(GPIOC_VSENSE_C) |      \
-                                     PIN_OSPEED_HIGH(GPIOC_VSENSE_VIN) |    \
-                                     PIN_OSPEED_HIGH(GPIOC_ISENSE_A) |      \
+#define VAL_GPIOC_OSPEEDR           (PIN_OSPEED_HIGH(GPIOC_ISENSE_A) |      \
                                      PIN_OSPEED_HIGH(GPIOC_ISENSE_B) |      \
+                                     PIN_OSPEED_HIGH(GPIOC_ISENSE_C) |      \
+                                     PIN_OSPEED_HIGH(GPIOC_VSENSE_VIN) |    \
+                                     PIN_OSPEED_HIGH(GPIOC_VSENSE_C) |      \
+                                     PIN_OSPEED_HIGH(GPIOC_VSENSE_B) |      \
                                      PIN_OSPEED_HIGH(GPIOC_MDRV_EN) |       \
                                      PIN_OSPEED_HIGH(GPIOC_ENC_MAG_HI) |    \
                                      PIN_OSPEED_HIGH(GPIOC_MDRV_NFAULT) |   \
@@ -602,12 +602,12 @@
                                      PIN_OSPEED_HIGH(GPIOC_TEMP_INT) |      \
                                      PIN_OSPEED_HIGH(GPIOC_IMU_INT1) |      \
                                      PIN_OSPEED_HIGH(GPIOC_RS485_SHUNT_EN))
-#define VAL_GPIOC_PUPDR             (PIN_PUPDR_FLOATING(GPIOC_VSENSE_A) |   \
-                                     PIN_PUPDR_FLOATING(GPIOC_VSENSE_B) |   \
-                                     PIN_PUPDR_FLOATING(GPIOC_VSENSE_C) |   \
-                                     PIN_PUPDR_FLOATING(GPIOC_VSENSE_VIN) | \
-                                     PIN_PUPDR_FLOATING(GPIOC_ISENSE_A) |   \
+#define VAL_GPIOC_PUPDR             (PIN_PUPDR_FLOATING(GPIOC_ISENSE_A) |   \
                                      PIN_PUPDR_FLOATING(GPIOC_ISENSE_B) |   \
+                                     PIN_PUPDR_FLOATING(GPIOC_ISENSE_C) |   \
+                                     PIN_PUPDR_FLOATING(GPIOC_VSENSE_VIN) | \
+                                     PIN_PUPDR_FLOATING(GPIOC_VSENSE_C) |   \
+                                     PIN_PUPDR_FLOATING(GPIOC_VSENSE_B) |   \
                                      PIN_PUPDR_FLOATING(GPIOC_MDRV_EN) |    \
                                      PIN_PUPDR_FLOATING(GPIOC_ENC_MAG_HI) | \
                                      PIN_PUPDR_PULLUP(GPIOC_MDRV_NFAULT) |  \
@@ -618,12 +618,12 @@
                                      PIN_PUPDR_PULLUP(GPIOC_TEMP_INT) |     \
                                      PIN_PUPDR_PULLUP(GPIOC_IMU_INT1) |     \
                                      PIN_PUPDR_PULLUP(GPIOC_RS485_SHUNT_EN))
-#define VAL_GPIOC_ODR               (PIN_ODR_HIGH(GPIOC_VSENSE_A) |         \
-                                     PIN_ODR_HIGH(GPIOC_VSENSE_B) |         \
-                                     PIN_ODR_HIGH(GPIOC_VSENSE_C) |         \
-                                     PIN_ODR_HIGH(GPIOC_VSENSE_VIN) |       \
-                                     PIN_ODR_HIGH(GPIOC_ISENSE_A) |         \
+#define VAL_GPIOC_ODR               (PIN_ODR_HIGH(GPIOC_ISENSE_A) |         \
                                      PIN_ODR_HIGH(GPIOC_ISENSE_B) |         \
+                                     PIN_ODR_HIGH(GPIOC_ISENSE_C) |         \
+                                     PIN_ODR_HIGH(GPIOC_VSENSE_VIN) |       \
+                                     PIN_ODR_HIGH(GPIOC_VSENSE_C) |         \
+                                     PIN_ODR_HIGH(GPIOC_VSENSE_B) |         \
                                      PIN_ODR_LOW(GPIOC_MDRV_EN) |           \
                                      PIN_ODR_HIGH(GPIOC_ENC_MAG_HI) |       \
                                      PIN_ODR_LOW(GPIOC_MDRV_NFAULT) |       \
@@ -634,12 +634,12 @@
                                      PIN_ODR_LOW(GPIOC_TEMP_INT) |          \
                                      PIN_ODR_LOW(GPIOC_IMU_INT1) |          \
                                      PIN_ODR_HIGH(GPIOC_RS485_SHUNT_EN))
-#define VAL_GPIOC_AFRL              (PIN_AFIO_AF(GPIOC_VSENSE_A, 0U) |      \
-                                     PIN_AFIO_AF(GPIOC_VSENSE_B, 0U) |      \
-                                     PIN_AFIO_AF(GPIOC_VSENSE_C, 0U) |      \
-                                     PIN_AFIO_AF(GPIOC_VSENSE_VIN, 0U) |    \
-                                     PIN_AFIO_AF(GPIOC_ISENSE_A, 0U) |      \
+#define VAL_GPIOC_AFRL              (PIN_AFIO_AF(GPIOC_ISENSE_A, 0U) |      \
                                      PIN_AFIO_AF(GPIOC_ISENSE_B, 0U) |      \
+                                     PIN_AFIO_AF(GPIOC_ISENSE_C, 0U) |      \
+                                     PIN_AFIO_AF(GPIOC_VSENSE_VIN, 0U) |    \
+                                     PIN_AFIO_AF(GPIOC_VSENSE_C, 0U) |      \
+                                     PIN_AFIO_AF(GPIOC_VSENSE_B, 0U) |      \
                                      PIN_AFIO_AF(GPIOC_MDRV_EN, 0U) |       \
                                      PIN_AFIO_AF(GPIOC_ENC_MAG_HI, 0U))
 #define VAL_GPIOC_AFRH              (PIN_AFIO_AF(GPIOC_MDRV_NFAULT, 0U) |   \

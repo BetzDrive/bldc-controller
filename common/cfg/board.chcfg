@@ -152,7 +152,7 @@
     </GPIOA>
     <GPIOB>
       <pin0
-        ID="ISENSE_C"
+        ID="VSENSE_A"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -236,7 +236,7 @@
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Input"
         Alternate="0" />
       <pin11
@@ -282,7 +282,7 @@
     </GPIOB>
     <GPIOC>
       <pin0
-        ID="VSENSE_A"
+        ID="ISENSE_A"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -290,7 +290,7 @@
         Mode="Analog"
         Alternate="0" />
       <pin1
-        ID="VSENSE_B"
+        ID="ISENSE_B"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -298,7 +298,7 @@
         Mode="Analog"
         Alternate="0" />
       <pin2
-        ID="VSENSE_C"
+        ID="ISENSE_C"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -314,7 +314,7 @@
         Mode="Analog"
         Alternate="0" />
       <pin4
-        ID="ISENSE_A"
+        ID="VSENSE_C"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -322,7 +322,7 @@
         Mode="Analog"
         Alternate="0" />
       <pin5
-        ID="ISENSE_B"
+        ID="VSENSE_B"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
