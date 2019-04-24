@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+import sys
+sys.path.append("..")
+
 from comms import *
 import serial
-import sys
 import time
 
 if len(sys.argv) != 3:

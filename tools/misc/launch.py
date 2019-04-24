@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+import sys
+sys.path.append("..")
 
 from comms import *
 import serial
-import sys
 
 port = sys.argv[1]
 address = int(sys.argv[2])

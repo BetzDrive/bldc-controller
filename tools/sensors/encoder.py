@@ -1,7 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+import sys
+sys.path.append("..")
+
 from comms import *
 import serial
-import sys
 import time
 
 if len(sys.argv) != 3:
@@ -11,29 +13,25 @@ if len(sys.argv) != 3:
 port = sys.argv[1]
 s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 
-address = [int(bid) for bid in sys.argv[2].split(',')]
+address = int(sys.argv[2])
 
 client = BLDCControllerClient(s)
 
-client.leaveBootloader(address)
-time.sleep(0.2)
-while (True):
-    try:
-        print "Received Board ID: " + str(client.enumerateBoards(address))
-        break
-    except IOError as e:
-        print("Comms Error:", e)
-        time.sleep(0.2)
-
+client.enterBootloader([address])
+time.sleep(0.5)
+try:
+    client.enumerateBoards([address])
+except:
+    print("Failed to respond")
+time.sleep(0.5)
+client.leaveBootloader([address])
 time.sleep(1)
-client.leaveBootloader(address)
-time.sleep(0.2)
 s.reset_input_buffer()
 
 while True:
     try:
-        temperature = client.getTemperature(address)
-        print(temperature)
+        encoder = struct.unpack('<H', client.readRegisters([address], [0x3010], [1])[0])
+        print(encoder[0])
         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
     except IOError:
         print "ioerror"

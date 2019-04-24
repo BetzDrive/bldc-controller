@@ -1,7 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
+import sys
+sys.path.append("..")
+
 from comms import *
 import serial
-import sys
 import time
 
 if len(sys.argv) != 3:
@@ -11,28 +13,32 @@ if len(sys.argv) != 3:
 port = sys.argv[1]
 s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 
-address = int(sys.argv[2])
+address = [int(bid) for bid in sys.argv[2].split(',')]
 
 client = BLDCControllerClient(s)
 
-client.enterBootloader([address])
-time.sleep(0.5)
-try:
-    client.enumerateBoards([address])
-except:
-    print("Failed to respond")
-time.sleep(0.5)
-client.leaveBootloader([address])
+client.leaveBootloader(address)
+time.sleep(0.2)
+while (True):
+    try:
+        print("Received Board ID:", client.enumerateBoards(address))
+        break
+    except IOError as e:
+        print("Comms Error:", e)
+        time.sleep(0.2)
+
 time.sleep(1)
+client.leaveBootloader(address)
+time.sleep(0.2)
 s.reset_input_buffer()
 
 while True:
     try:
-        encoder = struct.unpack('<H', client.readRegisters([address], [0x3010], [1])[0])
-        print(encoder[0])
+        temperature = client.getTemperature(address)
+        print(temperature)
         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
     except IOError:
-        print "ioerror"
+        print("ioerror")
         pass
     # angle = struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
     # print angle
