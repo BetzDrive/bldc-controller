@@ -219,15 +219,15 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
 /*          Server Functions            */
 void Server::initDisco() {
   // Initialize disco bus to have output low according to spec
-  palWritePad(disco_out_.port, disco_out_.pin, PAL_LOW);
-}
-
-void Server::setDisco() {
   palWritePad(disco_out_.port, disco_out_.pin, PAL_HIGH);
 }
 
+void Server::setDisco() {
+  palWritePad(disco_out_.port, disco_out_.pin, PAL_LOW);
+}
+
 bool Server::getDisco() {
-    return (PAL_HIGH == palReadPad(disco_in_.port, disco_in_.pin));
+    return (PAL_LOW == palReadPad(disco_in_.port, disco_in_.pin));
 }
 
 /*       Protocol FSM Functions         */

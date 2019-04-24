@@ -3,13 +3,18 @@
 
 #include <stdint.h>
 #include "hal.h"
+#include "stm32f4xx_dma.h"
+#include "stm32f4xx_adc.h"
+
+/* Include Hardware Drivers */
 #include "DRV8312.h"
 #include "AS5047D.h"
 #include "MCP9808.h"
 #include "LSM6DS3Sensor.h"
-#include "constants.h"
 
-extern SerialUSBDriver SDU1;
+/* Include Config Files */
+#include "constants.h"
+#include "hw_conf.h"
 
 namespace motor_driver {
 
@@ -27,17 +32,7 @@ extern MCP9808 temp_sensor;
 
 extern LSM6DS3Sensor acc_gyr;
 
-extern BinarySemaphore ivsense_adc_samples_bsem;
-
-extern volatile adcsample_t *ivsense_adc_samples_ptr;
-
-extern volatile size_t ivsense_adc_samples_count;
-
-extern adcsample_t ivsense_sample_buf[ivsense_channel_count * ivsense_sample_buf_depth];
-
 void initPeripherals();
-
-void startPeripherals();
 
 void startEncoder();
 

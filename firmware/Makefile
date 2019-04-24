@@ -56,6 +56,12 @@ ifeq ($(USE_FPU),)
   USE_FPU = softfp
 endif
 
+
+# Enable this if you really want to use the STM FWLib.
+ifeq ($(USE_FWLIB),)
+  USE_FWLIB = yes
+endif
+
 #
 # Architecture or project specific options
 ##############################################################################
@@ -246,6 +252,13 @@ ULIBS =
 #
 # End of user defines
 ##############################################################################
+
+ifeq ($(USE_FWLIB),yes)
+  include $(CHIBIOS)/ext/stm32lib/stm32lib.mk
+  CSRC += $(STM32SRC)
+  INCDIR += $(STM32INC)
+  USE_OPT += -DUSE_STDPERIPH_DRIVER
+endif
 
 RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
 include $(RULESPATH)/rules.mk
