@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-import sys
-sys.path.append("..")
-
 import numpy as np
 from comms import *
 import serial

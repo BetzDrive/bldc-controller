@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division
 
-import sys
-sys.path.append("..")
-
 import argparse
 from comms import *
 import serial

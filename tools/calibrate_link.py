@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-import sys
-sys.path.append("..")
-
 from comms import *
 import serial
 import time
