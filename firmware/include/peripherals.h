@@ -34,6 +34,8 @@ extern LSM6DS3Sensor acc_gyr;
 
 void initPeripherals();
 
+void configureIVSense();
+
 void startEncoder();
 
 void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue);

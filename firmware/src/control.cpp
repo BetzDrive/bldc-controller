@@ -146,7 +146,6 @@ void estimateState() {
     results.average_vin -= adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
   }
 
-
   rolladc.ia [rolladc.count] = ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_1);
   rolladc.ib [rolladc.count] = ADC_GetInjectedConversionValue(ADC2, ADC_InjectedChannel_1);
   rolladc.ic [rolladc.count] = ADC_GetInjectedConversionValue(ADC3, ADC_InjectedChannel_1);

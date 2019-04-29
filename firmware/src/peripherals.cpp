@@ -79,68 +79,15 @@ MCP9808 temp_sensor(I2CD1);
 
 LSM6DS3Sensor acc_gyr(&I2CD1);
 
-
-void initPeripherals() {
-  // Start LED PWM timer
-  pwmStart(&PWMD5, &led_pwm_config);
-
-  // Configure motor PWM timer and pause it
-  pwmStart(&PWMD1, &motor_pwm_config);
-  PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
-  PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS) 
-                   | TIM_CR1_CMS_0 | TIM_CR1_CMS_1 // (TIM1_CMS = 11) Enable center-aligned PWM
-                   ;
-
-  // Start gate driver
-  gate_driver.start();
-
-  // Start encoder
-  encoder.start();
-
-  // Start temperature sensor
-  temp_sensor.start();
-
-  // Start accelerometer
-  acc_gyr.start();
-  acc_gyr.Enable_X();
-
-  // Configure ADCs to read (injected conversion) Current/Voltage on Tim1 TRGO
-  /*
-  ADC1->CR2 = ADC_CR2_JEXTSEL_0                     // (JEXTSEL = 0001) Injected Conversion on TIM1 TRGO
-            | ADC_CR2_JEXTEN_0;                     // (JEXTEN = 01) Trigger on rising edge of signal
-  ADC1->SMPR1 = ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15)   // Set sample time length in clock cycles (15)
-              | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15);  // Set sample time length in clock cycles (15)
-  ADC1->SMPR2 = ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15);   // Set sample time length in clock cycles (15)
-  ADC1->JSQR = ADC_JSQR_NUM_CH(1)                   // One conversion per injected trigger
-             | ADC_JSQR_SQ1_N(ADC_CHANNEL_IN10)     // Convert current channel A on first conversion
-             | ADC_JSQR_SQ2_N(ADC_CHANNEL_IN8)      // Convert voltage channel A on first conversion
-             | ADC_JSQR_SQ3_N(ADC_CHANNEL_IN14);    // Convert voltage channel C on first conversion
-
-  ADC2->CR2 = ADC_CR2_JEXTSEL_0                      // (JEXTSEL = 0001) Injected Conversion on TIM1 TRGO
-            | ADC_CR2_JEXTEN_0;                      // (JEXTEN = 01) Trigger on rising edge of signal
-  ADC2->SMPR1 = ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15)   // Set sample time length in clock cycles (15)
-              | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15);  // Set sample time length in clock cycles (15)
-  ADC2->JSQR = ADC_JSQR_NUM_CH(1)                   // One conversion per injected trigger
-             | ADC_JSQR_SQ1_N(ADC_CHANNEL_IN11)     // Convert current channel B on first conversion
-             | ADC_JSQR_SQ2_N(ADC_CHANNEL_IN15);    // Convert voltage channel B on first conversion
-
-  ADC3->CR2 = ADC_CR2_JEXTSEL_0                      // (JEXTSEL = 0001) Injected Conversion on TIM1 TRGO
-            | ADC_CR2_JEXTEN_0;                      // (JEXTEN = 01) Trigger on rising edge of signal
-  ADC3->SMPR1 = ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15)   // Set sample time length in clock cycles (15)
-              | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15);  // Set sample time length in clock cycles (15)
-  ADC3->JSQR = ADC_JSQR_NUM_CH(1)                   // One conversion per injected trigger
-             | ADC_JSQR_SQ1_N(ADC_CHANNEL_IN12)     // Convert current channel C on first conversion
-             | ADC_JSQR_SQ2_N(ADC_CHANNEL_IN13);    // Convert voltage input on second conversion
-
-  // Start ADC
-  adcStart(&ADCD1, NULL);
-  adcStart(&ADCD2, NULL);
-  adcStart(&ADCD3, NULL);
-  */
-
+/* Configuring DMA/ADC to use Tim1 to trigger injected conversions on all 3 ADCs */
+void configureIVSense() {
   ADC_CommonInitTypeDef ADC_CommonInitStructure;
   DMA_InitTypeDef DMA_InitStructure;
   ADC_InitTypeDef ADC_InitStructure;
+
+  // Clock
+  //RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
+  //RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1 | RCC_APB2Periph_ADC2 | RCC_APB2Periph_ADC3, ENABLE);
 
   // DMA for the ADC
   DMA_InitStructure.DMA_Channel = DMA_Channel_0;
@@ -187,9 +134,6 @@ void initPeripherals() {
   ADC_Init(ADC2, &ADC_InitStructure);
   ADC_Init(ADC3, &ADC_InitStructure);
 
-  // Enable Vrefint channel
-  // ADC_TempSensorVrefintCmd(ENABLE);
-
   // Enable DMA request after last transfer (Multi-ADC mode)
   ADC_MultiModeDMARequestAfterLastTransferCmd(ENABLE);
 
@@ -227,12 +171,48 @@ void initPeripherals() {
 
   // Enable ADC3
   ADC_Cmd(ADC3, ENABLE);
+}   /* End of ADC Configure */
+
+void initPeripherals() {
+  /* Configuring/Starting Internal Peripherals */
+  // Start LED PWM timer
+  pwmStart(&PWMD5, &led_pwm_config);
+
+  // Initializing ADC/DMA for Current/Voltage Readings
+  configureIVSense();
+
+  // Configure motor PWM timer and pause it
+  pwmStart(&PWMD1, &motor_pwm_config);
+  PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
+  PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS) 
+                   | TIM_CR1_CMS_0 | TIM_CR1_CMS_1 // (TIM1_CMS = 11) Enable center-aligned PWM
+                   ;
+  PWMD1.tim->CR2 |= TIM_CR2_MMS_1 | TIM_CR2_CCDS;
+  /* End of Config for Internal Peripherals */
+
+  /* Initializing External Device Drivers */
+
+  // Start gate driver
+  gate_driver.start();
+
+  // Start encoder
+  encoder.start();
+
+  // Start temperature sensor
+  temp_sensor.start();
+
+  // Start accelerometer
+  acc_gyr.start();
+  acc_gyr.Enable_X();
+
+  /* End of External Device Driver Init */
 
   // Reset timer counter
   PWMD1.tim->CNT = 0;
 
-  // Start motor PWM timer, which also starts the ADC trigger timer
-  PWMD1.tim->CR1 |= TIM_CR1_CEN;
+  // Start motor PWM timer
+  TIM_Cmd(TIM1, ENABLE);
+  TIM_CtrlPWMOutputs(TIM1, ENABLE);
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
