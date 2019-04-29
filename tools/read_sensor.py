@@ -16,6 +16,7 @@ ReadOnlyRegs['id'] = COMM_ROR_CURRENT_DIRECT
 ReadOnlyRegs['iq'] = COMM_ROR_CURRENT_QUADRATURE
 ReadOnlyRegs['supply'] = COMM_ROR_SUPPLY_V
 ReadOnlyRegs['temp'] = COMM_ROR_TEMPERATURE
+ReadOnlyRegs['imu'] = COMM_ROR_ACC_X
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Read temperature sensor from boards.')
@@ -38,16 +39,36 @@ if __name__ == '__main__':
     sen = args.sensor
     address = ReadOnlyRegs[sen]
     decode = '<f' 
-    if sen is 'accel':
-    elif sen is 'encoder_raw':
+    num_regs = 1
+    message = '{0}: {1[0]}'
+
+    if sen == 'encoder_raw':
         decode = '<H' 
+        message = '{0}: {1[0]} ticks'
+    elif sen == 'encoder':
+        message = '{0}: {1[0]} radians'
+    elif sen == 'velocity':
+        message = '{0}: {1[0]} rad/s'
+    elif sen == 'id':
+        message = '{0}: {1[0]} amps'
+    elif sen == 'iq':
+        message = '{0}: {1[0]} amps'
+    elif sen == 'supply':
+        message = '{0}: {1[0]} volts'
+    elif sen == 'temp':
+        message = '{0}: {1[0]} degC'
+    if sen == 'imu':
+        decode = '<iii'
+        num_regs = 3
+        message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
 
 
     while initialized:
         try:
             address = ReadOnlyRegs[args.sensor]
-            response = client.readRegisters(board_ids, [address], [1])
-            print(args.sensor + ':', response)
+            response = client.readRegisters(board_ids, [address], [num_regs])
+            val = struct.unpack(decode, response[0])
+            print(message.format(args.sensor , val))
         except IOError:
             print("ioerror")
             pass
