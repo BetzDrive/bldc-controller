@@ -23,15 +23,15 @@ if __name__ == "__main__" :
     axarr[0].legend(loc='best')
     #axarr[0].set_ylim(-2, 6)
 
-    # axarr[1].plot(range(len(data)), [e[3] for e in data], color='r', label='va')
-    # axarr[1].plot(range(len(data)), [e[4] for e in data], color='g', label='vb')
-    # axarr[1].plot(range(len(data)), [e[5] for e in data], color='b', label='vc')
-    # axarr[1].legend(loc='best')
-    # #axarr[1].set_ylim(0, 24)
-
-    axarr[1].plot(range(len(data)), [e[9] for e in data], color='r', label='iq')
-    axarr[1].plot(range(len(data)), [e[10] for e in data], color='g', label='id')
+    axarr[1].plot(range(len(data)), [e[3] for e in data], color='r', label='va')
+    axarr[1].plot(range(len(data)), [e[4] for e in data], color='g', label='vb')
+    axarr[1].plot(range(len(data)), [e[5] for e in data], color='b', label='vc')
     axarr[1].legend(loc='best')
+    #axarr[1].set_ylim(0, 48)
+
+    #axarr[1].plot(range(len(data)), [e[9] for e in data], color='r', label='iq')
+    #axarr[1].plot(range(len(data)), [e[10] for e in data], color='g', label='id')
+    #axarr[1].legend(loc='best')
 
     plt.autoscale(axis='y')
     plt.show()

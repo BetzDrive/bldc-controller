@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-import argparse
 from comms import *
+from boards import *
+
+import argparse
 import serial
 import time
 import json
@@ -44,6 +46,7 @@ if __name__ == '__main__':
     parser.add_argument('board_id', type=str, help='Board id to flash or all')
     parser.add_argument('erev_start', type=int, help='Starting erev')
     parser.add_argument('epmrev', type=int, help='Electronic revolutions per magnetic revolution')
+    parser.add_argument('flip', type=int, help='Flipped Phases?')
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE)
     args = parser.parse_args()
 
@@ -53,23 +56,17 @@ if __name__ == '__main__':
 
     client = BLDCControllerClient(ser)
 
-    time.sleep(0.2)
-    try:
-        print (client.enumerateBoards([args.board_id]))
-    except:
-        print("Failed to receive enumerate response")
-    time.sleep(0.2)
+    initialized = initBoards(client, [int(args.board_id)])
 
-    ser.reset_input_buffer()
-
-    size = str(raw_input("What size is the motor? (S/L)\n"))
-    calibration = {
-        "inv":int(args.epmrev>0),
-        "epm":args.epmrev,
-        "angle":args.erev_start,
-        "torque": (1.45, 0.6)[size.lower() == 's'],
-        "zero":0.0
-        }
-    flash_board(client, int(args.board_id), json.dumps(calibration, separators=(',', ':')))
+    if initialized:
+        size = str(raw_input("What size is the motor? (S/L)\n"))
+        calibration = {
+            "inv":int(args.flip),
+            "epm":args.epmrev,
+            "angle":args.erev_start,
+            "torque": (1.45, 0.6)[size.lower() == 's'],
+            "zero":0.0
+            }
+        flash_board(client, int(args.board_id), json.dumps(calibration, separators=(',', ':')))
 
     ser.close()
