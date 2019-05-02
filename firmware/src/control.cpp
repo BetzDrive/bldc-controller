@@ -136,7 +136,7 @@ void estimateState() {
   // TODO: should this be RMS voltage and current?
   // Subtract old values before storing/adding new values
   // Start doing this after rolling over
-  if (rolladc.ia[rolladc.count] != 0) {
+  if (rolladc.vin[rolladc.count] != 0) {
     results.average_ia  -= adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
     results.average_ib  -= adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
     results.average_ic  -= adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
@@ -146,14 +146,14 @@ void estimateState() {
     results.average_vin -= adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
   }
 
-  rolladc.ia [rolladc.count] = ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_1);
-  rolladc.ib [rolladc.count] = ADC_GetInjectedConversionValue(ADC2, ADC_InjectedChannel_1);
-  rolladc.ic [rolladc.count] = ADC_GetInjectedConversionValue(ADC3, ADC_InjectedChannel_1);
-  rolladc.va [rolladc.count] = ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_2);
-  rolladc.vb [rolladc.count] = ADC_GetInjectedConversionValue(ADC2, ADC_InjectedChannel_2);
-  rolladc.vc [rolladc.count] = ADC_GetInjectedConversionValue(ADC3, ADC_InjectedChannel_2);
-  rolladc.vin[rolladc.count] = ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_3);
-                                
+  rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
+  rolladc.ib [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ib ];
+  rolladc.ic [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ic ];
+  rolladc.va [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_va ];
+  rolladc.vb [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vb ];
+  rolladc.vc [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vc ];
+  rolladc.vin[rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
+
   // The new average is equal to the addition of the old value minus the last value (delta) over the count and then converted to a current.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
   results.average_ia  += adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
@@ -283,7 +283,7 @@ void runCurrentControl() {
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
+    pid_iq.setBias(0*(iq_sp * calibration.motor_resistance) + results.rotor_vel * calibration.motor_torque_const);
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();
