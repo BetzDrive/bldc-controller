@@ -24,9 +24,10 @@ constexpr float rad_per_enc_tick = -2.0f * pi / encoder_period;
 
 constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
 
-constexpr unsigned int motor_pwm_cycle_freq = 40000; // Hz
+constexpr unsigned int motor_pwm_cycle_freq = 20000; // Hz
 
-constexpr unsigned int adc_pwm_cycle_freq = motor_pwm_clock_freq / 2; // Hz
+// TIM3 can't handle the full 168MHz like TIM1
+constexpr unsigned int adc_pwm_cycle_freq = motor_pwm_clock_freq/2; // Hz
 
 constexpr float current_control_freq = motor_pwm_cycle_freq / 2.0f; // Current control runs every two PWM cycles
 constexpr float current_control_interval = 1.0f / current_control_freq;
@@ -41,12 +42,12 @@ constexpr size_t ivsense_sample_buf_depth = ivsense_samples_per_cycle * 2; // "d
 
 constexpr size_t ivsense_channel_count = 7; // 4 voltage channels, 3 current channels
 
-constexpr size_t ivsense_channel_vc = 0;    // Phase A current channel index
-constexpr size_t ivsense_channel_vb = 1;    // Phase B current channel index
-constexpr size_t ivsense_channel_va = 2;    // Phase C current channel index
-constexpr size_t ivsense_channel_ia = 3;    // Phase A voltage channel index
-constexpr size_t ivsense_channel_ib = 4;    // Phase B voltage channel index
-constexpr size_t ivsense_channel_ic = 5;    // Phase C voltage channel index
+constexpr size_t ivsense_channel_ia = 0;    // Phase A current channel index
+constexpr size_t ivsense_channel_ib = 1;    // Phase B current channel index
+constexpr size_t ivsense_channel_ic = 2;    // Phase C current channel index
+constexpr size_t ivsense_channel_va = 3;    // Phase A voltage channel index
+constexpr size_t ivsense_channel_vb = 4;    // Phase B voltage channel index
+constexpr size_t ivsense_channel_vc = 5;    // Phase C voltage channel index
 constexpr size_t ivsense_channel_vin = 6;   // Supply voltage channel index
 
 constexpr float ivsense_voltage_ratio = (2.21e3f + 39.2e3f) / 2.21e3f;      // Ratio of actual voltage to ADC input voltage
