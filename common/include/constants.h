@@ -56,6 +56,7 @@ constexpr float ivsense_current_amp_gain = 41.2f;                           // C
 constexpr float ivsense_current_amp_offset = 0.02f;                         // Voltage offset pre-gain (to handle negative currents)
 constexpr float adc_vref_voltage = 3.3f;                                    // ADC reference voltage, volts
 constexpr unsigned int adc_max_value = 1u << 12;                            // ADC maximum value
+constexpr float max_duty_cycle (0.9f); // Maximum allowable duty cycle before gate on-time interferes with ADC sampling
 
 /* Maximum expected voltage measurement */
 constexpr float ivsense_voltage_max = adc_vref_voltage * ivsense_voltage_ratio;
