@@ -2,12 +2,14 @@
 from __future__ import division
 
 import argparse
-from comms import *
 import serial
 import time
 import numpy as np
 from scipy import signal as sps, stats, interpolate
 import matplotlib.pyplot as plt
+
+from comms import *
+from boards import *
 
 # 14-bit encoder
 encoder_ticks_per_rev = 2 ** 14
@@ -33,16 +35,8 @@ if __name__ == '__main__':
 
     client = BLDCControllerClient(ser)
 
-    client.enterBootloader([args.board_id])
-    time.sleep(0.2)
-    try:
-        print (client.enumerateBoards([args.board_id]))
-    except:
-        print("Failed to receive enumerate response")
-    time.sleep(0.2)
+    initialized = initBoards(client, args.board_id)
 
-    client.leaveBootloader([args.board_id])
-    time.sleep(0.2) # Wait for the controller to reset
     ser.reset_input_buffer()
 
     def set_phase_state(phase_state):
@@ -149,6 +143,7 @@ if __name__ == '__main__':
                 "torque": (1.45, 0.6)[size.lower() == "s"],
                 "zero":0.0
                 }
+        initialized = initBoards(client, [int(args.board_id)])
         flash_board(client, int(args.board_id), json.dumps(upload_data))
 
     ser.close()

@@ -14,16 +14,36 @@ COMM_ROR_ACC_Z = 0x3008
 COMM_ROR_ROTOR_POS_RAW = 0x3010
 
 def initBoards(client, board_ids):
-    client.leaveBootloader(board_ids)
+    if type(board_ids) == int:
+        board_ids = [board_ids]
+
+    client.resetSystem([0])
     time.sleep(0.2)
-    try:
-        print("Received Board ID:", client.enumerateBoards(board_ids))
-    except IOError as e:
-        print("Comms Error:", e)
-        return False
+    client.enterBootloader([0])
+    time.sleep(0.2)
+
+    client._ser.reset_input_buffer()
+
+    success = []
+    for bid in board_ids:
+        print("Enumerating Board ID:", bid)
+        try:
+            confirmed = False
+            # Retry until confirmed
+            while not confirmed:
+                response = client.enumerateBoards(bid)
+                #print("received id:", response)
+                time.sleep(0.2)
+                if response == bid:
+                    confirmed = client.confirmBoards(bid)
+                    time.sleep(0.2)
+            success.append(bid)
+        except ProtocolError as e:
+            print("Comms Error:", e)
+            return False
     
-    time.sleep(0.2)
+    
     client.leaveBootloader(board_ids)
     time.sleep(0.2)
 
-    return True;
+    return True

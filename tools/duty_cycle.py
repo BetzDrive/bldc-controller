@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import sys
-from comms import *
 import serial
 import time
 from math import sin, cos, pi
 import argparse
+
+from comms import *
+from boards import *
 
 if len(sys.argv) != 4:
         print("give me a serial port, address, and duty cycle")
@@ -21,14 +23,7 @@ except ValueError:
     duty_cycles = [float(duty_cycle_str) for duty_cycle_str in sys.argv[3].split(',')]
 
 client = BLDCControllerClient(s)
-
-time.sleep(0.2)
-try:
-    print (client.enumerateBoards(addresses))
-except:
-    print("Failed to receive enumerate response")
-time.sleep(0.2)
-
+initialized = initBoards(client, addresses)
 
 for address, duty_cycle in zip(addresses, duty_cycles):
     client.leaveBootloader([address])
