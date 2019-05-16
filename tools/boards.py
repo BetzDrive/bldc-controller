@@ -17,10 +17,10 @@ def initBoards(client, board_ids):
     if type(board_ids) == int:
         board_ids = [board_ids]
 
-    client.resetSystem([0])
-    time.sleep(0.2)
-    client.enterBootloader([0])
-    time.sleep(0.2)
+    #client.resetSystem([0])
+    #time.sleep(0.2)
+    #client.enterBootloader([0])
+    #time.sleep(0.2)
 
     client._ser.reset_input_buffer()
 

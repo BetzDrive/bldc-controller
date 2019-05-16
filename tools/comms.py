@@ -38,8 +38,9 @@ COMM_FC_ENUMERATE = 0xFF
 COMM_FLAG_SEND = 0x00 
 
 COMM_BOOTLOADER_OFFSET = 0x08000000
-COMM_NVPARAMS_OFFSET = 0x08004000
-COMM_FIRMWARE_OFFSET = 0x08008000
+COMM_BOARD_ID_OFFSET = 0x08004000
+COMM_NVPARAMS_OFFSET = 0x08008000
+COMM_FIRMWARE_OFFSET = 0x08010000
 COMM_DEFAULT_BAUD_RATE = 1000000
 
 COMM_SINGLE_PROGRAM_LENGTH = 128
@@ -240,9 +241,9 @@ class BLDCControllerClient:
         return data
 
     def readCalibration(self, server_id):
-        l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
-        print l
-        b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET+3, l)
+        l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET, 2))[0]
+        print "Calibration of length: " + str(l)
+        b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET+2, l)
         return json.loads(b)
 
     def verifyFlash(self, server_id, dest_addr, data):

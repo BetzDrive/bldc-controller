@@ -16,18 +16,16 @@ def is_int(i):
         return False
 
 def flash_board(client, board_id, data):
-    old_board_id = client.readFlash([board_id], COMM_NVPARAMS_OFFSET, 1)
-
     flash_sector_map = client.getFlashSectorMap([board_id])
 
     success = client.eraseFlash([board_id], COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
 
-    buf = old_board_id + struct.pack('<H', len(data)) + data
+    buf = struct.pack('<H', len(data)) + data
 
     success = success and client.programFlash([board_id], COMM_NVPARAMS_OFFSET, buf)
 
-    l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET+1, 2))[0]
-    d = client.readFlash([board_id], COMM_NVPARAMS_OFFSET+3, l)
+    l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET, 2))[0]
+    d = client.readFlash([board_id], COMM_NVPARAMS_OFFSET+2, l)
 
     if success and d == data:
         client.resetSystem([board_id])
