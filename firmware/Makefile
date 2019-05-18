@@ -274,3 +274,6 @@ upload: build/$(PROJECT).bin
 		verify_image build/$(PROJECT).bin 0x08010000;\
 		reset run;\
 		shutdown"
+
+debug: build/$(PROJECT).elf
+	./run_gdb.sh
