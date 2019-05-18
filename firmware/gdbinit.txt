@@ -1,7 +1,0 @@
-directory .
-monitor reset halt
-set mem inaccessible-by-default off
-set print pretty
-load
-lay src
-
