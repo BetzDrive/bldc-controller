@@ -221,11 +221,6 @@ void runVelocityControl() {
   }
 }
 
-static void setScaledDuty(uint8_t phase, float duty) {
-  // Scale the duty cycle to prevent interference of gate on-time with ADC sampling
-  gate_driver.setPWMDutyCycle(phase, duty*max_duty_cycle);
-}
-
 void runCurrentControl() {
   /*
    * Compute phase duty cycles
@@ -236,25 +231,9 @@ void runCurrentControl() {
      * Directly set PWM duty cycles
      */
 
-    setScaledDuty(0, parameters.phase0);
-    setScaledDuty(1, parameters.phase1);
-    setScaledDuty(2, parameters.phase2);
-  } else if (parameters.control_mode == control_mode_fixed_ang_vel) {
-    // FIXED ANGULAR VEL TEST
-    // This is a hack to bypass all feedback and just slowly spin a motor
-    static float ang = 0.0f;
-    // At 40kHz this is 1 rev/second
-    static const float d_ang = 0.000157;
-    static const float erev_per_s = 28;
-    static const float duty = 0.5;
-    static const float phase_gap = 2*pi/3;
-    ang += d_ang*erev_per_s;
-    while(ang>2*pi) {
-      ang -= 2*pi;
-    }
-    for(int i = 0; i < 3; i++) {
-      setScaledDuty(i,duty*0.5*(1+fast_sin(ang+(i*phase_gap))));
-    }
+    gate_driver.setPWMDutyCycle(0, parameters.phase0);
+    gate_driver.setPWMDutyCycle(1, parameters.phase1);
+    gate_driver.setPWMDutyCycle(2, parameters.phase2);
   } else {
     /*
      * Run field-oriented control
@@ -322,9 +301,9 @@ void runCurrentControl() {
     float duty0, duty1, duty2;
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
 
-    setScaledDuty(0, duty0);
-    setScaledDuty(1, duty1);
-    setScaledDuty(2, duty2);
+    gate_driver.setPWMDutyCycle(0, duty0);
+    gate_driver.setPWMDutyCycle(1, duty1);
+    gate_driver.setPWMDutyCycle(2, duty2);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;
