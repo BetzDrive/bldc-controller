@@ -304,7 +304,7 @@ void runCurrentControl() {
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(0*(iq_sp * calibration.motor_resistance) + results.rotor_vel * calibration.motor_torque_const);
+    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();

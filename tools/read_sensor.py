@@ -36,6 +36,10 @@ if __name__ == '__main__':
 
     initialized = initBoards(client, board_ids)
 
+    for bid in board_ids:
+        client.leaveBootloader(bid)
+        time.sleep(0.1)
+
     sen = args.sensor
     address = ReadOnlyRegs[sen]
     decode = '<f' 

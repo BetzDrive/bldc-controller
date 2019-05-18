@@ -41,9 +41,5 @@ def initBoards(client, board_ids):
         except ProtocolError as e:
             print("Comms Error:", e)
             return False
-    
-    
-    client.leaveBootloader(board_ids)
-    time.sleep(0.2)
 
     return True
