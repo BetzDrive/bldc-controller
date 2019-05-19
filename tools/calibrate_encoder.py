@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('duty_cycle', type=float, help='Duty cycle')
     parser.add_argument('--max_steps', type=int, help='Maximum number of steps')
     parser.add_argument('--delay', type=float, help='Delay between steps')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=126, delay=0.1)
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=126, delay=0.02)
     args = parser.parse_args()
 
     #

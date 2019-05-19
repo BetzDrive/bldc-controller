@@ -82,7 +82,7 @@ if __name__ == '__main__':
         for board_id in board_ids:
             try:
                 #data = struct.unpack('<ff', client.readRegisters([board_id], [0x3000], [2])[0])
-                client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', duty_cycle)])
+                client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
                 # print(board_id, data)
             except (ProtocolError, struct.error):
                 print("Failed to communicate with board: ", board_id)
