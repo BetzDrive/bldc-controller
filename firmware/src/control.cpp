@@ -277,16 +277,18 @@ void runCurrentControl() {
       iq_sp = parameters.torque_sp / calibration.motor_torque_const;
     }
 
-    pid_id.setSetPoint(id_sp);
-    pid_id.setProcessValue(id);
-    pid_id.setBias(id_sp * calibration.motor_resistance);
+    //pid_id.setSetPoint(id_sp);
+    //pid_id.setProcessValue(id);
+    //pid_id.setBias(id_sp * calibration.motor_resistance);
 
-    pid_iq.setSetPoint(iq_sp);
-    pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
+    //pid_iq.setSetPoint(iq_sp);
+    //pid_iq.setProcessValue(iq);
+    //pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
 
-    float vd = pid_id.compute();
-    float vq = pid_iq.compute();
+    //float vd = pid_id.compute();
+    //float vq = pid_iq.compute();
+    float vd = 0;
+    float vq = iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const;
 
     float vd_norm = vd / results.average_vin;
     float vq_norm = vq / results.average_vin;
