@@ -68,6 +68,9 @@ if __name__ == '__main__':
     client.writeRegisters([args.board_id], [0x1004], [1], [struct.pack('<f', 0.5)]) # DI Ki
     client.writeRegisters([args.board_id], [0x1005], [1], [struct.pack('<f', 1)])  # QI Kp
     client.writeRegisters([args.board_id], [0x1006], [1], [struct.pack('<f', 0.5)]) # QI Ki
+
+    # Velocity IIR Alpha Term
+    client.writeRegisters([args.board_id], [0x1040], [1], [struct.pack('<f', 0.1)]) # QI Ki
     
     
     client.writeRegisters([args.board_id], [0x2006], [1], [struct.pack('<f', args.duty_cycle)])
@@ -82,6 +85,18 @@ if __name__ == '__main__':
     print("reset: %u" % reset)
     success = struct.unpack('<B', client.readRegisters([args.board_id], [0x3009], [1])[0])[0]
     print("started: %u" % success)
+
+    run_time = 2
+    start = time.time()
+    while time.time()-start < run_time-1:
+        try:
+            client.writeRegisters([args.board_id], [0x2006], [1], [struct.pack('<f', args.duty_cycle)])
+        except (ProtocolError, struct.error):
+            print("Failed to communicate with board: ", board_id)
+            pass
+        time.sleep(0.1)
+    
+
     
     time.sleep(1.2)
 

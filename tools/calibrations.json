@@ -1,4 +1,1 @@
-{
-    "1":  {"angle": 570, "inv": 1, "epm": 14, "torque": 1.45, "zero": 0.0},
-    "2":  {"angle": 505, "inv": 1, "epm": 21, "torque": 1.45, "zero": 0.0}
-}
+{"torque": 1.45, "inv": 0, "epm": 14, "angle": 604, "zero": 0.0}

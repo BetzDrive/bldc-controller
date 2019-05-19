@@ -42,10 +42,8 @@ if __name__ == '__main__':
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_id', type=str, help='Board id to flash or all')
-    parser.add_argument('erev_start', type=int, help='Starting erev')
-    parser.add_argument('epmrev', type=int, help='Electronic revolutions per magnetic revolution')
-    parser.add_argument('flip', type=int, help='Flipped Phases?')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE)
+    parser.add_argument('--calibration_file', type=str, help='The file which the calibrations were put in')
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, calibration_file='calibrations.json')
     args = parser.parse_args()
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
@@ -57,14 +55,8 @@ if __name__ == '__main__':
     initialized = initBoards(client, [int(args.board_id)])
 
     if initialized:
-        size = str(raw_input("What size is the motor? (S/L)\n"))
-        calibration = {
-            "inv":int(args.flip),
-            "epm":args.epmrev,
-            "angle":args.erev_start,
-            "torque": (1.45, 0.6)[size.lower() == 's'],
-            "zero":0.0
-            }
-        flash_board(client, int(args.board_id), json.dumps(calibration, separators=(',', ':')))
+        with open(args.calibration_file) as json_file:
+            data = json.load(json_file)
+        flash_board(client, int(args.board_id), json.dumps(data, separators=(',', ':')))
 
     ser.close()

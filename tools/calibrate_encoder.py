@@ -34,8 +34,10 @@ if __name__ == '__main__':
     time.sleep(0.1)
 
     client = BLDCControllerClient(ser)
-
+        
     initialized = initBoards(client, args.board_id)
+
+    client.leaveBootloader([args.board_id])
 
     ser.reset_input_buffer()
 
@@ -81,6 +83,8 @@ if __name__ == '__main__':
         backward_raw_angles.append(raw_angle)
 
     set_phase_state((0, 0, 0))
+
+    ser.close()
 
     #
     # Data analysis
@@ -131,29 +135,24 @@ if __name__ == '__main__':
     print('erevs_per_mrev: {:5d}'.format(abs(erevs_per_mrev)))
     print('   flip_phases: {:5d}'.format(int(erevs_per_mrev > 0)))
 
-    # Ask to upload
-    upload = str(raw_input("Would you like to upload? (y/n)\n"))
-    if (upload.lower() != 'n'):
-        from upload_calibration import flash_board
-        size = str(raw_input("What size is the motor? (S/L)\n"))
-        upload_data = {
-                "inv":int(erevs_per_mrev>0),
-                "epm":erevs_per_mrev,
-                "angle":erev_start,
-                "torque": (1.45, 0.6)[size.lower() == "s"],
-                "zero":0.0
-                }
-        initialized = initBoards(client, [int(args.board_id)])
-        flash_board(client, int(args.board_id), json.dumps(upload_data))
+    size = str(raw_input("What size is the motor? (S/L)\n"))
+    upload_data = {
+        "inv":int(erevs_per_mrev>0),
+        "epm":abs(erevs_per_mrev),
+        "angle":int(erev_start),
+        "torque": (1.45, 0.6)[size.lower() == "s"],
+        "zero":0.0
+    }
 
-    ser.close()
+    with open('calibrations.json', 'w') as outfile:  
+        json.dump(upload_data, outfile)
 
-    mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
-    plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
-    plt.title('Encoder angle residuals')
-    plt.xlabel('Mechanical angle (rad)')
-    plt.ylabel('Encoder angle residual (counts)')
-    plt.show()
+    #mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
+    #plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
+    #plt.title('Encoder angle residuals')
+    #plt.xlabel('Mechanical angle (rad)')
+    #plt.ylabel('Encoder angle residual (counts)')
+    #plt.show()
 
 
     # # Apply smoothing
