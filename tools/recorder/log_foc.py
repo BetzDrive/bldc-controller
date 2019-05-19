@@ -65,12 +65,12 @@ if __name__ == '__main__':
     
     # Setting gains for motor
     client.writeRegisters([args.board_id], [0x1003], [1], [struct.pack('<f', 1)])  # DI Kp
-    client.writeRegisters([args.board_id], [0x1004], [1], [struct.pack('<f', 0.5)]) # DI Ki
+    client.writeRegisters([args.board_id], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
     client.writeRegisters([args.board_id], [0x1005], [1], [struct.pack('<f', 1)])  # QI Kp
-    client.writeRegisters([args.board_id], [0x1006], [1], [struct.pack('<f', 0.5)]) # QI Ki
+    client.writeRegisters([args.board_id], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
 
     # Velocity IIR Alpha Term
-    client.writeRegisters([args.board_id], [0x1040], [1], [struct.pack('<f', 0.1)]) # QI Ki
+    client.writeRegisters([args.board_id], [0x1040], [1], [struct.pack('<f', 0.001)]) # QI Ki
     
     
     client.writeRegisters([args.board_id], [0x2006], [1], [struct.pack('<f', args.duty_cycle)])

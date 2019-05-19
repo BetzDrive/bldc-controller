@@ -62,7 +62,7 @@ if __name__ == '__main__':
                 client.writeRegisters([board_id], [0x1030], [1], [struct.pack('<H', 1000)])
                 # print("Motor %d ready: supply voltage=%fV", board_id, client.getVoltage(board_id))
     
-                client.writeRegisters([board_id], [0x1040], [1], [struct.pack('<f', 0.1)])
+                #client.writeRegisters([board_id], [0x1040], [1], [struct.pack('<f', 0.01)])
     
                 client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', duty_cycle)])
                 client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control

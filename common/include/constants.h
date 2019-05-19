@@ -29,7 +29,7 @@ constexpr unsigned int motor_pwm_cycle_freq = 20000; // Hz
 // TIM3 can't handle the full 168MHz like TIM1
 constexpr unsigned int adc_pwm_cycle_freq = motor_pwm_clock_freq/2; // Hz
 
-constexpr float current_control_freq = motor_pwm_cycle_freq / 2.0f; // Current control runs every two PWM cycles
+constexpr float current_control_freq = motor_pwm_cycle_freq; // Current control runs every PWM cycle
 constexpr float current_control_interval = 1.0f / current_control_freq;
 constexpr float velocity_control_interval = current_control_interval;
 constexpr float position_control_interval = current_control_interval;
@@ -55,7 +55,7 @@ constexpr float ivsense_current_shunt_value = 0.01f;                        // C
 constexpr float ivsense_current_amp_input_divider_gain = 0.97209f;          // Ratio of the input divider to the isns amp
 constexpr float ivsense_current_amp_gain = 43.1f;                           // Current shunt amplifier gain, V/V
 constexpr float ivsense_current_amp_composite_gain = ivsense_current_amp_input_divider_gain*ivsense_current_amp_gain;
-constexpr float ivsense_current_amp_offset = 0.03366f;                      // Voltage offset pre-gain (to handle negative currents)
+constexpr float ivsense_current_amp_offset = 0.03436f;                      // Voltage offset pre-gain (to handle negative currents)
 constexpr float adc_vref_voltage = 3.3f;                                    // ADC reference voltage, volts
 constexpr unsigned int adc_max_value = 1u << 12;                            // ADC maximum value
 constexpr float adc_v_per_count = adc_vref_voltage / adc_max_value;
@@ -83,7 +83,7 @@ constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;
 constexpr float ivsense_current_per_count = adc_v_per_count / (ivsense_current_amp_composite_gain*ivsense_current_shunt_value);
 
 /* ADC Value zero current is centered on */
-constexpr float ivsense_count_zero_current = ivsense_voltage_zero_current / adc_vref_voltage * adc_max_value;
+constexpr float ivsense_count_zero_current = ivsense_voltage_zero_current / adc_v_per_count;
 
 constexpr size_t recorder_channel_count = 11;
 
