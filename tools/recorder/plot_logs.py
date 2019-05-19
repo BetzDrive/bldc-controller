@@ -20,7 +20,7 @@ if __name__ == "__main__" :
     axarr[0].plot(range(len(data)), [e[0] for e in data], color='r', label='ia')
     axarr[0].plot(range(len(data)), [e[1] for e in data], color='g', label='ib')
     axarr[0].plot(range(len(data)), [e[2] for e in data], color='b', label='ic')
-    axarr[0].plot(range(len(data)), [e[2] for e in data], color='b', label='ic')
+    axarr[0].plot(range(len(data)), [sum(e[:3]) for e in data], color='gray', label='sum')
     axarr[0].legend(loc='best')
     #axarr[0].set_ylim(-2, 6)
 

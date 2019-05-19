@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('duty_cycle', type=float, help='Duty cycle')
     parser.add_argument('--max_steps', type=int, help='Maximum number of steps')
     parser.add_argument('--delay', type=float, help='Delay between steps')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=126, delay=0.02)
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=126, delay=0.05)
     args = parser.parse_args()
 
     #
@@ -49,6 +49,32 @@ if __name__ == '__main__':
     client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', 0, 0, 0)])
     client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 1)])
 
+    time.sleep(0.1)
+
+    # First, read floating currents to calculate offset
+    # The number of values returned by the recorder (all floats)
+    num_recorder_elements = 11
+    
+    reset = struct.unpack('<B', client.readRegisters([args.board_id], [0x300b], [1])[0])[0]
+    print("reset: %u" % reset)
+    success = struct.unpack('<B', client.readRegisters([args.board_id], [0x3009], [1])[0])[0]
+    print("started: %u" % success)
+
+    l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
+    while l == 0:
+        l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
+        time.sleep(0.1)
+    arr = []
+    for i in range(0, l, num_recorder_elements):
+        # Grab the recorder data
+        a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
+        arr += [a]
+
+    num_avg = 100
+    ia_offset = sum(arr[0][:num_avg])/num_avg
+    ib_offset = sum(arr[1][:num_avg])/num_avg
+    ic_offset = sum(arr[2][:num_avg])/num_avg
+ 
     # Start one step before phase A to avoid boundary issues
     set_phase_state(phase_state_list[-1])
     time.sleep(args.delay)
@@ -141,8 +167,14 @@ if __name__ == '__main__':
         "epm":abs(erevs_per_mrev),
         "angle":int(erev_start),
         "torque": (1.45, 0.6)[size.lower() == "s"],
-        "zero":0.0
+        "zero":0.0,
+        "ia_off":ia_offset,
+        "ib_off":ib_offset,
+        "ic_off":ic_offset
     }
+
+    print("Calibration")
+    print(upload_data)
 
     with open('calibrations.json', 'w') as outfile:  
         json.dump(upload_data, outfile)

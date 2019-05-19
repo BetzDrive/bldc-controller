@@ -96,8 +96,6 @@ if __name__ == '__main__':
             pass
         time.sleep(0.1)
     
-
-    
     time.sleep(1.2)
 
     l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
