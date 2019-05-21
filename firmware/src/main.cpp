@@ -37,11 +37,18 @@ static msg_t blinkerThreadRun(void *arg) {
 
   while (true) {
     uint8_t g = ::abs(t - 255);
-    if (gate_driver.hasFault() || gate_driver.hasOCTW()) {
-      setStatusLEDColor(g < 50 ? 255 : 0, g, 0);
-    } else {
-      setStatusLEDColor(0, g, 0);
+    uint8_t r = 0;
+    uint8_t b = 0;
+    if (gate_driver.hasFault()) {
+      r = g < 50 ? 255 : r;
+      g = g < 50 ? 0 : g;
+    } 
+    if (gate_driver.hasOCTW()) {
+      r = g > 200 ? 255 : r;
+      g = g > 200 ? 255 : g;
     }
+
+    setStatusLEDColor(r,g,b);
 
     systime_t time_now = chTimeNow();
 
