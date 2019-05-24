@@ -15,12 +15,15 @@ if __name__ == '__main__':
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
+    parser.add_argument('mode', type=str, help='Mode to drive in: foc, raw_pwm, torque, velocity, position, pos_vel, pwm')
     parser.add_argument('duty_cycles', type=str, help='Duty Cycles per Board (separate with comma)')
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
     board_ids = [int(bid) for bid in args.board_ids.split(',')]
     duty_cycles = [float(dc) for dc in args.duty_cycles.split(',')]
+
+    mode = args.mode
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
 
@@ -37,10 +40,10 @@ if __name__ == '__main__':
                 client.leaveBootloader([board_id])
                 ser.reset_input_buffer()
                 time.sleep(0.2)
-    
+
                 calibration_obj = client.readCalibration([board_id])
                 print(calibration_obj)
-    
+
                 client.setZeroAngle([board_id], [calibration_obj['angle']])
                 client.setInvertPhases([board_id], [calibration_obj['inv']])
                 client.setERevsPerMRev([board_id], [calibration_obj['epm']])
@@ -62,15 +65,26 @@ if __name__ == '__main__':
                 client.writeRegisters([board_id], [0x1030], [1], [struct.pack('<H', 1000)])
                 # print("Motor %d ready: supply voltage=%fV", board_id, client.getVoltage(board_id))
     
-                #client.writeRegisters([board_id], [0x1040], [1], [struct.pack('<f', 0.01)])
+                # Velocity IIR Alpha Term
+                client.writeRegisters([board_id], [0x1040], [1], [struct.pack('<f', 0.01)])
+
+                # Upload current offsets
+                offset_data = struct.pack('<fff', calibration_obj['ia_off'], calibration_obj['ib_off'], calibration_obj['ic_off'])
+                client.writeRegisters([board_id], [0x1050], [3], [offset_data])
     
-                client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', duty_cycle)])
-                client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
+                if mode == 'torque':
+                    client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', duty_cycle)])
+                    client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
+                elif mode == 'raw_pwm':
+                    client.writeRegisters([board_id], [0x2003], [1], [struct.pack('<f', duty_cycle)])
+                    client.writeRegisters([board_id], [0x2004], [1], [struct.pack('<f', duty_cycle)])
+                    client.writeRegisters([board_id], [0x2005], [1], [struct.pack('<f', duty_cycle)])
+                    client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 1)]) # Torque control
     
                 # Setting gains for motor
-                client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 1)])  # DI Kp
+                client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 0.05)])  # DI Kp
                 client.writeRegisters([board_id], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
-                client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 1)])  # QI Kp
+                client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 0.05)])  # QI Kp
                 client.writeRegisters([board_id], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
                 success = True
             except (ProtocolError, struct.error, TypeError):
@@ -81,8 +95,7 @@ if __name__ == '__main__':
     while True:
         for board_id in board_ids:
             try:
-                #data = struct.unpack('<ff', client.readRegisters([board_id], [0x3000], [2])[0])
-                client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
+                data = struct.unpack('<ff', client.readRegisters([board_id], [0x3000], [2])[0])
                 # print(board_id, data)
             except (ProtocolError, struct.error):
                 print("Failed to communicate with board: ", board_id)

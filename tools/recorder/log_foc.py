@@ -66,15 +66,19 @@ if __name__ == '__main__':
     # Setting gains for motor
     client.writeRegisters([args.board_id], [0x1003], [1], [struct.pack('<f', 1)])  # DI Kp
     client.writeRegisters([args.board_id], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
-    client.writeRegisters([args.board_id], [0x1005], [1], [struct.pack('<f', 1)])  # QI Kp
-    client.writeRegisters([args.board_id], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
+    client.writeRegisters([args.board_id], [0x1005], [1], [struct.pack('<f', 100)])  # QI Kp
+    client.writeRegisters([args.board_id], [0x1006], [1], [struct.pack('<f', 1e-3)]) # QI Ki
 
     # Velocity IIR Alpha Term
-    client.writeRegisters([args.board_id], [0x1040], [1], [struct.pack('<f', 0.001)]) # QI Ki
-    
-    
+    client.writeRegisters([args.board_id], [0x1040], [1], [struct.pack('<f', 0.01)])
+
+    # Upload current offsets
+    offset_data = struct.pack('<fff', calibration_obj['ia_off'], calibration_obj['ib_off'], calibration_obj['ic_off'])
+    client.writeRegisters([args.board_id], [0x1050], [3], [offset_data])
+         
     client.writeRegisters([args.board_id], [0x2006], [1], [struct.pack('<f', args.duty_cycle)])
     client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
+
     ##### END CALIBRATION CODE ######
     
     

@@ -28,7 +28,6 @@ def flash_board(client, board_id, data):
     d = client.readFlash([board_id], COMM_NVPARAMS_OFFSET+2, l)
 
     if success and d == data:
-        client.resetSystem([board_id])
         print("Success", board_id)
         print("Wrote:")
         time.sleep(0.2)

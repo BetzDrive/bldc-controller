@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, print_function
 
 import argparse
 import serial
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', 0, 0, 0)])
     client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 1)])
 
-    time.sleep(0.1)
+    time.sleep(0.2)
 
     # First, read floating currents to calculate offset
     # The number of values returned by the recorder (all floats)
@@ -60,6 +60,7 @@ if __name__ == '__main__':
     success = struct.unpack('<B', client.readRegisters([args.board_id], [0x3009], [1])[0])[0]
     print("started: %u" % success)
 
+    data = []
     l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
     while l == 0:
         l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
@@ -68,13 +69,22 @@ if __name__ == '__main__':
     for i in range(0, l, num_recorder_elements):
         # Grab the recorder data
         a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
-        arr += [a]
+        data += [a]
 
-    num_avg = 100
-    ia_offset = sum(arr[0][:num_avg])/num_avg
-    ib_offset = sum(arr[1][:num_avg])/num_avg
-    ic_offset = sum(arr[2][:num_avg])/num_avg
- 
+    f, axarr = plt.subplots(1, sharex=True)
+
+    ia = [e[0] for e in data]
+    ib = [e[1] for e in data]
+    ic = [e[2] for e in data]
+    len_data = len(data)
+    ia_offset = sum(ia)/len_data    
+    ib_offset = sum(ib)/len_data    
+    ic_offset = sum(ic)/len_data    
+
+    print("Phase A Offset:", ia_offset)
+    print("Phase B Offset:", ib_offset)
+    print("Phase C Offset:", ic_offset)
+
     # Start one step before phase A to avoid boundary issues
     set_phase_state(phase_state_list[-1])
     time.sleep(args.delay)
