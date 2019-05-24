@@ -11,12 +11,12 @@ from comms import *
 from boards import *
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Read temperature sensor from boards.')
+    parser = argparse.ArgumentParser(description='Drive motor module(s) with a given control mode.')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
-    parser.add_argument('mode', type=str, help='Mode to drive in: foc, raw_pwm, torque, velocity, position, pos_vel, pwm')
-    parser.add_argument('duty_cycles', type=str, help='Duty Cycles per Board (separate with comma)')
+    parser.add_argument('mode', type=str, help='Control mode: foc (duty cycle [dc]), raw_pwm(dc,dc,dc), torque (N*m), velocity (rad/s), position (rad), pos_vel (rad,rad/s), pwm (dc)')
+    parser.add_argument('actuation', type=str, help='Actuation amount in the units of the selected mode (if requires multiple args, separate by comma)')
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
