@@ -346,9 +346,9 @@ void runCurrentControl() {
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, 
                                 results.duty_a, results.duty_b, results.duty_c);
 
-    gate_driver.setPWMDutyCycle(0, results.duty_a*0.9);
-    gate_driver.setPWMDutyCycle(1, results.duty_b*0.9);
-    gate_driver.setPWMDutyCycle(2, results.duty_c*0.9);
+    gate_driver.setPWMDutyCycle(0, results.duty_a * max_duty_cycle);
+    gate_driver.setPWMDutyCycle(1, results.duty_b * max_duty_cycle);
+    gate_driver.setPWMDutyCycle(2, results.duty_c * max_duty_cycle);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;
