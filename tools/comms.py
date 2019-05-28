@@ -100,6 +100,9 @@ class BLDCControllerClient:
         self._ser = ser
         self._crc_alg = crcmod.predefined.PredefinedCrc('crc-16')
 
+    def resetInputBuffer(self):
+        self._ser.reset_input_buffer()
+
     def getRotorPosition(self, server_ids):
         angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids])]
         return angles

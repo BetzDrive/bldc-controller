@@ -43,3 +43,63 @@ def initBoards(client, board_ids):
             return False
 
     return True
+
+def loadMotorCalibration(client, board_ids, duty_cycles, mode):
+    for board_id, duty_cycle in zip(board_ids, duty_cycles):
+        success = False
+        while not success:
+            try:
+                print("Calibrating board:", board_id)
+                client.leaveBootloader([board_id])
+                client.resetInputBuffer()
+                time.sleep(0.2)
+
+                calibration_obj = client.readCalibration([board_id])
+                print(calibration_obj)
+
+                client.setZeroAngle([board_id], [calibration_obj['angle']])
+                client.setInvertPhases([board_id], [calibration_obj['inv']])
+                client.setERevsPerMRev([board_id], [calibration_obj['epm']])
+                client.setTorqueConstant([board_id], [calibration_obj['torque']])
+                client.setPositionOffset([board_id], [calibration_obj['zero']])
+                if 'eac_type' in calibration_obj and calibration_obj['eac_type'] == 'int8':
+                    print('EAC calibration available')
+                    try:
+                        client.writeRegisters([board_id], [0x1100], [1], [struct.pack('<f', calibration_obj['eac_scale'])])
+                        client.writeRegisters([board_id], [0x1101], [1], [struct.pack('<f', calibration_obj['eac_offset'])])
+                        eac_table_len = len(calibration_obj['eac_table'])
+                        slice_len = 64
+                        for i in range(0, eac_table_len, slice_len):
+                            table_slice = calibration_obj['eac_table'][i:i+slice_len]
+                            client.writeRegisters([board_id], [0x1200+i], [len(table_slice)], [struct.pack('<{}b'.format(len(table_slice)), *table_slice)])
+                    except ProtocolError:
+                        print('WARNING: Motor driver board does not support encoder angle compensation, try updating the firmware.')
+                client.setCurrentControlMode([board_id])
+                client.writeRegisters([board_id], [0x1030], [1], [struct.pack('<H', 1000)])
+                # print("Motor %d ready: supply voltage=%fV", board_id, client.getVoltage(board_id))
+    
+                # Velocity IIR Alpha Term
+                client.writeRegisters([board_id], [0x1040], [1], [struct.pack('<f', 0.01)])
+
+                # Upload current offsets
+                offset_data = struct.pack('<fff', calibration_obj['ia_off'], calibration_obj['ib_off'], calibration_obj['ic_off'])
+                client.writeRegisters([board_id], [0x1050], [3], [offset_data])
+    
+                if mode == 'torque':
+                    client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', duty_cycle)])
+                    client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
+                elif mode == 'raw_pwm':
+                    client.writeRegisters([board_id], [0x2003], [1], [struct.pack('<f', duty_cycle)])
+                    client.writeRegisters([board_id], [0x2004], [1], [struct.pack('<f', duty_cycle)])
+                    client.writeRegisters([board_id], [0x2005], [1], [struct.pack('<f', duty_cycle)])
+                    client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 1)]) # PWM control
+    
+                # Setting gains for motor
+                client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 0.5)])  # DI Kp
+                client.writeRegisters([board_id], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
+                client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 0.5)])  # QI Kp
+                client.writeRegisters([board_id], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
+                success = True
+            except (ProtocolError, struct.error, TypeError):
+                print("Failed to calibrate board, retrying...")
+ 
