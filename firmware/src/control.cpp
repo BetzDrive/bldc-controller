@@ -45,6 +45,16 @@ static float getEncoderAngleCorrection(float raw_enc_pos) {
   }
 }
 
+static float clamp(float val, float min, float max) {
+  if (val > max) {
+    return max;
+  } else if (val < min) {
+    return min;
+  } else {
+    return val;
+  }
+}
+
 void initControl() {
   pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
   pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
@@ -74,6 +84,24 @@ void runInnerControlLoop() {
      * Wait for resumeInnerControlLoop to be called
      */
     chEvtWaitAny((flagsmask_t)1);
+
+    //if (gate_driver.hasFault() || gate_driver.hasOCTW()) {
+    //  parameters.gate_fault = true;
+    //} else {
+    //  parameters.gate_fault = false;
+    //}
+
+    // If there is no fault, enable the motors.
+    if (!parameters.gate_active && !parameters.gate_fault) {
+      gate_driver.enableGates();
+      parameters.gate_active = true;
+    }
+
+    // If there is a fault, disable the motors.
+    if (parameters.gate_active && parameters.gate_fault) {
+      gate_driver.disableGates();
+      parameters.gate_active = false;
+    }
 
     if (calibration.control_timeout != 0 && (chTimeNow() - last_control_timeout_reset) >= MS2ST(calibration.control_timeout)) {
       brakeMotor();
@@ -166,15 +194,27 @@ void estimateState() {
 
   rolladc.count = (rolladc.count + 1) % ivsense_rolling_average_count;
 
+  results.corrected_ia = results.average_ia - calibration.ia_offset;
+  results.corrected_ib = results.average_ib - calibration.ib_offset;
+  results.corrected_ic = results.average_ic - calibration.ic_offset;
+
+  //if (results.duty_a > results.duty_b && results.duty_a > results.duty_b) {
+  //  results.corrected_ia = -(results.corrected_ib + results.corrected_ic);
+  //} else if (results.duty_b > results.duty_c) {
+  //  results.corrected_ib = -(results.corrected_ia + results.corrected_ic);
+  //} else {
+  //  results.corrected_ic = -(results.corrected_ia + results.corrected_ib);
+  //}
+
   /*
    * Record data
    */
   if (rolladc.count == 0) {
     float recorder_new_data[recorder_channel_count];
 
-    recorder_new_data[recorder_channel_ia] = results.average_ia;
-    recorder_new_data[recorder_channel_ib] = results.average_ib;
-    recorder_new_data[recorder_channel_ic] = results.average_ic;
+    recorder_new_data[recorder_channel_ia] = results.corrected_ia;
+    recorder_new_data[recorder_channel_ib] = results.corrected_ib;
+    recorder_new_data[recorder_channel_ic] = results.corrected_ic;
     recorder_new_data[recorder_channel_va] = results.average_va;
     recorder_new_data[recorder_channel_vb] = results.average_vb;
     recorder_new_data[recorder_channel_vc] = results.average_vc;
@@ -221,11 +261,6 @@ void runVelocityControl() {
   }
 }
 
-static void setScaledDuty(uint8_t phase, float duty) {
-  // Scale the duty cycle to prevent interference of gate on-time with ADC sampling
-  gate_driver.setPWMDutyCycle(phase, duty*max_duty_cycle);
-}
-
 void runCurrentControl() {
   /*
    * Compute phase duty cycles
@@ -236,17 +271,17 @@ void runCurrentControl() {
      * Directly set PWM duty cycles
      */
 
-    setScaledDuty(0, parameters.phase0);
-    setScaledDuty(1, parameters.phase1);
-    setScaledDuty(2, parameters.phase2);
-
+    gate_driver.setPWMDutyCycle(0, parameters.phase0);
+    gate_driver.setPWMDutyCycle(1, parameters.phase1);
+    gate_driver.setPWMDutyCycle(2, parameters.phase2);
   } else {
     /*
      * Run field-oriented control
      */
-
     float ialpha, ibeta;
-    transformClarke(results.average_ia, results.average_ib, results.average_ic, ialpha, ibeta);
+    transformClarke(results.corrected_ia, 
+                    results.corrected_ib, 
+                    results.corrected_ic, ialpha, ibeta);
 
     if (calibration.flip_phases) {
       ibeta = -ibeta;
@@ -267,32 +302,36 @@ void runCurrentControl() {
     pid_id.setTunings(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
     pid_iq.setTunings(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
 
-    pid_id.setOutputLimits(-results.average_vin, results.average_vin);
-    pid_iq.setOutputLimits(-results.average_vin, results.average_vin);
+    //pid_id.setOutputLimits(-results.average_vin, results.average_vin);
+    //pid_iq.setOutputLimits(-results.average_vin, results.average_vin);
+    pid_id.setOutputLimits(-calibration.current_limit, calibration.current_limit);
+    pid_iq.setOutputLimits(-calibration.current_limit, calibration.current_limit);
+
 
     float id_sp, iq_sp;
     if (parameters.control_mode == control_mode_foc_current) {
       // Use the provided FOC current setpoints
-
       id_sp = parameters.foc_d_current_sp;
       iq_sp = parameters.foc_q_current_sp;
     } else {
       // Generate FOC current setpoints from the reference torque
-
       id_sp = 0.0f;
       iq_sp = parameters.torque_sp / calibration.motor_torque_const;
     }
 
     pid_id.setSetPoint(id_sp);
     pid_id.setProcessValue(id);
-    pid_id.setBias(id_sp * calibration.motor_resistance);
+    //pid_id.setBias(id_sp);
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
+    //pid_iq.setBias(iq_sp);
+    
+    results.id_command = pid_id.compute();
+    results.iq_command = pid_iq.compute();
 
-    float vd = pid_id.compute();
-    float vq = pid_iq.compute();
+    float vd = results.id_command * calibration.motor_resistance;
+    float vq = results.iq_command * calibration.motor_resistance;
 
     float vd_norm = vd / results.average_vin;
     float vq_norm = vq / results.average_vin;
@@ -304,18 +343,17 @@ void runCurrentControl() {
       vbeta_norm = -vbeta_norm;
     }
 
-    float duty0, duty1, duty2;
-    modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
+    modulator.computeDutyCycles(valpha_norm, vbeta_norm, 
+                                results.duty_a, results.duty_b, results.duty_c);
 
-    setScaledDuty(0, duty0);
-    setScaledDuty(1, duty1);
-    setScaledDuty(2, duty2);
+    gate_driver.setPWMDutyCycle(0, results.duty_a*0.9);
+    gate_driver.setPWMDutyCycle(1, results.duty_b*0.9);
+    gate_driver.setPWMDutyCycle(2, results.duty_c*0.9);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;
-    results.foc_d_voltage = vd_norm;
-    results.foc_q_voltage = vq_norm;
-
+    results.foc_d_voltage = vd;
+    results.foc_q_voltage = vq;
   }
 }
 
@@ -326,11 +364,7 @@ void resetControlTimeout() {
 void brakeMotor() {
   parameters.foc_d_current_sp = 0.0f;
   parameters.foc_q_current_sp = 0.0f;
-  calibration.motor_torque_const = 0.0f; // Damps the motor to prevent a voltage spike
-  parameters.control_mode = control_mode_raw_phase_pwm;
-  parameters.phase0 = 0.0f;
-  parameters.phase1 = 0.0f;
-  parameters.phase2 = 0.0f;
+  parameters.control_mode = control_mode_foc_current;
 }
 
 } // namespace motor_driver

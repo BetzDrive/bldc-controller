@@ -107,6 +107,15 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x1040: // Velocity Filter Parameter
           handleVarAccess(calibration.velocity_filter_param, buf, index, buf_size, access_type, errors);
           break;
+        case 0x1050: // Current Phase A Offset 
+          handleVarAccess(calibration.ia_offset, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x1051: // Current Phase B Offset 
+          handleVarAccess(calibration.ib_offset, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x1052: // Current Phase C Offset 
+          handleVarAccess(calibration.ic_offset, buf, index, buf_size, access_type, errors);
+          break;
         case 0x1100: // Encoder Angle Correction Scale (rad)
           handleVarAccess(calibration.enc_ang_corr_scale, buf, index, buf_size, access_type, errors);
           break;
@@ -188,7 +197,12 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x3010: // Rotor Position (raw) 
           handleVarAccess(results.raw_enc_value, buf, index, buf_size, access_type, errors);
           break;
+        case 0x3011: // iq command (A) 
+          handleVarAccess(results.iq_command, buf, index, buf_size, access_type, errors);
+          break;
        
+ 
+ 
         default:
           errors |= COMM_ERRORS_INVALID_ARGS;
           return 0;

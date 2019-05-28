@@ -13,6 +13,13 @@ struct Results {
   float foc_d_voltage = 0;                  // Measured FOC direct voltage (volts)
   float foc_q_voltage = 0;                  // Measured FOC quadrature voltage (volts)
 
+  float id_command = 0;                     // id output from PID loop to motor
+  float iq_command = 0;                     // iq output from PID loop to motor
+
+  float duty_a = 0;                         // Calculated duty cycle for phase A
+  float duty_b = 0;                         // Calculated duty cycle for phase B
+  float duty_c = 0;                         // Calculated duty cycle for phase C
+
   uint8_t encoder_mode = encoder_mode_none; // Encoder mode
   uint16_t raw_enc_value = 0;               // Raw encoder value, wraps around
   float enc_pos = 0;                        // Corrected encoder position, wraps around (radians)
@@ -29,6 +36,10 @@ struct Results {
   float average_ia = 0;                     // Average current into phase A (amperes)
   float average_ib = 0;                     // Average current into phase B (amperes)
   float average_ic = 0;                     // Average current into phase C (amperes)
+
+  float corrected_ia = 0;                   // Value for current after correction math
+  float corrected_ib = 0;                   // Value for current after correction math
+  float corrected_ic = 0;                   // Value for current after correction math
 
   int32_t xl_x = 0;                         // X-acceleration in milli-g's
   int32_t xl_y = 0;                         // Y-acceleration in milli-g's
@@ -57,9 +68,9 @@ struct Calibration {
   uint8_t erevs_per_mrev = 1;             // Electrical revolutions per mechanical revolution
   uint8_t flip_phases = false;            // Phases A, B, C are arranged in clockwise instead of ccw order
   float foc_kp_d = 1.0f;                  // Proportional gain for FOC/d PI loop
-  float foc_ki_d = 0.0f;               // Integral gain for FOC/d PI loop
+  float foc_ki_d = 0.0f;                  // Integral gain for FOC/d PI loop
   float foc_kp_q = 1.0f;                  // Proportional gain for FOC/q PI loop
-  float foc_ki_q = 0.0f;               // Integral gain for FOC/q PI loop
+  float foc_ki_q = 0.0f;                  // Integral gain for FOC/q PI loop
   float velocity_kp = 1.0f;               // Proportional gain for velocity PI loop
   float velocity_ki = 0.01f;              // Integral gain for velocity PI loop
   float position_kp = 5.0f;               // Proportional gain for position PI loop
@@ -75,6 +86,9 @@ struct Calibration {
   uint16_t control_timeout = 0;           // Control timeout (ms)
   float velocity_filter_param = 1e-2f;    // Parameter for velocity filter
   float position_offset = 0.0f;           // Position offset
+  float ia_offset = 0.0f;                 // Current Offset for Phase A
+  float ib_offset = 0.0f;                 // Current Offset for Phase B
+  float ic_offset = 0.0f;                 // Current Offset for Phase C
   float enc_ang_corr_scale = 0.0f;        // Encoder angle correction scale (rad)
   float enc_ang_corr_offset = 0.0f;       // Encoder angle correction offset (rad)
   int8_t enc_ang_corr_table_values[enc_ang_corr_table_size]; // Encoder angle correction table values
@@ -96,6 +110,9 @@ struct Parameters {
   float torque_sp = 0.0f;                             // Torque control setpoint (N*m)
   float velocity_sp = 0.0f;                           // Velocity control setpoint (rad/s)
   float position_sp = 0.0f;                           // Position control setpoint (rad)
+
+  bool gate_active = false;
+  bool gate_fault = false;
 
   Parameters() {}
 };
