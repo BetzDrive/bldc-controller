@@ -9,8 +9,8 @@ void DRV8312::start() {
   pwmEnableChannel(pwm_driver_, ch_b_, 0);
   pwmEnableChannel(pwm_driver_, ch_c_, 0);
 
-  // Enable control of gates.
-  enableGates();
+  // Disable control of gates.
+  disableGates();
 
   // Enable gate driver
   palSetPad(en_gate_.port, en_gate_.pin);
