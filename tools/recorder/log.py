@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+
+import sys
+sys.path.append("..")
+
 from comms import *
 import serial
-import sys
 import time
 import pickle
 import pprint
@@ -49,7 +52,7 @@ if __name__ == '__main__':
     print("success: %u" % success)
    
     # The number of values returned by the recorder (all floats)
-    num_recorder_elements = 9
+    num_recorder_elements = 11
     
     if success:
         time.sleep(0.2)

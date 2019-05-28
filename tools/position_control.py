@@ -1,8 +1,8 @@
 #!/usr/bin/env python
+import sys
 import numpy as np
 from comms import *
 import serial
-import sys
 import time
 
 port = sys.argv[1]

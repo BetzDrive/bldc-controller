@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+import sys
 from comms import *
 import serial
-import sys
 import time
 from math import sin, cos, pi
+import argparse
 
 if len(sys.argv) != 4:
         print("give me a serial port, address, and duty cycle")
@@ -67,29 +68,6 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     client.writeRegisters([address], [0x1005], [1], [struct.pack('<f', 1)])  # QI Kp
     client.writeRegisters([address], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
 
-    # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
-    # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
-    # if address in has_21_erevs_per_mrev:
-    #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.55))
-    # else:
-    #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.45))
-    # client.writeRegisters(address, 0x2007, 1, struct.pack('<f', duty_cycle))
-    # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 3) ) # Velocity control
-
-    # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 2.0))
-    # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
-    # client.writeRegisters(address, 0x1009, 1, struct.pack('<f', 25.0))
-    # client.writeRegisters(address, 0x100a, 1, struct.pack('<f', 0.01))
-    # if address in has_21_erevs_per_mrev:
-    #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.25))
-    # else:
-    #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.00))
-    # client.writeRegisters(address, 0x1012, 1, struct.pack('<f', 20.0))
-    # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
-    # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 4) ) # Position control
-
-    # print struct.unpack('<f', client.readRegisters(address, 0x1003, 1))
-
 start_time = time.time()
 count = 0
 while True:
@@ -107,36 +85,3 @@ while True:
             sys.stdout.flush()
     time.sleep(0.01)
 
-# t = 0
-# ts = 0.01
-# amplitude = 0.5
-# frequency = 0.5
-# offset, = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))
-# while True:
-#     position_sp = offset + amplitude * (1 - cos(2 * pi * frequency * t))
-#     velocity_sp = amplitude * sin(2 * pi * frequency * t) * 2 * pi * frequency
-#     # client.writeRegisters(address, 0x1012, 1, struct.pack('<f', abs(velocity_sp)))
-#     # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', position_sp))
-#     # position, = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))
-#     client.writeRegisters(address, 0x2007, 1, struct.pack('<f', velocity_sp))
-#     time.sleep(ts)
-#     t += ts
-
-# while True:
-#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
-#     time.sleep(2)
-#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', -duty_cycle))
-#     time.sleep(2)
-
-# while True:
-#     try:
-#         # adc_averages = struct.unpack('<7f', client.readRegisters(address, 0x0200, 7))
-#         # print "ia:{: > 7.3f} ib:{: > 7.3f} ic:{: > 7.3f} va:{: > 7.3f} vb:{: > 7.3f} vc:{: > 7.3f} vin:{: > 7.3f}".format(*adc_averages)
-#         data = struct.unpack('<2f', client.readRegisters(address, 0x010c, 2))
-#         print "id:{: > 7.3f} iq:{: > 7.3f}".format(*data)
-#         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
-#     except IOError as e:
-#         print e
-#     # angle = struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
-#     # print angle
-#     time.sleep(0.5)

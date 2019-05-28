@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import argparse
 from comms import *
 import serial

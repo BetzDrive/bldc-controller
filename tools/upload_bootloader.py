@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import argparse
 from comms import *
 import serial
@@ -25,6 +24,12 @@ if __name__ == '__main__':
         board_ids = [int(args.board_id)]
     except ValueError:
         board_ids = [int(board_id_str) for board_id_str in args.board_id.split(',')]
+    try:
+        print("Received Board ID:", client.enumerateBoards(address))
+        break
+    except IOError as e:
+        print("Comms Error:", e)
+        time.sleep(0.2)
 
     for board_id in board_ids:
         client.enterBootloader([board_id])

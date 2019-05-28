@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-
 from __future__ import division
+
 import argparse
 from comms import *
 import serial
 import time
-import sys
 import numpy as np
 from scipy import signal as sps, stats, interpolate
 import matplotlib.pyplot as plt
