@@ -55,6 +55,8 @@ The CRC is computed over the entire packet excluding the CRC itself.
 | `0x87` | `COMM_FC_FLASH_READ` |  |  |  |
 | `0x88` | `COMM_FC_FLASH_VERIFY` |  |  |  |
 | `0x89` | `COMM_FC_FLASH_VERIFY_ERASED` |  |  |  |
+| `0xFE` | `COMM_FC_CONFIRM_ID` | Confirm ID following enumeration |  |  |
+| `0xFF` | `COMM_FC_ENUMERATE` | Set next ID board in Disco Bus |  |  |
 
 
 -------

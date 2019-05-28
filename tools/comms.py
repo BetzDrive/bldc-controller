@@ -32,13 +32,15 @@ COMM_FC_FLASH_PROGRAM = 0x86
 COMM_FC_FLASH_READ = 0x87
 COMM_FC_FLASH_VERIFY = 0x88
 COMM_FC_FLASH_VERIFY_ERASED = 0x89
+COMM_FC_CONFIRM_ID = 0xFE
 COMM_FC_ENUMERATE = 0xFF
 
 COMM_FLAG_SEND = 0x00 
 
 COMM_BOOTLOADER_OFFSET = 0x08000000
-COMM_NVPARAMS_OFFSET = 0x08004000
-COMM_FIRMWARE_OFFSET = 0x08008000
+COMM_BOARD_ID_OFFSET = 0x08004000
+COMM_NVPARAMS_OFFSET = 0x08008000
+COMM_FIRMWARE_OFFSET = 0x08010000
 COMM_DEFAULT_BAUD_RATE = 1000000
 
 COMM_SINGLE_PROGRAM_LENGTH = 128
@@ -136,8 +138,7 @@ class BLDCControllerClient:
         return self.writeRegisters(server_ids, [0x2000 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<B', 0) for sid in server_ids])
 
     def setCommand(self, server_ids, value):
-        ret = self.writeRegisters(server_ids, [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
-        return ret
+        return self.writeRegisters(server_ids, [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
     def setCommandAndGetState(self, server_ids, value):
         ret = self.readWriteRegisters(server_ids, [0x3000 for sid in server_ids], [9 for sid in server_ids], [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
@@ -145,13 +146,20 @@ class BLDCControllerClient:
         return states
 
     # Bootloader only
-    def enumerateBoards(self, server_ids):
-        responses = []
-        for sid in server_ids:
-            response = self.doTransaction([0], [COMM_FC_ENUMERATE], [struct.pack('<B', sid)])
-            responses.append(struct.unpack('<B',response[0][1])[0])
-        data = responses
+    def enumerateBoards(self, server_id):
+        response = []
+        response = self.doTransaction([0], [COMM_FC_ENUMERATE], [struct.pack('<B', server_id)])
+        success = response[0][0]
+        if success:
+            data = struct.unpack('<B',response[0][1])[0]
+        else:
+            data = 0
         return data
+
+    def confirmBoards(self, server_id):
+        response = self.doTransaction([server_id], [COMM_FC_CONFIRM_ID], [])
+        success = response[0][0]
+        return success
 
     def leaveBootloader(self, server_ids):
         self.jumpToAddress(server_ids, [COMM_FIRMWARE_OFFSET for sid in server_ids])
@@ -233,9 +241,9 @@ class BLDCControllerClient:
         return data
 
     def readCalibration(self, server_id):
-        l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
-        print l
-        b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET+3, l)
+        l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET, 2))[0]
+        print "Calibration of length: " + str(l)
+        b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET+2, l)
         return json.loads(b)
 
     def verifyFlash(self, server_id, dest_addr, data):

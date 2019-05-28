@@ -583,7 +583,6 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       state_ = State::RESPONDING;
 
       break;
-
     case COMM_FC_ENUMERATE:
       /* Enumerate board ID */
       target_id = (uint8_t)datagram[index++];
@@ -591,6 +590,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       if (server_->getID() == target_id) {
         u8_value_ = server_->getID();
         state_ = State::RESPONDING_U8;
+      }
+      else {
+        state_ = State::IDLE;
       }
 
       /* Do nothing if not bootloader */
@@ -609,13 +611,16 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
         }
         if (success) {
           server_->setID(target_id);
-          server_->setDisco();
           u8_value_ = server_->getID();
           state_ = State::RESPONDING_U8;
         }
       }
 #endif
+      break;
 
+    case COMM_FC_CONFIRM_ID:
+      server_->setDisco();
+      state_ = State::RESPONDING;
       break;
 
     default:
@@ -623,7 +628,6 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
 
       errors |= COMM_ERRORS_INVALID_FC;
       state_ = State::RESPONDING;
-
       break;
   }
 }

@@ -122,11 +122,14 @@ int main(void) {
   // Initialize state
   initState();
 
+  // Initialize peripherals
+  initPeripherals();
+
   // Initialize control
   initControl();
 
-  // Initialize peripherals
-  initPeripherals();
+  // Start peripherals
+  startPeripherals();
 
   // Set comms activity callback
   comms_protocol_fsm.setActivityCallback(&comms_activity_callback);

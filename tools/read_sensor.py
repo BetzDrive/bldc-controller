@@ -36,6 +36,10 @@ if __name__ == '__main__':
 
     initialized = initBoards(client, board_ids)
 
+    for bid in board_ids:
+        client.leaveBootloader([bid])
+        time.sleep(0.1)
+
     sen = args.sensor
     address = ReadOnlyRegs[sen]
     decode = '<f' 
@@ -62,14 +66,16 @@ if __name__ == '__main__':
         num_regs = 3
         message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
 
-
+    num_boards = len(board_ids)
     while initialized:
         try:
             address = ReadOnlyRegs[args.sensor]
-            response = client.readRegisters(board_ids, [address], [num_regs])
-            val = struct.unpack(decode, response[0])
-            print(message.format(args.sensor , val))
-        except IOError:
+            responses = client.readRegisters(board_ids, [address]*num_boards, [num_regs]*num_boards)
+            for i in range(len(responses)):
+                val = struct.unpack(decode, responses[i])
+                bid = board_ids[i]
+                print("Board:", bid, message.format(args.sensor , val))
+        except (IOError, ProtocolError, struct.error):
             print("ioerror")
             pass
         time.sleep(0.1)

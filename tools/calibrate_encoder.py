@@ -2,12 +2,14 @@
 from __future__ import division
 
 import argparse
-from comms import *
 import serial
 import time
 import numpy as np
 from scipy import signal as sps, stats, interpolate
 import matplotlib.pyplot as plt
+
+from comms import *
+from boards import *
 
 # 14-bit encoder
 encoder_ticks_per_rev = 2 ** 14
@@ -21,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('duty_cycle', type=float, help='Duty cycle')
     parser.add_argument('--max_steps', type=int, help='Maximum number of steps')
     parser.add_argument('--delay', type=float, help='Delay between steps')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=126, delay=0.1)
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, duty_cycle=0.6, max_steps=126, delay=0.05)
     args = parser.parse_args()
 
     #
@@ -32,17 +34,11 @@ if __name__ == '__main__':
     time.sleep(0.1)
 
     client = BLDCControllerClient(ser)
-
-    client.enterBootloader([args.board_id])
-    time.sleep(0.2)
-    try:
-        print (client.enumerateBoards([args.board_id]))
-    except:
-        print("Failed to receive enumerate response")
-    time.sleep(0.2)
+        
+    initialized = initBoards(client, args.board_id)
 
     client.leaveBootloader([args.board_id])
-    time.sleep(0.2) # Wait for the controller to reset
+
     ser.reset_input_buffer()
 
     def set_phase_state(phase_state):
@@ -53,6 +49,32 @@ if __name__ == '__main__':
     client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', 0, 0, 0)])
     client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 1)])
 
+    time.sleep(0.1)
+
+    # First, read floating currents to calculate offset
+    # The number of values returned by the recorder (all floats)
+    num_recorder_elements = 11
+    
+    reset = struct.unpack('<B', client.readRegisters([args.board_id], [0x300b], [1])[0])[0]
+    print("reset: %u" % reset)
+    success = struct.unpack('<B', client.readRegisters([args.board_id], [0x3009], [1])[0])[0]
+    print("started: %u" % success)
+
+    l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
+    while l == 0:
+        l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
+        time.sleep(0.1)
+    arr = []
+    for i in range(0, l, num_recorder_elements):
+        # Grab the recorder data
+        a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
+        arr += [a]
+
+    num_avg = 100
+    ia_offset = sum(arr[0][:num_avg])/num_avg
+    ib_offset = sum(arr[1][:num_avg])/num_avg
+    ic_offset = sum(arr[2][:num_avg])/num_avg
+ 
     # Start one step before phase A to avoid boundary issues
     set_phase_state(phase_state_list[-1])
     time.sleep(args.delay)
@@ -87,6 +109,8 @@ if __name__ == '__main__':
         backward_raw_angles.append(raw_angle)
 
     set_phase_state((0, 0, 0))
+
+    ser.close()
 
     #
     # Data analysis
@@ -137,28 +161,30 @@ if __name__ == '__main__':
     print('erevs_per_mrev: {:5d}'.format(abs(erevs_per_mrev)))
     print('   flip_phases: {:5d}'.format(int(erevs_per_mrev > 0)))
 
-    # Ask to upload
-    upload = str(raw_input("Would you like to upload? (y/n)\n"))
-    if (upload.lower() != 'n'):
-        from upload_calibration import flash_board
-        size = str(raw_input("What size is the motor? (S/L)\n"))
-        upload_data = {
-                "inv":int(erevs_per_mrev>0),
-                "epm":erevs_per_mrev,
-                "angle":erev_start,
-                "torque": (1.45, 0.6)[size.lower() == "s"],
-                "zero":0.0
-                }
-        flash_board(client, int(args.board_id), json.dumps(upload_data))
+    size = str(raw_input("What size is the motor? (S/L)\n"))
+    upload_data = {
+        "inv":int(erevs_per_mrev>0),
+        "epm":abs(erevs_per_mrev),
+        "angle":int(erev_start),
+        "torque": (1.45, 0.6)[size.lower() == "s"],
+        "zero":0.0,
+        "ia_off":ia_offset,
+        "ib_off":ib_offset,
+        "ic_off":ic_offset
+    }
 
-    ser.close()
+    print("Calibration")
+    print(upload_data)
 
-    mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
-    plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
-    plt.title('Encoder angle residuals')
-    plt.xlabel('Mechanical angle (rad)')
-    plt.ylabel('Encoder angle residual (counts)')
-    plt.show()
+    with open('calibrations.json', 'w') as outfile:  
+        json.dump(upload_data, outfile)
+
+    #mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
+    #plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
+    #plt.title('Encoder angle residuals')
+    #plt.xlabel('Mechanical angle (rad)')
+    #plt.ylabel('Encoder angle residual (counts)')
+    #plt.show()
 
 
     # # Apply smoothing
