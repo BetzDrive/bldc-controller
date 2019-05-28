@@ -39,6 +39,7 @@ if __name__ == '__main__':
         data = []
         for board_id in board_ids:
             try:
+                client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
                 # Read the iq calulated
                 read = struct.unpack('<f', client.readRegisters([board_id], [0x3003], [1])[0])
                 data.append(read)
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     flatten = lambda l: [item for sublist in l for item in sublist]
 
     labels = []
-    labels.extend([['board ' + str(bid) + ' iq', 'board ' + str(bid) + ' iq command'] for bid in board_ids])
+    labels.extend([[str(bid) + '\'s iq Reading', str(bid) + '\'s iq PID output'] for bid in board_ids])
     labels = flatten(labels)
     graph = livegraph(updateCurrent, labels, sample_interval=1, window_size = 2000)
 
