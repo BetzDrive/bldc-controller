@@ -24,11 +24,11 @@ if __name__ == "__main__" :
     axarr[0].legend(loc='best')
     #axarr[0].set_ylim(-2, 6)
 
-    #axarr[1].plot(range(len(data)), [e[3] for e in data], color='r', label='va')
-    #axarr[1].plot(range(len(data)), [e[4] for e in data], color='g', label='vb')
-    #axarr[1].plot(range(len(data)), [e[5] for e in data], color='b', label='vc')
-    axarr[1].plot(range(len(data)), [e[7] for e in data], color='b', label='angle')
-    axarr[1].plot(range(len(data)), [e[8] for e in data], color='r', label='velocity')
+    axarr[1].plot(range(len(data)), [e[3] for e in data], color='r', label='va')
+    axarr[1].plot(range(len(data)), [e[4] for e in data], color='g', label='vb')
+    axarr[1].plot(range(len(data)), [e[5] for e in data], color='b', label='vc')
+    #axarr[1].plot(range(len(data)), [e[7] for e in data], color='b', label='angle')
+    #axarr[1].plot(range(len(data)), [e[8] for e in data], color='r', label='velocity')
     axarr[1].legend(loc='best')
     #axarr[1].set_ylim(0, 48)
 

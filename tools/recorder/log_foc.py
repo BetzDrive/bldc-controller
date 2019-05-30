@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     client.leaveBootloader([args.board_id])
     time.sleep(0.2) # Wait for the controller to reset
-    ser.reset_input_buffer()
+    client.resetInputBuffer()
 
     ##### CALIBRATION CODE ######
     
@@ -64,10 +64,10 @@ if __name__ == '__main__':
     # print("Motor %d ready: supply voltage=%fV", args.board_id, client.getVoltage(args.board_id))
     
     # Setting gains for motor
-    client.writeRegisters([args.board_id], [0x1003], [1], [struct.pack('<f', 1)])  # DI Kp
+    client.writeRegisters([args.board_id], [0x1003], [1], [struct.pack('<f', 0.1)])  # DI Kp
     client.writeRegisters([args.board_id], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
-    client.writeRegisters([args.board_id], [0x1005], [1], [struct.pack('<f', 100)])  # QI Kp
-    client.writeRegisters([args.board_id], [0x1006], [1], [struct.pack('<f', 1e-3)]) # QI Ki
+    client.writeRegisters([args.board_id], [0x1005], [1], [struct.pack('<f', 0.1)])  # QI Kp
+    client.writeRegisters([args.board_id], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
 
     # Velocity IIR Alpha Term
     client.writeRegisters([args.board_id], [0x1040], [1], [struct.pack('<f', 0.01)])
