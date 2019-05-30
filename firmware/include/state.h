@@ -13,8 +13,8 @@ struct Results {
   float foc_d_voltage = 0;                  // Measured FOC direct voltage (volts)
   float foc_q_voltage = 0;                  // Measured FOC quadrature voltage (volts)
 
-  float id_command = 0;                     // id output from PID loop to motor
-  float iq_command = 0;                     // iq output from PID loop to motor
+  float id_output = 0;                     // id output from PID loop to motor
+  float iq_output = 0;                     // iq output from PID loop to motor
 
   float duty_a = 0;                         // Calculated duty cycle for phase A
   float duty_b = 0;                         // Calculated duty cycle for phase B

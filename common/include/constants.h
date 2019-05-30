@@ -96,8 +96,8 @@ constexpr size_t recorder_channel_vc = 5;           // Phase C voltage channel i
 constexpr size_t recorder_channel_vin = 6;          // Supply voltage channel index
 constexpr size_t recorder_channel_rotor_pos = 7;    // Rotor position channel index
 constexpr size_t recorder_channel_rotor_vel = 8;    // Rotor velocity channel index
-constexpr size_t recorder_channel_iq = 9;    // Rotor velocity channel index
-constexpr size_t recorder_channel_vq = 10;    // Rotor velocity channel index
+constexpr size_t recorder_channel_ex1 = 9;          // Extra 1 channel index
+constexpr size_t recorder_channel_ex2 = 10;         // Extra 2 channel index
 
 constexpr size_t recorder_max_samples = 2000;
 

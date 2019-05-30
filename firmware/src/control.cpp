@@ -198,7 +198,7 @@ void estimateState() {
   results.corrected_ib = results.average_ib - calibration.ib_offset;
   results.corrected_ic = results.average_ic - calibration.ic_offset;
 
-  //if (results.duty_a > results.duty_b && results.duty_a > results.duty_b) {
+  //if (results.duty_a > results.duty_b && results.duty_a > results.duty_c) {
   //  results.corrected_ia = -(results.corrected_ib + results.corrected_ic);
   //} else if (results.duty_b > results.duty_c) {
   //  results.corrected_ib = -(results.corrected_ia + results.corrected_ic);
@@ -215,14 +215,17 @@ void estimateState() {
     recorder_new_data[recorder_channel_ia] = results.corrected_ia;
     recorder_new_data[recorder_channel_ib] = results.corrected_ib;
     recorder_new_data[recorder_channel_ic] = results.corrected_ic;
-    recorder_new_data[recorder_channel_va] = results.average_va;
-    recorder_new_data[recorder_channel_vb] = results.average_vb;
-    recorder_new_data[recorder_channel_vc] = results.average_vc;
+    //recorder_new_data[recorder_channel_va] = results.average_va;
+    //recorder_new_data[recorder_channel_vb] = results.average_vb;
+    //recorder_new_data[recorder_channel_vc] = results.average_vc;
+    recorder_new_data[recorder_channel_va] = results.duty_a;
+    recorder_new_data[recorder_channel_vb] = results.duty_b;   
+    recorder_new_data[recorder_channel_vc] = results.duty_c;
     recorder_new_data[recorder_channel_vin] = results.average_vin;
     recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
     recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
-    recorder_new_data[recorder_channel_iq] = results.foc_q_current;
-    recorder_new_data[recorder_channel_vq] = results.foc_d_current;
+    recorder_new_data[recorder_channel_ex1] = results.foc_q_current;
+    recorder_new_data[recorder_channel_ex2] = results.duty_a;
 
     recorder.recordSample(recorder_new_data);
   }
@@ -271,9 +274,9 @@ void runCurrentControl() {
      * Directly set PWM duty cycles
      */
 
-    gate_driver.setPWMDutyCycle(0, parameters.phase0);
-    gate_driver.setPWMDutyCycle(1, parameters.phase1);
-    gate_driver.setPWMDutyCycle(2, parameters.phase2);
+    gate_driver.setPWMDutyCycle(0, parameters.phase0 * max_duty_cycle);
+    gate_driver.setPWMDutyCycle(1, parameters.phase1 * max_duty_cycle);
+    gate_driver.setPWMDutyCycle(2, parameters.phase2 * max_duty_cycle);
   } else {
     /*
      * Run field-oriented control
@@ -302,11 +305,8 @@ void runCurrentControl() {
     pid_id.setTunings(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
     pid_iq.setTunings(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
 
-    //pid_id.setOutputLimits(-results.average_vin, results.average_vin);
-    //pid_iq.setOutputLimits(-results.average_vin, results.average_vin);
     pid_id.setOutputLimits(-calibration.current_limit, calibration.current_limit);
     pid_iq.setOutputLimits(-calibration.current_limit, calibration.current_limit);
-
 
     float id_sp, iq_sp;
     if (parameters.control_mode == control_mode_foc_current) {
@@ -321,17 +321,22 @@ void runCurrentControl() {
 
     pid_id.setSetPoint(id_sp);
     pid_id.setProcessValue(id);
-    //pid_id.setBias(id_sp);
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    //pid_iq.setBias(iq_sp);
     
-    results.id_command = pid_id.compute();
-    results.iq_command = pid_iq.compute();
+    results.id_output = pid_id.compute();
+    results.iq_output = pid_iq.compute();
+    //results.id_output = 0;
+    //results.iq_output = iq_sp;
 
-    float vd = results.id_command * calibration.motor_resistance;
-    float vq = results.iq_command * calibration.motor_resistance;
+    float vd = results.id_output * calibration.motor_resistance;
+    float vq = results.iq_output * calibration.motor_resistance;
+
+    //vd = clamp(vd, -results.average_vin * max_duty_cycle, results.average_vin * max_duty_cycle);
+    //vq = clamp(vq, -results.average_vin * max_duty_cycle, results.average_vin * max_duty_cycle);
+    vd = clamp(vd, -results.average_vin, results.average_vin);
+    vq = clamp(vq, -results.average_vin, results.average_vin);
 
     float vd_norm = vd / results.average_vin;
     float vq_norm = vq / results.average_vin;
@@ -346,9 +351,13 @@ void runCurrentControl() {
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, 
                                 results.duty_a, results.duty_b, results.duty_c);
 
-    gate_driver.setPWMDutyCycle(0, results.duty_a * max_duty_cycle);
-    gate_driver.setPWMDutyCycle(1, results.duty_b * max_duty_cycle);
-    gate_driver.setPWMDutyCycle(2, results.duty_c * max_duty_cycle);
+    results.duty_a = results.duty_a * max_duty_cycle;
+    results.duty_b = results.duty_b * max_duty_cycle;
+    results.duty_c = results.duty_c * max_duty_cycle;
+
+    gate_driver.setPWMDutyCycle(0, results.duty_a);
+    gate_driver.setPWMDutyCycle(1, results.duty_b);
+    gate_driver.setPWMDutyCycle(2, results.duty_c);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;
