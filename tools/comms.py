@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import struct
 import json
 import time
@@ -9,7 +11,7 @@ class ProtocolError(Exception):
 
         self.errors = errors
 
-DEBUG = False 
+DEBUG = True 
 
 COMM_VERSION = 0xFE
 
@@ -46,8 +48,8 @@ COMM_FIRMWARE_OFFSET = 0x08010000
 COMM_DEFAULT_BAUD_RATE = 1000000
 
 COMM_SINGLE_PROGRAM_LENGTH = 128
-COMM_SINGLE_READ_LENGTH = 128
-COMM_SINGLE_VERIFY_LENGTH = 128
+COMM_SINGLE_READ_LENGTH    = 128
+COMM_SINGLE_VERIFY_LENGTH  = 128
 
 class FlashSectorMap:
     def __init__(self, sector_count, sector_starts, sector_sizes):
@@ -247,7 +249,7 @@ class BLDCControllerClient:
 
     def readCalibration(self, server_id):
         l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET, 2))[0]
-        print "Calibration of length: " + str(l)
+        print("Calibration of length:", l)
         b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET+2, l)
         return json.loads(b)
 
@@ -287,28 +289,28 @@ class BLDCControllerClient:
             sector_map = self.getFlashSectorMap(server_id)
 
         if print_progress:
-            print "Erasing flash"
+            print("Erasing flash")
 
         success = self.eraseFlash(server_id, dest_addr, len(data), sector_map)
         if not success:
             return False
 
         if print_progress:
-            print "Verifying flash was erased"
+            print("Verifying flash was erased")
 
         success = self.verifyFlashErased(server_id, dest_addr, len(data))
         if not success:
             return False
 
         if print_progress:
-            print "Programming flash"
+            print("Programming flash")
 
         success = self.programFlash(server_id, dest_addr, data)
         if not success:
             return False
 
         if print_progress:
-            print "Verifying flash was programmed"
+            print("Verifying flash was programmed")
 
         success = self.verifyFlash(server_id, dest_addr, data)
         if not success:
@@ -357,9 +359,8 @@ class BLDCControllerClient:
         datagram = prefixed_message + struct.pack('<H', crc) 
 
         if DEBUG:
-            print ("Transmitting:")
-            print (":".join("{:02x}".format(ord(c)) for c in datagram))
-
+            print("Transmitting packet of length:", len(datagram))
+            print("Packet:", ":".join("{:02x}".format(ord(c)) for c in datagram))
         self._ser.write(datagram)
 
     def readResponse(self, server_id, func_code):
@@ -386,15 +387,16 @@ class BLDCControllerClient:
         if length == None or len(length) == 0:
             return False, None
 
-        if DEBUG:
-            print("Length is: " + str(length))
-
         message_len, = struct.unpack('H', length)
+
+        if DEBUG:
+            print("Length is: ", message_len)
+
         message = self._ser.read(message_len)
         
         if DEBUG:
-            print ("Received Message:")
-            print (":".join("{:02x}".format(ord(c)) for c in message))
+            print("Received Message:")
+            print(":".join("{:02x}".format(ord(c)) for c in message))
 
         if len(message) < message_len:
             # self._ser.flushInput()

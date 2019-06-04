@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     client = BLDCControllerClient(ser)
         
-    initialized = initBoards(client, args.board_id)
+    #initialized = initBoards(client, args.board_id)
 
     client.leaveBootloader([args.board_id])
 
