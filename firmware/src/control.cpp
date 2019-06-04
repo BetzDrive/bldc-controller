@@ -10,6 +10,8 @@
 #include "PID.h"
 #include "constants.h"
 
+#include <cmath>
+
 namespace motor_driver {
 
 static Thread *control_thread_ptr = nullptr;
@@ -225,7 +227,7 @@ void estimateState() {
     recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
     recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
     recorder_new_data[recorder_channel_ex1] = results.foc_q_current;
-    recorder_new_data[recorder_channel_ex2] = results.duty_a;
+    recorder_new_data[recorder_channel_ex2] = results.foc_d_current;
 
     recorder.recordSample(recorder_new_data);
   }
@@ -305,7 +307,7 @@ void runCurrentControl() {
     pid_id.setTunings(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
     pid_iq.setTunings(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
 
-    pid_id.setOutputLimits(-calibration.current_limit, calibration.current_limit);
+    //pid_id.setOutputLimits(-calibration.current_limit, calibration.current_limit);
     pid_iq.setOutputLimits(-calibration.current_limit, calibration.current_limit);
 
     float id_sp, iq_sp;
@@ -319,27 +321,28 @@ void runCurrentControl() {
       iq_sp = parameters.torque_sp / calibration.motor_torque_const;
     }
 
-    pid_id.setSetPoint(id_sp);
-    pid_id.setProcessValue(id);
+    //pid_id.setSetPoint(id_sp);
+    //pid_id.setProcessValue(id);
 
-    pid_iq.setSetPoint(iq_sp);
-    pid_iq.setProcessValue(iq);
+    //pid_iq.setSetPoint(iq_sp);
+    //pid_iq.setProcessValue(iq);
     
-    results.id_output = pid_id.compute();
-    results.iq_output = pid_iq.compute();
-    //results.id_output = 0;
-    //results.iq_output = iq_sp;
+    //results.id_output = pid_id.compute();
+    //results.iq_output = pid_iq.compute();
+
+    //float sign = std::signbit(iq_sp)? -1.0 : 1.0;
+    //results.iq_output = sign * pid_iq.compute();
+
+    results.id_output = -(id_sp - id) * calibration.foc_kp_d;
+    results.iq_output = -(iq_sp - iq) * calibration.foc_kp_q;
 
     float vd = results.id_output * calibration.motor_resistance;
     float vq = results.iq_output * calibration.motor_resistance;
 
-    //vd = clamp(vd, -results.average_vin * max_duty_cycle, results.average_vin * max_duty_cycle);
-    //vq = clamp(vq, -results.average_vin * max_duty_cycle, results.average_vin * max_duty_cycle);
-    vd = clamp(vd, -results.average_vin, results.average_vin);
-    vq = clamp(vq, -results.average_vin, results.average_vin);
-
-    float vd_norm = vd / results.average_vin;
-    float vq_norm = vq / results.average_vin;
+    float mag = std::sqrt(std::pow(vd, 2) + std::pow(vq, 2));
+    float div = std::max(results.average_vin, mag);
+    float vd_norm = vd / div;
+    float vq_norm = vq / div;
 
     float valpha_norm, vbeta_norm;
     transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);

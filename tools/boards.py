@@ -22,26 +22,38 @@ def initBoards(client, board_ids):
     client.enterBootloader([0])
     time.sleep(0.2)
 
-    client._ser.reset_input_buffer()
+    client.resetInputBuffer()
 
     success = []
     for bid in board_ids:
         print("Enumerating Board ID:", bid)
-        try:
-            confirmed = False
-            # Retry until confirmed
-            while not confirmed:
+        found_id = False
+        # Retry until hear back from board 
+        while not found_id:
+            try:
                 response = client.enumerateBoards(bid)
-                #print("received id:", response)
-                time.sleep(0.2)
+                print("received id:", response)
                 if response == bid:
-                    confirmed = client.confirmBoards(bid)
-                    time.sleep(0.2)
-            success.append(bid)
-        except ProtocolError as e:
-            print("Comms Error:", e)
-            return False
+                    found_id = True
+                time.sleep(0.2)
+            except ProtocolError as e:
+                print("Comms Error:", e)
+                client.resetInputBuffer()
 
+        confirmed = False
+        # Retry until confirmed
+        while not confirmed:
+            try:
+                print("Requesting Confirm")
+                confirmed = client.confirmBoards(bid)
+                time.sleep(0.2)
+            except ProtocolError as e:
+                print("Comms Error:", e)
+                client.resetInputBuffer()
+
+        success.append(bid)
+
+    print("Enumerated boards:", success)
     return True
 
 def loadMotorCalibration(client, board_ids, duty_cycles, mode):
@@ -95,9 +107,9 @@ def loadMotorCalibration(client, board_ids, duty_cycles, mode):
                     client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 1)]) # PWM control
     
                 # Setting gains for motor
-                client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 0.5)])  # DI Kp
+                client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 5)])  # DI Kp
                 client.writeRegisters([board_id], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
-                client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 0.5)])  # QI Kp
+                client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 10)])  # QI Kp
                 client.writeRegisters([board_id], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
                 success = True
             except (ProtocolError, struct.error, TypeError):

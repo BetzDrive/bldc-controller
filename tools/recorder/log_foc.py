@@ -64,9 +64,9 @@ if __name__ == '__main__':
     # print("Motor %d ready: supply voltage=%fV", args.board_id, client.getVoltage(args.board_id))
     
     # Setting gains for motor
-    client.writeRegisters([args.board_id], [0x1003], [1], [struct.pack('<f', 0.1)])  # DI Kp
+    client.writeRegisters([args.board_id], [0x1003], [1], [struct.pack('<f', 5)])  # DI Kp
     client.writeRegisters([args.board_id], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
-    client.writeRegisters([args.board_id], [0x1005], [1], [struct.pack('<f', 0.1)])  # QI Kp
+    client.writeRegisters([args.board_id], [0x1005], [1], [struct.pack('<f', 10)])  # QI Kp
     client.writeRegisters([args.board_id], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
 
     # Velocity IIR Alpha Term

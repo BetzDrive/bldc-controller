@@ -9,6 +9,8 @@ class ProtocolError(Exception):
 
         self.errors = errors
 
+DEBUG = False 
+
 COMM_VERSION = 0xFE
 
 COMM_ERRORS_NONE = 0
@@ -354,7 +356,9 @@ class BLDCControllerClient:
         crc = self._computeCRC(message)
         datagram = prefixed_message + struct.pack('<H', crc) 
 
-        #print (":".join("{:02x}".format(ord(c)) for c in datagram))
+        if DEBUG:
+            print ("Transmitting:")
+            print (":".join("{:02x}".format(ord(c)) for c in datagram))
 
         self._ser.write(datagram)
 
@@ -365,10 +369,16 @@ class BLDCControllerClient:
             # self._ser.flushInput()
             return False, None
 
+        if DEBUG:
+            print("Found Packet")
+
         version = self._ser.read()
         if len(version) != 1 or version != "\xfe":
             # self._ser.flushInput()
             return False, None
+
+        if DEBUG:
+            print("Proper Protocol")
 
         flags = self._ser.read()
 
@@ -376,10 +386,15 @@ class BLDCControllerClient:
         if length == None or len(length) == 0:
             return False, None
 
+        if DEBUG:
+            print("Length is: " + str(length))
+
         message_len, = struct.unpack('H', length)
         message = self._ser.read(message_len)
         
-        #print (":".join("{:02x}".format(ord(c)) for c in message))
+        if DEBUG:
+            print ("Received Message:")
+            print (":".join("{:02x}".format(ord(c)) for c in message))
 
         if len(message) < message_len:
             # self._ser.flushInput()
@@ -394,7 +409,7 @@ class BLDCControllerClient:
 
         message_server_id, message_func_code, errors = struct.unpack('<BBH', message[2:6])
 
-        if message_server_id != server_id:
+        if message_server_id != server_id and not server_id == 0:
             raise ProtocolError('received unexpected server ID: saw ' \
                                 + str(message_server_id) + ', expected ' + str(server_id))
 

@@ -75,8 +75,10 @@ if __name__ == '__main__':
                 val = struct.unpack(decode, responses[i])
                 bid = board_ids[i]
                 print("Board:", bid, message.format(args.sensor , val))
-        except (IOError, ProtocolError, struct.error):
-            print("ioerror")
+        except ProtocolError as err:
+            print(err)
+            pass
+        except struct.error:
             pass
         time.sleep(0.1)
     
