@@ -33,7 +33,6 @@ def flash_board(client, board_id, data):
     l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET, 2))[0]
 
     print("Length of calibration is:", l)
-    return
 
     d = client.readFlash([board_id], COMM_NVPARAMS_OFFSET+2, l)
 

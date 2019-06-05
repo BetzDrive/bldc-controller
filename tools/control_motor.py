@@ -30,7 +30,7 @@ if __name__ == '__main__':
     client = BLDCControllerClient(ser)
     initialized = initBoards(client, board_ids)
     
-    ser.reset_input_buffer()
+    client.resetInputBuffer()
     
     for board_id, duty_cycle in zip(board_ids, duty_cycles):
         success = False
