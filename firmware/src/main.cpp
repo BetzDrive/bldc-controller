@@ -44,8 +44,8 @@ static msg_t blinkerThreadRun(void *arg) {
       g = g < 50 ? 0 : g;
     } 
     if (gate_driver.hasOCTW()) {
-      r = g > 200 ? 255 : r;
-      g = g > 200 ? 255 : g;
+      b = g > 200 ? 255 : b;
+      g = g > 200 ? 0 : g;
     }
 
     setStatusLEDColor(r,g,b);
