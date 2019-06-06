@@ -153,8 +153,12 @@ void estimateState() {
   results.rotor_pos = enc_pos + results.rotor_revs * 2 * pi - calibration.position_offset;
 
   float rotor_vel_update = enc_pos_diff * current_control_freq;
-  float alpha = calibration.velocity_filter_param;
-  results.rotor_vel = alpha * rotor_vel_update + (1.0f - alpha) * results.rotor_vel;
+  // High frequency estimate used for on-board commutation
+  float hf_alpha = calibration.hf_velocity_filter_param;
+  results.hf_rotor_vel = hf_alpha * rotor_vel_update + (1.0f - hf_alpha) * results.hf_rotor_vel;
+  // Low frequency estimate sent to host
+  float lf_alpha = calibration.lf_velocity_filter_param;
+  results.lf_rotor_vel = lf_alpha * rotor_vel_update + (1.0f - lf_alpha) * results.lf_rotor_vel;
 
   /*
    * Calculate average voltages and currents
@@ -225,7 +229,7 @@ void estimateState() {
     recorder_new_data[recorder_channel_vc] = results.duty_c;
     recorder_new_data[recorder_channel_vin] = results.average_vin;
     recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
-    recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
+    recorder_new_data[recorder_channel_rotor_vel] = results.hf_rotor_vel;
     recorder_new_data[recorder_channel_ex1] = results.foc_q_current;
     recorder_new_data[recorder_channel_ex2] = results.foc_d_current;
 
@@ -250,7 +254,7 @@ void runVelocityControl() {
     float velocity_max = 40.0f;
     pid_velocity.setLimits(-calibration.torque_limit, calibration.torque_limit);
     pid_velocity.setTarget(parameters.velocity_sp);
-    parameters.torque_sp = pid_velocity.compute(results.rotor_vel);
+    parameters.torque_sp = pid_velocity.compute(results.hf_rotor_vel);
   }
 }
 
@@ -313,7 +317,7 @@ void runCurrentControl() {
     results.iq_output = pid_iq.compute(iq);
 
     float vd = results.id_output * calibration.motor_resistance;
-    float vq = results.iq_output * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const;
+    float vq = results.iq_output * calibration.motor_resistance + results.hf_rotor_vel * calibration.motor_torque_const;
 
     float mag = std::sqrt(std::pow(vd, 2) + std::pow(vq, 2));
     float div = std::max(results.average_vin, mag);

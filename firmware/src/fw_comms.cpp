@@ -104,8 +104,11 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x1030: // Control Timeout (ms)
           handleVarAccess(calibration.control_timeout, buf, index, buf_size, access_type, errors);
           break;
-        case 0x1040: // Velocity Filter Parameter
-          handleVarAccess(calibration.velocity_filter_param, buf, index, buf_size, access_type, errors);
+        case 0x1040: // HF Velocity Filter Parameter
+          handleVarAccess(calibration.hf_velocity_filter_param, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x1041: // LF Velocity Filter Parameter
+          handleVarAccess(calibration.lf_velocity_filter_param, buf, index, buf_size, access_type, errors);
           break;
         case 0x1050: // Current Phase A Offset 
           handleVarAccess(calibration.ia_offset, buf, index, buf_size, access_type, errors);
@@ -155,7 +158,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           handleVarAccess(results.rotor_pos, buf, index, buf_size, access_type, errors);
           break;
         case 0x3001: // Rotor Velocity (rad/sec)
-          handleVarAccess(results.rotor_vel, buf, index, buf_size, access_type, errors);
+          handleVarAccess(results.lf_rotor_vel, buf, index, buf_size, access_type, errors);
           break;
         case 0x3002: // Direct Current Measurement (A)
           handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);

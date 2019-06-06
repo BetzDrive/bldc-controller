@@ -27,7 +27,8 @@ struct Results {
 
   int16_t rotor_revs = 0;                   // Total number of rotor revolutions
   float rotor_pos = 0;                      // Rotor position (radians)
-  float rotor_vel = 0;                      // Rotor velocity (radians/second)
+  float hf_rotor_vel = 0;                   // Rotor velocity High Frequency Estimate (radians/second)
+  float lf_rotor_vel = 0;                   // Rotor velocity Low Frequency Estimate (radians/second)
 
   float average_va = 0;                     // Average voltage on phase A (volts)
   float average_vb = 0;                     // Average voltage on phase B (volts)
@@ -64,33 +65,34 @@ struct RolledADC {
 };
 
 struct Calibration {
-  uint16_t erev_start = 0;                // Encoder reading at the start of an electrical revolution
-  uint8_t erevs_per_mrev = 1;             // Electrical revolutions per mechanical revolution
-  uint8_t flip_phases = false;            // Phases A, B, C are arranged in clockwise instead of ccw order
-  float foc_kp_d = 0.5f;                  // Proportional gain for FOC/d PI loop
-  float foc_ki_d = 0.1f;                  // Integral gain for FOC/d PI loop
-  float foc_kp_q = 1.0f;                  // Proportional gain for FOC/q PI loop
-  float foc_ki_q = 0.2f;                  // Integral gain for FOC/q PI loop
-  float velocity_kp = 1.0f;               // Proportional gain for velocity PI loop
-  float velocity_ki = 0.01f;              // Integral gain for velocity PI loop
-  float position_kp = 5.0f;               // Proportional gain for position PI loop
-  float position_ki = 0.01f;              // Integral gain for position PI loop
-  float current_limit = 2.0f;             // Current limit (A)
-  float torque_limit = 3.0f;              // Torque limit (N*m)
-  float velocity_limit = 10.0f;           // Velocity limit (rad/s)
-  float position_lower_limit = 0.0f;      // Position lower limit (rad)
-  float position_upper_limit = 0.0f;      // Position upper limit (rad)
-  float motor_resistance = 17.8f;         // Motor resistance (ohm)
-  float motor_inductance = 0.0f;          // Motor inductance (henries)
-  float motor_torque_const = 0.0f;        // Motor torque constant (newton-meters per ampere)
-  uint16_t control_timeout = 0;           // Control timeout (ms)
-  float velocity_filter_param = 1e-2f;    // Parameter for velocity filter
-  float position_offset = 0.0f;           // Position offset
-  float ia_offset = 0.0f;                 // Current Offset for Phase A
-  float ib_offset = 0.0f;                 // Current Offset for Phase B
-  float ic_offset = 0.0f;                 // Current Offset for Phase C
-  float enc_ang_corr_scale = 0.0f;        // Encoder angle correction scale (rad)
-  float enc_ang_corr_offset = 0.0f;       // Encoder angle correction offset (rad)
+  uint16_t erev_start = 0;                      // Encoder reading at the start of an electrical revolution
+  uint8_t erevs_per_mrev = 1;                   // Electrical revolutions per mechanical revolution
+  uint8_t flip_phases = false;                  // Phases A, B, C are arranged in clockwise instead of ccw order
+  float foc_kp_d = 0.5f;                        // Proportional gain for FOC/d PI loop
+  float foc_ki_d = 0.1f;                        // Integral gain for FOC/d PI loop
+  float foc_kp_q = 1.0f;                        // Proportional gain for FOC/q PI loop
+  float foc_ki_q = 0.2f;                        // Integral gain for FOC/q PI loop
+  float velocity_kp = 1.0f;                     // Proportional gain for velocity PI loop
+  float velocity_ki = 0.01f;                    // Integral gain for velocity PI loop
+  float position_kp = 5.0f;                     // Proportional gain for position PI loop
+  float position_ki = 0.01f;                    // Integral gain for position PI loop
+  float current_limit = 2.0f;                   // Current limit (A)
+  float torque_limit = 3.0f;                    // Torque limit (N*m)
+  float velocity_limit = 10.0f;                 // Velocity limit (rad/s)
+  float position_lower_limit = 0.0f;            // Position lower limit (rad)
+  float position_upper_limit = 0.0f;            // Position upper limit (rad)
+  float motor_resistance = 17.8f;               // Motor resistance (ohm)
+  float motor_inductance = 0.0f;                // Motor inductance (henries)
+  float motor_torque_const = 0.0f;              // Motor torque constant (newton-meters per ampere)
+  uint16_t control_timeout = 0;                 // Control timeout (ms)
+  float hf_velocity_filter_param = 0.01f;       // Parameter for high frequency velocity estimate 
+  float lf_velocity_filter_param = (1.0-.9975); // Parameter for low frequency velocity estimate 
+  float position_offset = 0.0f;                 // Position offset
+  float ia_offset = 0.0f;                       // Current Offset for Phase A
+  float ib_offset = 0.0f;                       // Current Offset for Phase B
+  float ic_offset = 0.0f;                       // Current Offset for Phase C
+  float enc_ang_corr_scale = 0.0f;              // Encoder angle correction scale (rad)
+  float enc_ang_corr_offset = 0.0f;             // Encoder angle correction offset (rad)
   int8_t enc_ang_corr_table_values[enc_ang_corr_table_size]; // Encoder angle correction table values
 
   Calibration() {}
