@@ -117,7 +117,7 @@ CSRC = $(PORTSRC) \
 # setting.
 CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(COMMON_SRC)/constants.cpp \
-		     $(SRC)/main.cpp \
+         $(SRC)/main.cpp \
          $(SRC)/peripherals.cpp \
          $(SRC)/DRV8312.cpp \
          $(SRC)/AS5047D.cpp \
@@ -128,7 +128,7 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/transforms.cpp \
          $(SRC)/fw_comms.cpp \
          $(SRC)/SVM.cpp \
-         $(SRC)/PID.cpp \
+         $(SRC)/pid.cpp \
          $(SRC)/LM75B.cpp \
          $(SRC)/MCP9808.cpp \
          $(SRC)/LSM6DS3Sensor.cpp \

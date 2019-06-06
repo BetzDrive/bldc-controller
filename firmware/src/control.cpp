@@ -7,7 +7,7 @@
 #include "fast_math.h"
 #include "chprintf.h"
 #include "SVM.h"
-#include "PID.h"
+#include "pid.h"
 #include "constants.h"
 
 #include <cmath>
@@ -58,8 +58,8 @@ static float clamp(float val, float min, float max) {
 }
 
 void initControl() {
-  pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
-  pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
+  pid_id.setLimits(-ivsense_current_max, ivsense_current_max);
+  pid_iq.setLimits(-ivsense_current_max, ivsense_current_max);
   last_control_timeout_reset = chTimeNow();
 }
 
@@ -236,33 +236,21 @@ void estimateState() {
 
 void runPositionControl() {
   if (parameters.control_mode == control_mode_position || parameters.control_mode == control_mode_position_velocity) {
-    pid_position.setMode(AUTO_MODE);
-    pid_position.setTunings(calibration.position_kp, calibration.position_ki, 0.0f);
-    pid_position.setInputLimits(-1.0f, 1.0f);
-    pid_position.setOutputLimits(-calibration.velocity_limit, calibration.velocity_limit);
-    pid_position.setSetPoint(0.0f);
-    pid_position.setProcessValue(results.rotor_pos - parameters.position_sp);
-    pid_position.setBias(0.0f);
-    parameters.velocity_sp = pid_position.compute();
-  } else {
-    pid_position.setMode(MANUAL_MODE);
+    pid_position.setGains(calibration.position_kp, calibration.position_ki, 0.0f);
+    pid_position.setLimits(-calibration.velocity_limit, calibration.velocity_limit);
+    pid_position.setTarget(parameters.position_sp);
+    parameters.velocity_sp = pid_position.compute(results.rotor_pos);
   }
 }
 
 void runVelocityControl() {
   if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position || parameters.control_mode == control_mode_position_velocity) {
-    pid_velocity.setMode(AUTO_MODE);
-    pid_velocity.setTunings(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
+    pid_velocity.setGains(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
     // float velocity_max = results.average_vin / calibration.motor_torque_const;
     float velocity_max = 40.0f;
-    pid_velocity.setInputLimits(-velocity_max, velocity_max);
-    pid_velocity.setOutputLimits(-calibration.torque_limit, calibration.torque_limit);
-    pid_velocity.setSetPoint(parameters.velocity_sp);
-    pid_velocity.setProcessValue(results.rotor_vel);
-    pid_velocity.setBias(0.0f);
-    parameters.torque_sp = pid_velocity.compute();
-  } else {
-    pid_velocity.setMode(MANUAL_MODE);
+    pid_velocity.setLimits(-calibration.torque_limit, calibration.torque_limit);
+    pid_velocity.setTarget(parameters.velocity_sp);
+    parameters.torque_sp = pid_velocity.compute(results.rotor_vel);
   }
 }
 
@@ -295,20 +283,17 @@ void runCurrentControl() {
     float mech_pos = results.enc_pos - calibration.erev_start * rad_per_enc_tick;
     float elec_pos = mech_pos * calibration.erevs_per_mrev;
 
-    // TODO: Inverting output is a result of having to invert the PID output
-    float cos_theta = -fast_cos(elec_pos);
-    float sin_theta = -fast_sin(elec_pos);
+    float cos_theta = fast_cos(elec_pos);
+    float sin_theta = fast_sin(elec_pos);
 
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
 
-    pid_id.setMode(AUTO_MODE);
-    pid_iq.setMode(AUTO_MODE);
+    pid_id.setGains(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
+    pid_iq.setGains(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
 
-    pid_id.setTunings(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
-    pid_iq.setTunings(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
-
-    pid_iq.setOutputLimits(-calibration.current_limit, calibration.current_limit);
+    pid_id.setLimits(-calibration.current_limit, calibration.current_limit);
+    pid_iq.setLimits(-calibration.current_limit, calibration.current_limit);
 
     float id_sp, iq_sp;
     if (parameters.control_mode == control_mode_foc_current) {
@@ -321,11 +306,14 @@ void runCurrentControl() {
       iq_sp = parameters.torque_sp / calibration.motor_torque_const;
     }
 
-    results.id_output = (id_sp - id) * calibration.foc_kp_d;
-    results.iq_output = (iq_sp - iq) * calibration.foc_kp_q;
+    pid_id.setTarget(id_sp);
+    pid_iq.setTarget(iq_sp);
 
-    float vd = -results.id_output * calibration.motor_resistance;
-    float vq = -results.iq_output * calibration.motor_resistance;
+    results.id_output = pid_id.compute(id);
+    results.iq_output = pid_iq.compute(iq);
+
+    float vd = results.id_output * calibration.motor_resistance;
+    float vq = results.iq_output * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const;
 
     float mag = std::sqrt(std::pow(vd, 2) + std::pow(vq, 2));
     float div = std::max(results.average_vin, mag);
