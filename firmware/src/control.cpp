@@ -293,7 +293,8 @@ void runCurrentControl() {
     }
 
     float mech_pos = results.enc_pos - calibration.erev_start * rad_per_enc_tick;
-    float elec_pos = mech_pos * calibration.erevs_per_mrev;
+    // TODO: Inverting theta is a result of having to invert the PID output
+    float elec_pos = -mech_pos * calibration.erevs_per_mrev;
 
     float cos_theta = fast_cos(elec_pos);
     float sin_theta = fast_sin(elec_pos);
@@ -307,7 +308,6 @@ void runCurrentControl() {
     pid_id.setTunings(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
     pid_iq.setTunings(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
 
-    //pid_id.setOutputLimits(-calibration.current_limit, calibration.current_limit);
     pid_iq.setOutputLimits(-calibration.current_limit, calibration.current_limit);
 
     float id_sp, iq_sp;
@@ -321,23 +321,11 @@ void runCurrentControl() {
       iq_sp = parameters.torque_sp / calibration.motor_torque_const;
     }
 
-    //pid_id.setSetPoint(id_sp);
-    //pid_id.setProcessValue(id);
+    results.id_output = (id_sp - id) * calibration.foc_kp_d;
+    results.iq_output = (iq_sp - iq) * calibration.foc_kp_q;
 
-    //pid_iq.setSetPoint(iq_sp);
-    //pid_iq.setProcessValue(iq);
-    
-    //results.id_output = pid_id.compute();
-    //results.iq_output = pid_iq.compute();
-
-    //float sign = std::signbit(iq_sp)? -1.0 : 1.0;
-    //results.iq_output = sign * pid_iq.compute();
-
-    results.id_output = -(id_sp - id) * calibration.foc_kp_d;
-    results.iq_output = -(iq_sp - iq) * calibration.foc_kp_q;
-
-    float vd = results.id_output * calibration.motor_resistance;
-    float vq = results.iq_output * calibration.motor_resistance;
+    float vd = -results.id_output * calibration.motor_resistance;
+    float vq = -results.iq_output * calibration.motor_resistance;
 
     float mag = std::sqrt(std::pow(vd, 2) + std::pow(vq, 2));
     float div = std::max(results.average_vin, mag);
