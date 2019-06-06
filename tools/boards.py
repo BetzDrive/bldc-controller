@@ -107,10 +107,10 @@ def loadMotorCalibration(client, board_ids, duty_cycles, mode):
                     client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 1)]) # PWM control
     
                 # Setting gains for motor
-                client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 5)])  # DI Kp
-                client.writeRegisters([board_id], [0x1004], [1], [struct.pack('<f', 0)]) # DI Ki
-                client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 10)])  # QI Kp
-                client.writeRegisters([board_id], [0x1006], [1], [struct.pack('<f', 0)]) # QI Ki
+                client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 0.5)])  # DI Kp
+                client.writeRegisters([board_id], [0x1004], [1], [struct.pack('<f', 0.1)]) # DI Ki
+                client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 1.0)])  # QI Kp
+                client.writeRegisters([board_id], [0x1006], [1], [struct.pack('<f', 0.2)]) # QI Ki
                 success = True
             except (ProtocolError, struct.error, TypeError):
                 print("Failed to calibrate board, retrying...")
