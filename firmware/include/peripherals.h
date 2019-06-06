@@ -62,7 +62,7 @@ inline float adcValueToVoltage(float adc_value) {
  * Converts an ADC value to current (in amperes)
  */
 inline float adcValueToCurrent(float adc_value) {
-  return (adc_value - ivsense_count_zero_current) * ivsense_current_per_count;
+  return (ivsense_count_zero_current - adc_value) * ivsense_current_per_count;
 }
 
 } // namespace motor_driver
