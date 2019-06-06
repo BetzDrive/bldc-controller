@@ -293,11 +293,11 @@ void runCurrentControl() {
     }
 
     float mech_pos = results.enc_pos - calibration.erev_start * rad_per_enc_tick;
-    // TODO: Inverting theta is a result of having to invert the PID output
-    float elec_pos = -mech_pos * calibration.erevs_per_mrev;
+    float elec_pos = mech_pos * calibration.erevs_per_mrev;
 
-    float cos_theta = fast_cos(elec_pos);
-    float sin_theta = fast_sin(elec_pos);
+    // TODO: Inverting output is a result of having to invert the PID output
+    float cos_theta = -fast_cos(elec_pos);
+    float sin_theta = -fast_sin(elec_pos);
 
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
