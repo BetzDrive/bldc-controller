@@ -29,8 +29,9 @@ if __name__ == '__main__':
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
-    make_list = lambda x: x if (type(x) == list) else [x]
-    board_ids  = make_list(ast.literal_eval(args.board_ids))
+    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    make_int = lambda x: [int(y) for y in x]
+    board_ids  = make_int(make_list(ast.literal_eval(args.board_ids)))
     actuations = make_list(ast.literal_eval(args.actuations))
 
     mode = args.mode
