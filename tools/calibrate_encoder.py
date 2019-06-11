@@ -68,8 +68,11 @@ if __name__ == '__main__':
     arr = []
     for i in range(0, l, num_recorder_elements):
         # Grab the recorder data
-        a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
-        data += [a]
+        try:
+            a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
+            data += [a]
+        except (ProtocolError, struct.error, TypeError):
+            print("Missed packet")
 
     f, axarr = plt.subplots(1, sharex=True)
 
