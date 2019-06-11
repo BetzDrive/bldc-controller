@@ -6,6 +6,7 @@ import serial
 import time
 from math import sin, cos, pi
 import argparse
+import ast
 
 from comms import *
 from boards import *
@@ -16,13 +17,21 @@ if __name__ == '__main__':
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
-    parser.add_argument('mode', type=str, help='Control mode: foc (duty cycle [dc]), raw_pwm(dc,dc,dc), torque (N*m), velocity (rad/s), position (rad), pos_vel (rad,rad/s), pwm (dc)')
-    parser.add_argument('actuation', type=str, help='Actuation amount in the units of the selected mode (if requires multiple args, separate by comma)')
+    parser.add_argument('mode', type=str, help='Control mode: \
+                                                current (Id[A], Iq[A]), \
+                                                raw_pwm(dc,dc,dc), \
+                                                torque (N*m), \
+                                                velocity (rad/s), \
+                                                position (rad), \
+                                                pos_vel (rad,rad/s), \
+                                                pwm (dc)')
+    parser.add_argument('actuations', type=str, help='Actuation amount in the units of the selected mode (if requires multiple args, separate by comma)')
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
-    board_ids = [int(bid) for bid in args.board_ids.split(',')]
-    duty_cycles = [float(dc) for dc in args.actuation.split(',')]
+    make_list = lambda x: x if (type(x) == list) else [x]
+    board_ids  = make_list(ast.literal_eval(args.board_ids))
+    actuations = make_list(ast.literal_eval(args.actuations))
 
     mode = args.mode
 
@@ -33,13 +42,13 @@ if __name__ == '__main__':
     
     client.resetInputBuffer()
 
-    loadMotorCalibration(client, board_ids, duty_cycles, mode)
+    loadMotorCalibration(client, board_ids, mode)
 
     def updateCurrent(i): 
         data = []
         for board_id in board_ids:
             try:
-                client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
+                driveMotor(client, board_ids, actuations, mode)
                 # Read the iq calulated
                 read = struct.unpack('<f', client.readRegisters([board_id], [0x3003], [1])[0])
                 data.append(read)

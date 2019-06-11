@@ -317,7 +317,7 @@ void runCurrentControl() {
     results.iq_output = pid_iq.compute(iq);
 
     float vd = results.id_output * calibration.motor_resistance;
-    float vq = results.iq_output * calibration.motor_resistance + results.hf_rotor_vel * calibration.motor_torque_const;
+    float vq = results.iq_output * calibration.motor_resistance; // + results.hf_rotor_vel * calibration.motor_torque_const;
 
     float mag = std::sqrt(std::pow(vd, 2) + std::pow(vq, 2));
     float div = std::max(results.average_vin, mag);

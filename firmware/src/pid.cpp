@@ -41,10 +41,10 @@ void PID::setAlpha (float alpha) {
 float PID::computeIntegral (float err, float p_out) {
   windup_ += err;
 
-  if (windup_ > max_) {
-    windup_ = max_;
-  } else if (windup_ < min_) {
-    windup_ = min_;
+  if (windup_*ki_ > max_) {
+    windup_ = max_/ki_;
+  } else if (windup_*ki_ < min_) {
+    windup_ = min_/ki_;
   }
 
   return windup_;

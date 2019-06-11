@@ -56,8 +56,8 @@ def initBoards(client, board_ids):
     print("Enumerated boards:", success)
     return True
 
-def loadMotorCalibration(client, board_ids, duty_cycles, mode):
-    for board_id, duty_cycle in zip(board_ids, duty_cycles):
+def loadMotorCalibration(client, board_ids, mode):
+    for board_id in board_ids:
         success = False
         while not success:
             try:
@@ -88,30 +88,45 @@ def loadMotorCalibration(client, board_ids, duty_cycles, mode):
                         print('WARNING: Motor driver board does not support encoder angle compensation, try updating the firmware.')
                 client.setCurrentControlMode([board_id])
                 client.writeRegisters([board_id], [0x1030], [1], [struct.pack('<H', 1000)])
-                # print("Motor %d ready: supply voltage=%fV", board_id, client.getVoltage(board_id))
     
-                # Velocity IIR Alpha Term
-                client.writeRegisters([board_id], [0x1040], [1], [struct.pack('<f', 0.01)])
-
                 # Upload current offsets
                 offset_data = struct.pack('<fff', calibration_obj['ia_off'], calibration_obj['ib_off'], calibration_obj['ic_off'])
                 client.writeRegisters([board_id], [0x1050], [3], [offset_data])
-    
-                if mode == 'torque':
-                    client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', duty_cycle)])
-                    client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
-                elif mode == 'raw_pwm':
-                    client.writeRegisters([board_id], [0x2003], [1], [struct.pack('<f', duty_cycle)])
-                    client.writeRegisters([board_id], [0x2004], [1], [struct.pack('<f', duty_cycle)])
-                    client.writeRegisters([board_id], [0x2005], [1], [struct.pack('<f', duty_cycle)])
-                    client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', 1)]) # PWM control
-    
+
                 # Setting gains for motor
                 client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 0.5)])  # DI Kp
                 client.writeRegisters([board_id], [0x1004], [1], [struct.pack('<f', 0.1)]) # DI Ki
                 client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 1.0)])  # QI Kp
                 client.writeRegisters([board_id], [0x1006], [1], [struct.pack('<f', 0.2)]) # QI Ki
+
                 success = True
             except (ProtocolError, struct.error, TypeError):
                 print("Failed to calibrate board, retrying...")
+    print("Finished calibration of boards:", board_ids)
  
+# Defining Control Mode ID Lookup
+control_modes = {'current' : 0,
+                 'pwm'     : 1,
+                 'torque'  : 2,
+                 'velocity': 3,
+                 'position': 4,
+                 'pos_vel' : 5
+                }
+
+# This should be placed in a try/catch to handle comms errors
+def driveMotor(client, board_ids, actuations, mode):
+    for board_id, actuation in zip(board_ids, actuations):
+        control_mode = control_modes[mode]
+        client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', control_mode)]) # Set Control Mode
+
+        if mode == 'current':
+            client.writeRegisters([board_id], [0x2001], [1], [struct.pack('<f', actuation[0])])
+            client.writeRegisters([board_id], [0x2002], [1], [struct.pack('<f', actuation[1])])
+        if mode == 'torque':
+            client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', actuation)])
+        elif mode == 'raw_pwm':
+            client.writeRegisters([board_id], [0x2003], [1], [struct.pack('<f', actuation[0])])
+            client.writeRegisters([board_id], [0x2004], [1], [struct.pack('<f', actuation[1])])
+            client.writeRegisters([board_id], [0x2005], [1], [struct.pack('<f', actuation[2])])
+    
+
