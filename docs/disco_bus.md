@@ -1,5 +1,6 @@
 # Disco Bus Protocol
 This boot protocol is meant to enumerate a series of boards with ID numbers instead of requiring each board to have a unique identifier.
+In addition, the procedure sets the last board to enable its terminating resistor. To do so, the MSB of the board ID is repurposed for storing this bit in memory.
 
 The protocol is as follows:
 1) While in bootloader, the board listens on the broadcast channel (0) for any packet with an ID that's not the broadcast ID with the enumerate function code
