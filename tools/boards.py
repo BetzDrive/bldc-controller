@@ -13,8 +13,6 @@ COMM_ROR_ACC_Y = 0x3007
 COMM_ROR_ACC_Z = 0x3008
 COMM_ROR_ROTOR_POS_RAW = 0x3010
 
-COMM_LAST_BOARD_FLAG = 0x80
-
 def initBoards(client, board_ids):
     if type(board_ids) == int:
         board_ids = [board_ids]
@@ -27,22 +25,13 @@ def initBoards(client, board_ids):
     client.resetInputBuffer()
 
     success = []
-    track_last_board = len(board_ids)
     for bid in board_ids:
-        track_last_board = track_last_board - 1
         print("Enumerating Board ID:", bid)
-
-        enum_id = bid
-
-        if track_last_board == 0:
-            enum_id = COMM_LAST_BOARD_FLAG | enum_id
-            print("Enabling Shunt")
-
         found_id = False
         # Retry until hear back from board 
         while not found_id:
             try:
-                response = client.enumerateBoards(enum_id)
+                response = client.enumerateBoards(bid)
                 print("received id:", response)
                 if response == bid:
                     found_id = True

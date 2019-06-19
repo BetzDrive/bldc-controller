@@ -143,22 +143,14 @@ using RegAccessHandler = size_t (*)(comm_addr_t start_addr, size_t reg_count, ui
 
 class Server {
 public:
-  Server(comm_id_t id, bool last_board, RegAccessHandler access_handler, IOPin disco_in, IOPin disco_out, IOPin shunt) : access_handler_(access_handler), disco_in_(disco_in), disco_out_(disco_out), shunt_(shunt) 
-  {
-    if (last_board)
-      palSetPad(shunt_.port, shunt_.pin);
-    else
-      palClearPad(shunt_.port, shunt_.pin); 
-
-    id_ = id & COMM_ID_MAX;
-  }
+  Server(comm_id_t id, RegAccessHandler access_handler, IOPin disco_in, IOPin disco_out) : id_(id), access_handler_(access_handler), disco_in_(disco_in), disco_out_(disco_out) {}
 
   comm_id_t getID() const {
-    return id_ & COMM_ID_MAX;
+    return id_;
   }
 
   void setID(comm_id_t id) {
-    id_ = id & COMM_ID_MAX;
+    id_ = id;
   }
 
   // Initialize the disco bus according to spec
@@ -167,10 +159,6 @@ public:
   void setDisco();
   // Check the state of our disco input
   bool getDisco(); 
-  // Set RS485 shunt resistor to active
-  void setShunt();
-  // Disable RS485 shunt resistor
-  void disableShunt();
 
   size_t readRegisters(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, comm_errors_t& errors) {
     return access_handler_(start_addr, reg_count, buf, buf_size, RegAccessType::READ, errors);
@@ -185,8 +173,6 @@ private:
   RegAccessHandler access_handler_;
   // Disco Bus Pins
   const IOPin disco_in_, disco_out_;
-  // RS485 Shunt Enable Pin
-  const IOPin shunt_;
 };
 
 class ProtocolFSM {

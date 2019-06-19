@@ -18,8 +18,7 @@ constexpr comm_errors_t COMM_ERRORS_BUF_LEN_MISMATCH = 16;
 using comm_id_t = uint8_t;
 constexpr comm_id_t COMM_ID_BROADCAST = 0;
 constexpr comm_id_t COMM_ID_MIN = 1;
-constexpr comm_id_t COMM_ID_MAX = UINT8_MAX >> 1;
-constexpr comm_id_t COMM_SHUNT_ID_MASK = 0x80;
+constexpr comm_id_t COMM_ID_MAX = UINT8_MAX;
 
 using comm_fg_t = uint8_t;
 constexpr comm_fg_t COMM_FG_COMP = 0x00;

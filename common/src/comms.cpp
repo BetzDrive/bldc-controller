@@ -230,14 +230,6 @@ bool Server::getDisco() {
     return (PAL_LOW == palReadPad(disco_in_.port, disco_in_.pin));
 }
 
-void Server::setShunt() {
-  palWritePad(shunt_.port, shunt_.pin, PAL_HIGH);
-}
-
-void Server::disableShunt() {
-  palWritePad(shunt_.port, shunt_.pin, PAL_LOW);
-}
-
 /*       Protocol FSM Functions         */
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_t flags, comm_errors_t& errors) {
@@ -595,7 +587,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       /* Enumerate board ID */
       target_id = (uint8_t)datagram[index++];
 
-      if (server_->getID() == (target_id & COMM_ID_MAX)) {
+      if (server_->getID() == target_id) {
         u8_value_ = server_->getID();
         state_ = State::RESPONDING_U8;
       }
@@ -849,16 +841,14 @@ UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud)
 
 #ifdef BOOTLOADER
 // Wait in bootloader for a id to be assigned from the disco bus
-Server comms_server(COMM_ID_BROADCAST, *board_id_ptr & COMM_SHUNT_ID_MASK, commsRegAccessHandler,
+Server comms_server(COMM_ID_BROADCAST, commsRegAccessHandler,
                   {GPIOB, GPIOB_DISCO_BUS_IN},
-                  {GPIOB, GPIOB_DISCO_BUS_OUT},
-                  {GPIOC, GPIOC_RS485_SHUNT_EN});
+                  {GPIOB, GPIOB_DISCO_BUS_OUT});
 #else
 // Out of the bootloader, use whatever ID is stored in memory
-Server comms_server(*board_id_ptr, *board_id_ptr & COMM_SHUNT_ID_MASK, commsRegAccessHandler,
+Server comms_server(*board_id_ptr, commsRegAccessHandler,
                   {GPIOB, GPIOB_DISCO_BUS_IN},
-                  {GPIOB, GPIOB_DISCO_BUS_OUT},
-                  {GPIOC, GPIOC_RS485_SHUNT_EN});
+                  {GPIOB, GPIOB_DISCO_BUS_OUT});
 #endif
 ProtocolFSM comms_protocol_fsm(comms_server);
 
