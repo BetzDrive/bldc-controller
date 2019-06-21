@@ -253,11 +253,13 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
 
   comm_id_t id;
 
-
   // Loop through full packet for the message intended for this board
   while ( ((datagram_len - index) >= sub_msg_header_len_) && !found_board ) {
     uint16_t sub_msg_len = (uint16_t)datagram[index] | ((uint16_t)datagram[index + 1] << 8);
-    index += 2;
+    if (sub_msg_len == 0) {
+      break;
+    }
+    index += sizeof(sub_msg_len);
     next_msg += sub_msg_len + sizeof(sub_msg_len);
 
     id = datagram[index++];
@@ -648,12 +650,6 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
 
   size_t index = 0;
 
-  if (max_datagram_len - index < 2) {
-    datagram_len = index;
-    state_ = State::IDLE;
-    return;
-  }
-
   if (broadcast_) {
     datagram[index++] = 0;
   } else {
@@ -758,6 +754,12 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
       state_ = State::IDLE;
 
       break;
+  }
+
+  // Message is too large, don't send it.
+  if (index > max_datagram_len) {
+    datagram_len = 0;
+    state_ = State::IDLE;
   }
 }
 
