@@ -18,9 +18,9 @@ def initBoards(client, board_ids):
         board_ids = [board_ids]
 
     client.resetSystem([0])
-    time.sleep(0.2)
+    time.sleep(0.1)
     client.enterBootloader([0])
-    time.sleep(0.2)
+    time.sleep(0.1)
 
     client.resetInputBuffer()
 
@@ -35,7 +35,7 @@ def initBoards(client, board_ids):
                 print("received id:", response)
                 if response == bid:
                     found_id = True
-                time.sleep(0.2)
+                time.sleep(0.1)
             except ProtocolError as e:
                 print("Comms Error:", e)
                 client.resetInputBuffer()
@@ -46,7 +46,7 @@ def initBoards(client, board_ids):
             try:
                 print("Requesting Confirm")
                 confirmed = client.confirmBoards(bid)
-                time.sleep(0.2)
+                time.sleep(0.1)
             except ProtocolError as e:
                 print("Comms Error:", e)
                 client.resetInputBuffer()
@@ -64,7 +64,7 @@ def loadMotorCalibration(client, board_ids, mode):
                 print("Calibrating board:", board_id)
                 client.leaveBootloader([board_id])
                 client.resetInputBuffer()
-                time.sleep(0.2)
+                time.sleep(0.1)
 
                 calibration_obj = client.readCalibration([board_id])
                 print(calibration_obj)

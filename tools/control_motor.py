@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.004)
 
     client = BLDCControllerClient(ser)
     initialized = initBoards(client, board_ids)

@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # Data collection
     #
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.01)
     time.sleep(0.1)
 
     client = BLDCControllerClient(ser)
