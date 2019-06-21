@@ -126,6 +126,7 @@ constexpr size_t enc_ang_corr_table_size = 257;
 constexpr size_t nvparams_len = 1u << 14; // 16 kiB
 
 extern const uint8_t *board_id_ptr;
+extern const void *calibration_ptr;
 
 } // namespace motor_driver
 

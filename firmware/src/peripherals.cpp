@@ -154,7 +154,6 @@ void startPeripherals() {
   gate_driver.start();
 
   // Start encoder
-  //startEncoder();
   encoder.start();
 
   // Start temperature sensor
@@ -213,6 +212,17 @@ void setCommsActivityLED(bool on) {
 
 void setRS485TransmitMode(bool transmit) {
   palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);
+}
+
+void storeCalibration() {
+  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
+  flashErase(addr, sizeof(Calibration));
+  flashWrite(addr, (char *)&calibration, sizeof(Calibration));
+}
+
+void loadCalibration() {
+  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
+  flashRead(addr, (char *)&calibration, sizeof(Calibration));
 }
 
 } // namespace motor_driver

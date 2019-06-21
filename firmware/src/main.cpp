@@ -138,6 +138,9 @@ int main(void) {
   // Start peripherals
   startPeripherals();
 
+  // Load Calibrations from Flash
+  loadCalibration();
+
   // Set comms activity callback
   comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
 

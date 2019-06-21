@@ -40,6 +40,9 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           break;
         case 0x0003: // Bootloader Version
           break;
+        case 0x0004: // Store Motor Calibration to Memory
+          storeCalibration();
+          break;
 
         case 0x1000: // Electrical Revolution Start
           handleVarAccess(calibration.erev_start, buf, index, buf_size, access_type, errors);

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <ch.h>
 #include "Recorder.h"
+#include "constants.h"
 
 namespace motor_driver {
 
