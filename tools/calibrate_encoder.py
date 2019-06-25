@@ -45,7 +45,7 @@ if __name__ == '__main__':
         a, b, c = phase_state
         client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle)])
 
-    client.setWatchdogTimeout([board_id], [1000])
+    client.setWatchdogTimeout([args.board_id], [1000])
     client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', 0, 0, 0)])
     client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 1)])
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = getRawRotorPosition([board_id])[0]
+        raw_angle = client.getRawRotorPosition([args.board_id])[0]
 
         if i > 4 and abs(forward_raw_angles[0] - raw_angle) < abs(forward_raw_angles[1] - forward_raw_angles[0]) / 3.0:
             break
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = getRawRotorPosition([board_id])[0]
+        raw_angle = client.getRawRotorPosition([args.board_id])[0]
 
         backward_raw_angles.append(raw_angle)
 

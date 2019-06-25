@@ -221,7 +221,8 @@ void storeCalibration() {
 
 void loadCalibration() {
   uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
-  uint16_t start_sequence = flashRead(addr, (char *)&calibration, sizeof(uint16_t));
+  uint16_t start_sequence = 0;
+  flashRead(addr, (char *)&start_sequence, sizeof(uint16_t));
   if (start_sequence == calib_ss) {
     flashRead(addr, (char *)&calibration, sizeof(Calibration));
   }

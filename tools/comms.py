@@ -108,10 +108,10 @@ class BLDCControllerClient:
         self._ser.reset_input_buffer()
 
     def storeCalibration(self, server_ids):
-        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids], [0 for sid in server_ids], [[] for val in value])
+        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids], [1 for sid in server_ids], ['' for sid in server_ids])
 
     def clearCalibration(self, server_ids):
-        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids], [0 for sid in server_ids], [[] for val in value])
+        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids], [1 for sid in server_ids], ['' for sid in server_ids])
 
     def getRotorPosition(self, server_ids):
         angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids])]
@@ -163,7 +163,7 @@ class BLDCControllerClient:
     def setPositionOffset(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1015 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
-    def setWatchdogTimeout(self, sesrver_ids, value):
+    def setWatchdogTimeout(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1030 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<H', val) for val in value])
 
     def setCurrentControlMode(self, server_ids):
