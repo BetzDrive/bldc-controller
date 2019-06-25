@@ -11,6 +11,7 @@
 #include "fast_math.h"
 #include "state.h"
 #include "constants.h"
+#include "helper.h"
 
 namespace motor_driver {
 
@@ -156,6 +157,11 @@ int main(void) {
 }
 
 } // namespace motor_driver
+
+void HardFault_Handler(void) {
+  motor_driver::setStatusLEDColor(255,0,0);
+  flashJumpApplication(uint32_t(motor_driver::firmware_ptr));
+}
 
 // FIXME: hack
 int main(void) {
