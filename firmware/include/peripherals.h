@@ -2,6 +2,7 @@
 #define _PERIPHERALS_H_
 
 #include <stdint.h>
+#include <cstring>
 #include "hal.h"
 #include "flash.h"
 #include "DRV8312.h"
@@ -55,6 +56,8 @@ void setRS485TransmitMode(bool transmit);
 void storeCalibration();
 
 void loadCalibration();
+
+void clearCalibration();
 
 /**
  * Converts an ADC value to voltage (in volts)

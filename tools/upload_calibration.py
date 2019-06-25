@@ -10,45 +10,6 @@ import time
 import json
 import struct
 
-def is_int(i):
-    try:
-        int(i)
-        return True
-    except ValueError:
-        return False
-
-def flash_board(client, board_id, data):
-    flash_sector_map = client.getFlashSectorMap([board_id])
-
-    print("Erasing old calibration")
-    success = client.eraseFlash([board_id], COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
-
-    buf = struct.pack('<H', len(data)) + data
-
-    print("Programming new calibration of length:", len(data))
-    success = success and client.programFlash([board_id], COMM_NVPARAMS_OFFSET, buf)
-
-
-    print("Reading back calibration")
-    l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET, 2))[0]
-
-    print("Length of calibration is:", l)
-
-    d = client.readFlash([board_id], COMM_NVPARAMS_OFFSET+2, l)
-
-    toHex = lambda x:"".join([hex(ord(c))[2:].zfill(2) for c in x])
-    print("Expected:", toHex(buf)[:100])
-    print("Received:", toHex(d)[:100])
-
-    if success and d == data:
-        print("Success", board_id)
-        print("Wrote:")
-        time.sleep(0.2)
-        client.resetInputBuffer()
-        print(json.loads(d))
-    else:
-        print("Failed ", board_id)
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Upload calibration values to a motor driver board')
     parser.add_argument('serial', type=str, help='Serial port')
@@ -61,16 +22,24 @@ if __name__ == '__main__':
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
     time.sleep(0.2)
     ser.reset_input_buffer()
+    board_id = int(args.board_id)
 
     client = BLDCControllerClient(ser)
 
-    initialized = initBoards(client, [int(args.board_id)])
+    initialized = initBoards(client, [board_id])
         
     client.resetInputBuffer()
 
     if initialized:
+        # Reset Calibration on Board
+        client.clearCalibration([board_id])
+
+        # Load in Custom Values
         with open(args.calibration_file) as json_file:
             data = json.load(json_file)
-        flash_board(client, int(args.board_id), json.dumps(data, separators=(',', ':')))
+        loadCalibrationFromJSON(board_id, data)
+
+        # Store Calibration struct to Parameters
+        client.storeCalibration([board_id])
 
     ser.close()

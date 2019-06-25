@@ -107,9 +107,19 @@ class BLDCControllerClient:
     def resetInputBuffer(self):
         self._ser.reset_input_buffer()
 
+    def storeCalibration(self, server_ids):
+        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids], [0 for sid in server_ids], [[] for val in value])
+
+    def clearCalibration(self, server_ids):
+        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids], [0 for sid in server_ids], [[] for val in value])
+
     def getRotorPosition(self, server_ids):
         angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids])]
         return angles
+
+    def getRawRotorPosition(self, server_ids):
+        ticks = [struct.unpack('<H', data)[0] for data in self.readRegisters(server_ids, [0x3010 for sid in server_ids], [1 for sid in server_ids])]
+        return ticks
 
     def getState(self, server_ids):
         # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
@@ -135,11 +145,26 @@ class BLDCControllerClient:
     def setERevsPerMRev(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1001 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<B', val) for val in value])
 
+    def setDirectCurrentKp(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1003 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setDirectCurrentKi(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1004 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setQuadratureCurrentKp(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1005 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setQuadratureCurrentKi(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1006 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
     def setTorqueConstant(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1022 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
     def setPositionOffset(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1015 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setWatchdogTimeout(self, sesrver_ids, value):
+        return self.writeRegisters(server_ids, [0x1030 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<H', val) for val in value])
 
     def setCurrentControlMode(self, server_ids):
         return self.writeRegisters(server_ids, [0x2000 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<B', 0) for sid in server_ids])
