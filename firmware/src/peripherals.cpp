@@ -154,7 +154,6 @@ void startPeripherals() {
   gate_driver.start();
 
   // Start encoder
-  //startEncoder();
   encoder.start();
 
   // Start temperature sensor
