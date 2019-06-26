@@ -3,10 +3,12 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stm32f4xx.h"
+#include "stm32f4xx_iwdg.h"
 #include "stdbool.h"
 #include "peripherals.h"
 #include "comms.h"
 #include "constants.h"
+#include "helper.h"
 
 namespace motor_driver {
 
@@ -79,6 +81,11 @@ int main(void) {
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
   chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
+
+  if (RCC->CSR & RCC_CSR_WDGRSTF) {
+    RCC->CSR |= RCC_CSR_RMVF;
+    flashJumpApplication((uint32_t)firmware_ptr);
+  }
 
   // Wait forever
   while (true) {
