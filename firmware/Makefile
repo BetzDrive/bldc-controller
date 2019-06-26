@@ -56,10 +56,9 @@ ifeq ($(USE_FPU),)
   USE_FPU = softfp
 endif
 
-
 # Enable this if you really want to use the STM FWLib.
 ifeq ($(USE_FWLIB),)
-  USE_FWLIB = no
+  USE_FWLIB = yes
 endif
 
 #

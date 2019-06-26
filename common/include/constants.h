@@ -130,6 +130,7 @@ constexpr uint16_t calib_ss = 0x5454;
 
 extern const uint8_t *board_id_ptr;
 extern const void *calibration_ptr;
+extern const void *firmware_ptr;
 
 } // namespace motor_driver
 

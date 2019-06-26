@@ -3,6 +3,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stm32f4xx.h"
+#include "stm32f4xx_iwdg.h"
 #include "stdbool.h"
 #include "chprintf.h"
 #include "peripherals.h"
@@ -150,9 +151,16 @@ int main(void) {
   chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO, sensorThreadRun, NULL);
   chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), HIGHPRIO, controlThreadRun, NULL);
 
-  // Wait forever
+  RCC->CSR |= RCC_CSR_RMVF;
+  IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+  IWDG_SetReload(10);
+  IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
+  IWDG_ReloadCounter();
+  IWDG_Enable();
+  // Wait forever and reset IDWG
   while (true) {
-    chThdSleepMilliseconds(1000);
+    IWDG_ReloadCounter();
+    chThdSleepMicroseconds(200);
   }
 
   return CH_SUCCESS; // Should never get here
