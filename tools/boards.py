@@ -56,48 +56,47 @@ def initBoards(client, board_ids):
     print("Enumerated boards:", success)
     return True
 
-def loadMotorCalibration(client, board_ids, mode):
+def loadCalibrationFromJSON(client, board_id, calibration_obj):
+    client.setZeroAngle([board_id], [calibration_obj['angle']])
+    client.setInvertPhases([board_id], [calibration_obj['inv']])
+    client.setERevsPerMRev([board_id], [calibration_obj['epm']])
+    client.setTorqueConstant([board_id], [calibration_obj['torque']])
+    client.setPositionOffset([board_id], [calibration_obj['zero']])
+
+    if 'eac_type' in calibration_obj and calibration_obj['eac_type'] == 'int8':
+        print('EAC calibration available')
+        try:
+            client.writeRegisters([board_id], [0x1100], [1], [struct.pack('<f', calibration_obj['eac_scale'])])
+            client.writeRegisters([board_id], [0x1101], [1], [struct.pack('<f', calibration_obj['eac_offset'])])
+            eac_table_len = len(calibration_obj['eac_table'])
+            slice_len = 64
+            for i in range(0, eac_table_len, slice_len):
+                table_slice = calibration_obj['eac_table'][i:i+slice_len]
+                client.writeRegisters([board_id], [0x1200+i], [len(table_slice)], [struct.pack('<{}b'.format(len(table_slice)), *table_slice)])
+        except ProtocolError:
+            print('WARNING: Motor driver board does not support encoder angle compensation, try updating the firmware.')
+    client.setCurrentControlMode([board_id])
+
+    # Upload current offsets
+    offset_data = struct.pack('<fff', calibration_obj['ia_off'], calibration_obj['ib_off'], calibration_obj['ic_off'])
+    client.writeRegisters([board_id], [0x1050], [3], [offset_data])
+
+def initMotor(client, board_ids):
     for board_id in board_ids:
         success = False
         while not success:
             try:
-                print("Calibrating board:", board_id)
                 client.leaveBootloader([board_id])
                 client.resetInputBuffer()
                 time.sleep(0.1)
 
-                calibration_obj = client.readCalibration([board_id])
-                print(calibration_obj)
-
-                client.setZeroAngle([board_id], [calibration_obj['angle']])
-                client.setInvertPhases([board_id], [calibration_obj['inv']])
-                client.setERevsPerMRev([board_id], [calibration_obj['epm']])
-                client.setTorqueConstant([board_id], [calibration_obj['torque']])
-                client.setPositionOffset([board_id], [calibration_obj['zero']])
-                if 'eac_type' in calibration_obj and calibration_obj['eac_type'] == 'int8':
-                    print('EAC calibration available')
-                    try:
-                        client.writeRegisters([board_id], [0x1100], [1], [struct.pack('<f', calibration_obj['eac_scale'])])
-                        client.writeRegisters([board_id], [0x1101], [1], [struct.pack('<f', calibration_obj['eac_offset'])])
-                        eac_table_len = len(calibration_obj['eac_table'])
-                        slice_len = 64
-                        for i in range(0, eac_table_len, slice_len):
-                            table_slice = calibration_obj['eac_table'][i:i+slice_len]
-                            client.writeRegisters([board_id], [0x1200+i], [len(table_slice)], [struct.pack('<{}b'.format(len(table_slice)), *table_slice)])
-                    except ProtocolError:
-                        print('WARNING: Motor driver board does not support encoder angle compensation, try updating the firmware.')
-                client.setCurrentControlMode([board_id])
-                client.writeRegisters([board_id], [0x1030], [1], [struct.pack('<H', 1000)])
+                client.setWatchdogTimeout([board_id], [1000])
     
-                # Upload current offsets
-                offset_data = struct.pack('<fff', calibration_obj['ia_off'], calibration_obj['ib_off'], calibration_obj['ic_off'])
-                client.writeRegisters([board_id], [0x1050], [3], [offset_data])
-
                 # Setting gains for motor
-                client.writeRegisters([board_id], [0x1003], [1], [struct.pack('<f', 0.5)])  # DI Kp
-                client.writeRegisters([board_id], [0x1004], [1], [struct.pack('<f', 0.1)]) # DI Ki
-                client.writeRegisters([board_id], [0x1005], [1], [struct.pack('<f', 1.0)])  # QI Kp
-                client.writeRegisters([board_id], [0x1006], [1], [struct.pack('<f', 0.2)]) # QI Ki
+                client.setDirectCurrentKp([board_id], [0.5])
+                client.setDirectCurrentKi([board_id], [0.1])
+                client.setQuadratureCurrentKp([board_id], [1.0])
+                client.setQuadratureCurrentKi([board_id], [0.2])
 
                 success = True
             except (ProtocolError, struct.error, TypeError):

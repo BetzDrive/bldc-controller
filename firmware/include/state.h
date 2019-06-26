@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <ch.h>
 #include "Recorder.h"
+#include "constants.h"
 
 namespace motor_driver {
 
@@ -65,6 +66,7 @@ struct RolledADC {
 };
 
 struct Calibration {
+  uint16_t start_sequence = calib_ss;             // Start sequence to determine whether this is a valid calibration
   uint16_t erev_start = 0;                      // Encoder reading at the start of an electrical revolution
   uint8_t erevs_per_mrev = 1;                   // Electrical revolutions per mechanical revolution
   uint8_t flip_phases = false;                  // Phases A, B, C are arranged in clockwise instead of ccw order

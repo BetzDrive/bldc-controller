@@ -125,6 +125,9 @@ constexpr size_t enc_ang_corr_table_size = 257;
 /* Length of non-volatile parameters storage */
 constexpr size_t nvparams_len = 1u << 14; // 16 kiB
 
+/* Unique constant that identifies a valid calibration stored in memory */
+constexpr uint16_t calib_ss = 0x5454;
+
 extern const uint8_t *board_id_ptr;
 extern const void *calibration_ptr;
 extern const void *firmware_ptr;

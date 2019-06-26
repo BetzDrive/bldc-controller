@@ -42,7 +42,7 @@ if __name__ == '__main__':
     
     client.resetInputBuffer()
 
-    loadMotorCalibration(client, board_ids, mode)
+    initMotor(client, board_ids)
     
     start_time = time.time()
     count = 0

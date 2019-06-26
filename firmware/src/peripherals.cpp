@@ -214,4 +214,27 @@ void setRS485TransmitMode(bool transmit) {
   palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);
 }
 
+void storeCalibration() {
+  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
+  flashWrite(addr, (char *)&calibration, sizeof(Calibration));
+}
+
+void loadCalibration() {
+  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
+  uint16_t start_sequence = 0;
+  flashRead(addr, (char *)&start_sequence, sizeof(uint16_t));
+  if (start_sequence == calib_ss) {
+    flashRead(addr, (char *)&calibration, sizeof(Calibration));
+  }
+}
+
+void clearCalibration() {
+  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
+  flashErase(addr, sizeof(Calibration));
+
+  // Copy default values into calibration.
+  Calibration temp_calib;
+  std::memcpy(&calibration, &temp_calib, sizeof(Calibration));
+}
+
 } // namespace motor_driver

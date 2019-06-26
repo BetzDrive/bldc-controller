@@ -2,7 +2,9 @@
 #define _PERIPHERALS_H_
 
 #include <stdint.h>
+#include <cstring>
 #include "hal.h"
+#include "flash.h"
 #include "DRV8312.h"
 #include "AS5047D.h"
 #include "MCP9808.h"
@@ -50,6 +52,12 @@ void setADCOn();
 void setCommsActivityLED(bool on);
 
 void setRS485TransmitMode(bool transmit);
+
+void storeCalibration();
+
+void loadCalibration();
+
+void clearCalibration();
 
 /**
  * Converts an ADC value to voltage (in volts)
