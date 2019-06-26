@@ -190,7 +190,7 @@ if __name__ == '__main__':
     print(upload_data)
 
     with open('calibrations.json', 'w') as outfile:  
-        json.dump(upload_data, outfile)
+        json.dump([upload_data], outfile)
 
     #mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
     #plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
