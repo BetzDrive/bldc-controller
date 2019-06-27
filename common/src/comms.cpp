@@ -297,6 +297,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
   uint32_t sector_num, dest_addr;
   size_t dest_len;
   bool success;
+
+  /* Save for current watchdog state (workaround for missing STM32 Functionality) */
+  struct IWDG_Values save;
   
   /* For Enumeration */
   uint8_t target_id;
@@ -466,7 +469,10 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       sector_num |= (uint32_t)datagram[index++] << 16;
       sector_num |= (uint32_t)datagram[index++] << 24;
 
+      // The erase operation takes a very long time. Therefore, the watchdog timer must be temporarilty disabled around it.
+      save = pauseIWDG();
       success = (flashSectorErase(sector_num) == FLASH_RETURN_SUCCESS);
+      resumeIWDG(save);
 
       if (!success) {
         errors |= COMM_ERRORS_OP_FAILED;
