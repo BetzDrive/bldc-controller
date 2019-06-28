@@ -108,7 +108,7 @@ constexpr uint8_t control_mode_torque = 2;
 constexpr uint8_t control_mode_velocity = 3;
 constexpr uint8_t control_mode_position = 4;
 constexpr uint8_t control_mode_position_velocity = 5;
-constexpr uint8_t control_mode_fixed_ang_vel = 6;
+constexpr uint8_t control_mode_pwm_drive = 6;
 
 /* Encoder modes */
 constexpr uint8_t encoder_mode_none = 0;
@@ -119,18 +119,16 @@ constexpr uint8_t encoder_mode_aeat6600 = 3;
 /* Encoder angle correction */
 constexpr size_t enc_ang_corr_table_size = 257;
 
-/* Address of non-volatile parameters storage */
-/* extern const void *nvparams_start; */
+/* Addresses of memory sections in flash */
+extern const uint8_t *board_id_ptr;
+extern const void *calibration_ptr;
+extern const void *firmware_ptr;
 
 /* Length of non-volatile parameters storage */
 constexpr size_t nvparams_len = 1u << 14; // 16 kiB
 
 /* Unique constant that identifies a valid calibration stored in memory */
 constexpr uint16_t calib_ss = 0x5454;
-
-extern const uint8_t *board_id_ptr;
-extern const void *calibration_ptr;
-extern const void *firmware_ptr;
 
 } // namespace motor_driver
 

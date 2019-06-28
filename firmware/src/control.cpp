@@ -164,7 +164,6 @@ void estimateState() {
    * 2) average arrays are not initialized to zero
    */
 
-  // TODO: should this be RMS voltage and current?
   // Subtract old values before storing/adding new values
   // Start doing this after rolling over
   if (rolladc.vin[rolladc.count] != 0) {
@@ -218,12 +217,9 @@ void estimateState() {
     recorder_new_data[recorder_channel_ia] = results.corrected_ia;
     recorder_new_data[recorder_channel_ib] = results.corrected_ib;
     recorder_new_data[recorder_channel_ic] = results.corrected_ic;
-    //recorder_new_data[recorder_channel_va] = results.average_va;
-    //recorder_new_data[recorder_channel_vb] = results.average_vb;
-    //recorder_new_data[recorder_channel_vc] = results.average_vc;
-    recorder_new_data[recorder_channel_va] = results.duty_a;
-    recorder_new_data[recorder_channel_vb] = results.duty_b;   
-    recorder_new_data[recorder_channel_vc] = results.duty_c;
+    recorder_new_data[recorder_channel_va] = results.average_va;
+    recorder_new_data[recorder_channel_vb] = results.average_vb;
+    recorder_new_data[recorder_channel_vc] = results.average_vc;
     recorder_new_data[recorder_channel_vin] = results.average_vin;
     recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
     recorder_new_data[recorder_channel_rotor_vel] = results.hf_rotor_vel;
@@ -306,15 +302,22 @@ void runCurrentControl() {
       id_sp = 0.0f;
       iq_sp = parameters.torque_sp / calibration.motor_torque_const;
     }
+    
+    float vd = 0.0;
+    float vq = 0.0;
+    if (parameters.control_mode == control_mode_pwm_drive) {
+      vd = 0;
+      vq = parameters.pwm_drive;
+    } else {
+      pid_id.setTarget(id_sp);
+      pid_iq.setTarget(iq_sp);
 
-    pid_id.setTarget(id_sp);
-    pid_iq.setTarget(iq_sp);
+      results.id_output = pid_id.compute(id);
+      results.iq_output = pid_iq.compute(iq);
 
-    results.id_output = pid_id.compute(id);
-    results.iq_output = pid_iq.compute(iq);
-
-    float vd = results.id_output * calibration.motor_resistance;
-    float vq = results.iq_output * calibration.motor_resistance; // + results.hf_rotor_vel * calibration.motor_torque_const;
+      vd = results.id_output * calibration.motor_resistance;
+      vq = results.iq_output * calibration.motor_resistance; // + results.hf_rotor_vel * calibration.motor_torque_const;
+    }
 
     float mag = std::sqrt(std::pow(vd, 2) + std::pow(vq, 2));
     float div = std::max(results.average_vin, mag);

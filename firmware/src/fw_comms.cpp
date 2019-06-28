@@ -159,6 +159,10 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x2008: // Position Setpoint (rad)
           handleVarAccess(parameters.position_sp, buf, index, buf_size, access_type, errors);
           break;
+        case 0x2009: // PWM Drive (V)
+          handleVarAccess(parameters.pwm_drive, buf, index, buf_size, access_type, errors);
+          break;
+
 
         case 0x3000: // Rotor Position (rad)
           handleVarAccess(results.rotor_pos, buf, index, buf_size, access_type, errors);

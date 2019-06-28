@@ -2,8 +2,10 @@
 *.pyc
 *.swp
 *.swo
-.metadata/
-.cproject
-.project
-.settings/
 results/
+spinner_log.txt
+.metadata
+RemoteSystemsTempFiles/
+firmware/.cproject
+firmware/.project
+firmware/.settings/

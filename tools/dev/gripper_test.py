@@ -60,7 +60,10 @@ di_list = []
 qi_list = []
 time_list = []
 
-while num_grips < 1: # MAX_CYCLES:
+while num_grips < MAX_CYCLES:
+    di_list = []
+    qi_list = []
+    time_list = []
     address = addresses[0]
     if not overheated:
         duty_cycle = duty_cycles[0]
@@ -79,7 +82,7 @@ while num_grips < 1: # MAX_CYCLES:
             print(str(e))
             pass
 
-    #max_current = max(qi_list[-10:])
+    max_current = sum(qi_list[-10:])/10.0
     closed_pos = state[0]
 
     # Open the gripper until position is the starting position 
