@@ -37,13 +37,6 @@ for id in motor_ids:
                 client.setERevsPerMRev([id], [calibrations['epm']])
                 client.setTorqueConstant([id], [calibrations['torque']])
                 client.setPositionOffset([id], [calibrations['zero']])
-                #client.setZeroAngle([id], [1169])
-                #client.setInvertPhases([id], [1])
-                #client.setERevsPerMRev([id], [14])
-                #client.setTorqueConstant([id], [1.45])
-                #client.setPositionOffset([id], [0.0])
-                #client.setCurrentControlMode([id])
-                #starting_angles[id] = 0.0
                 client.writeRegisters([id], [0x1030], [1], [struct.pack('<H', 1000)])
                 print("Motor %d ready: supply voltage=%fV", id, client.getVoltage([id])[0])
                 success = True

@@ -2,7 +2,9 @@
 #define _PERIPHERALS_H_
 
 #include <stdint.h>
+#include <cstring>
 #include "hal.h"
+#include "flash.h"
 #include "DRV8312.h"
 #include "AS5047D.h"
 #include "MCP9808.h"
@@ -51,6 +53,12 @@ void setCommsActivityLED(bool on);
 
 void setRS485TransmitMode(bool transmit);
 
+void storeCalibration();
+
+void loadCalibration();
+
+void clearCalibration();
+
 /**
  * Converts an ADC value to voltage (in volts)
  */
@@ -62,7 +70,7 @@ inline float adcValueToVoltage(float adc_value) {
  * Converts an ADC value to current (in amperes)
  */
 inline float adcValueToCurrent(float adc_value) {
-  return (adc_value - ivsense_count_zero_current) * ivsense_current_per_count;
+  return (ivsense_count_zero_current - adc_value) * ivsense_current_per_count;
 }
 
 } // namespace motor_driver

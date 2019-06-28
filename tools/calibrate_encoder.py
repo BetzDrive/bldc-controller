@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, print_function
 
 import argparse
 import serial
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # Data collection
     #
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.01)
     time.sleep(0.1)
 
     client = BLDCControllerClient(ser)
@@ -45,11 +45,11 @@ if __name__ == '__main__':
         a, b, c = phase_state
         client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle)])
 
-    client.writeRegisters([args.board_id], [0x1030], [1], [struct.pack('<H', 1000)]) # Control watchdog timeout
+    client.setWatchdogTimeout([args.board_id], [1000])
     client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', 0, 0, 0)])
     client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 1)])
 
-    time.sleep(0.1)
+    time.sleep(0.2)
 
     # First, read floating currents to calculate offset
     # The number of values returned by the recorder (all floats)
@@ -60,6 +60,7 @@ if __name__ == '__main__':
     success = struct.unpack('<B', client.readRegisters([args.board_id], [0x3009], [1])[0])[0]
     print("started: %u" % success)
 
+    data = []
     l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
     while l == 0:
         l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
@@ -67,14 +68,26 @@ if __name__ == '__main__':
     arr = []
     for i in range(0, l, num_recorder_elements):
         # Grab the recorder data
-        a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
-        arr += [a]
+        try:
+            a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
+            data += [a]
+        except (ProtocolError, struct.error, TypeError):
+            print("Missed packet")
 
-    num_avg = 100
-    ia_offset = sum(arr[0][:num_avg])/num_avg
-    ib_offset = sum(arr[1][:num_avg])/num_avg
-    ic_offset = sum(arr[2][:num_avg])/num_avg
- 
+    f, axarr = plt.subplots(1, sharex=True)
+
+    ia = [e[0] for e in data]
+    ib = [e[1] for e in data]
+    ic = [e[2] for e in data]
+    len_data = len(data)
+    ia_offset = sum(ia)/len_data    
+    ib_offset = sum(ib)/len_data    
+    ic_offset = sum(ic)/len_data    
+
+    print("Phase A Offset:", ia_offset)
+    print("Phase B Offset:", ib_offset)
+    print("Phase C Offset:", ic_offset)
+
     # Start one step before phase A to avoid boundary issues
     set_phase_state(phase_state_list[-1])
     time.sleep(args.delay)
@@ -85,7 +98,7 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = struct.unpack('<H', client.readRegisters([args.board_id], [0x3010], [1])[0])[0]
+        raw_angle = client.getRawRotorPosition([args.board_id])[0]
 
         if i > 4 and abs(forward_raw_angles[0] - raw_angle) < abs(forward_raw_angles[1] - forward_raw_angles[0]) / 3.0:
             break
@@ -104,7 +117,7 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = struct.unpack('<H', client.readRegisters([args.board_id], [0x3010], [1])[0])[0]
+        raw_angle = client.getRawRotorPosition([args.board_id])[0]
 
         backward_raw_angles.append(raw_angle)
 
@@ -170,14 +183,14 @@ if __name__ == '__main__':
         "zero":0.0,
         "ia_off":ia_offset,
         "ib_off":ib_offset,
-        "ic_off":ic_offset
-    }
+        "ic_off":ic_offset,
+        }
 
     print("Calibration")
     print(upload_data)
 
     with open('calibrations.json', 'w') as outfile:  
-        json.dump(upload_data, outfile)
+        json.dump([upload_data], outfile)
 
     #mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
     #plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)

@@ -40,6 +40,12 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           break;
         case 0x0003: // Bootloader Version
           break;
+        case 0x0004: // Store Motor Calibration to Memory
+          storeCalibration();
+          break;
+        case 0x0005: // Clear Motor Calibration from Memory
+          clearCalibration();
+          break;
 
         case 0x1000: // Electrical Revolution Start
           handleVarAccess(calibration.erev_start, buf, index, buf_size, access_type, errors);
@@ -104,8 +110,20 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x1030: // Control Timeout (ms)
           handleVarAccess(calibration.control_timeout, buf, index, buf_size, access_type, errors);
           break;
-        case 0x1040: // Velocity Filter Parameter
-          handleVarAccess(calibration.velocity_filter_param, buf, index, buf_size, access_type, errors);
+        case 0x1040: // HF Velocity Filter Parameter
+          handleVarAccess(calibration.hf_velocity_filter_param, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x1041: // LF Velocity Filter Parameter
+          handleVarAccess(calibration.lf_velocity_filter_param, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x1050: // Current Phase A Offset 
+          handleVarAccess(calibration.ia_offset, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x1051: // Current Phase B Offset 
+          handleVarAccess(calibration.ib_offset, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x1052: // Current Phase C Offset 
+          handleVarAccess(calibration.ic_offset, buf, index, buf_size, access_type, errors);
           break;
         case 0x1100: // Encoder Angle Correction Scale (rad)
           handleVarAccess(calibration.enc_ang_corr_scale, buf, index, buf_size, access_type, errors);
@@ -146,7 +164,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           handleVarAccess(results.rotor_pos, buf, index, buf_size, access_type, errors);
           break;
         case 0x3001: // Rotor Velocity (rad/sec)
-          handleVarAccess(results.rotor_vel, buf, index, buf_size, access_type, errors);
+          handleVarAccess(results.lf_rotor_vel, buf, index, buf_size, access_type, errors);
           break;
         case 0x3002: // Direct Current Measurement (A)
           handleVarAccess(results.foc_d_current, buf, index, buf_size, access_type, errors);
@@ -188,7 +206,12 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x3010: // Rotor Position (raw) 
           handleVarAccess(results.raw_enc_value, buf, index, buf_size, access_type, errors);
           break;
+        case 0x3011: // iq output from PID controller (A) 
+          handleVarAccess(results.iq_output, buf, index, buf_size, access_type, errors);
+          break;
        
+ 
+ 
         default:
           errors |= COMM_ERRORS_INVALID_ARGS;
           return 0;

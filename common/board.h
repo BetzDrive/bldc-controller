@@ -633,7 +633,7 @@
                                      PIN_ODR_LOW(GPIOC_SPI_MOSI) |          \
                                      PIN_ODR_LOW(GPIOC_TEMP_INT) |          \
                                      PIN_ODR_LOW(GPIOC_IMU_INT1) |          \
-                                     PIN_ODR_HIGH(GPIOC_RS485_SHUNT_EN))
+                                     PIN_ODR_LOW(GPIOC_RS485_SHUNT_EN))
 #define VAL_GPIOC_AFRL              (PIN_AFIO_AF(GPIOC_ISENSE_A, 0U) |      \
                                      PIN_AFIO_AF(GPIOC_ISENSE_B, 0U) |      \
                                      PIN_AFIO_AF(GPIOC_ISENSE_C, 0U) |      \
