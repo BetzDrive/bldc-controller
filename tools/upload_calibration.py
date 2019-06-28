@@ -48,6 +48,14 @@ if __name__ == '__main__':
 
             loadCalibrationFromJSON(client, board_id, calib)
 
+            client.setWatchdogTimeout([board_id], [1000])
+    
+            # Setting gains for motor
+            client.setDirectCurrentKp([board_id], [0.5])
+            client.setDirectCurrentKi([board_id], [0.1])
+            client.setQuadratureCurrentKp([board_id], [1.0])
+            client.setQuadratureCurrentKi([board_id], [0.2])
+
             # Store Calibration struct to Parameters
             client.storeCalibration([board_id])
 

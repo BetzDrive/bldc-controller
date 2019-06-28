@@ -82,25 +82,20 @@ def loadCalibrationFromJSON(client, board_id, calibration_obj):
     client.writeRegisters([board_id], [0x1050], [3], [offset_data])
 
 def initMotor(client, board_ids):
-    for board_id in board_ids:
-        success = False
-        while not success:
-            try:
-                client.leaveBootloader([board_id])
-                client.resetInputBuffer()
-                time.sleep(0.1)
-
-                client.setWatchdogTimeout([board_id], [1000])
+    success = False
+    while not success:
+        try:
+            client.setWatchdogTimeout(board_ids, [1000]*len(board_ids))
     
-                # Setting gains for motor
-                client.setDirectCurrentKp([board_id], [0.5])
-                client.setDirectCurrentKi([board_id], [0.1])
-                client.setQuadratureCurrentKp([board_id], [1.0])
-                client.setQuadratureCurrentKi([board_id], [0.2])
+            # Setting gains for motor
+            client.setDirectCurrentKp(board_ids, [0.5]*len(board_ids))
+            client.setDirectCurrentKi(board_ids, [0.1]*len(board_ids))
+            client.setQuadratureCurrentKp(board_ids, [1.0]*len(board_ids))
+            client.setQuadratureCurrentKi(board_ids, [0.2]*len(board_ids))
 
-                success = True
-            except (ProtocolError, struct.error, TypeError):
-                print("Failed to calibrate board, retrying...")
+            success = True
+        except (ProtocolError, struct.error, TypeError):
+            print("Failed to calibrate board, retrying...")
     print("Finished calibration of boards:", board_ids)
  
 # Defining Control Mode ID Lookup

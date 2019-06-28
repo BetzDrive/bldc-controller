@@ -87,12 +87,6 @@ void runInnerControlLoop() {
      */
     chEvtWaitAny((flagsmask_t)1);
 
-    //if (gate_driver.hasFault() || gate_driver.hasOCTW()) {
-    //  parameters.gate_fault = true;
-    //} else {
-    //  parameters.gate_fault = false;
-    //}
-
     // If there is no fault, enable the motors.
     if (!parameters.gate_active && !parameters.gate_fault) {
       gate_driver.enableGates();
@@ -103,6 +97,9 @@ void runInnerControlLoop() {
     if (parameters.gate_active && parameters.gate_fault) {
       gate_driver.disableGates();
       parameters.gate_active = false;
+      chThdSleepMicroseconds(500);
+      gate_driver.enableGates();
+      chThdSleepMicroseconds(500);
     }
 
     if (calibration.control_timeout != 0 && (chTimeNow() - last_control_timeout_reset) >= MS2ST(calibration.control_timeout)) {

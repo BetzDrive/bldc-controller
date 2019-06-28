@@ -40,13 +40,20 @@ static msg_t blinkerThreadRun(void *arg) {
     uint8_t g = ::abs(t - 255);
     uint8_t r = 0;
     uint8_t b = 0;
-    if (gate_driver.hasFault()) {
+    bool fault = gate_driver.hasFault();
+    bool OCTW = gate_driver.hasOCTW();
+    if (fault) {
       r = g < 50 ? 255 : r;
       g = g < 50 ? 0 : g;
-    } 
-    if (gate_driver.hasOCTW()) {
+      parameters.gate_fault = true;
+    }
+    if (OCTW) {
       b = g > 200 ? 255 : b;
       g = g > 200 ? 0 : g;
+      parameters.gate_fault = true;
+    }
+    if (not (fault or OCTW)) {
+      parameters.gate_fault = false;
     }
 
     setStatusLEDColor(r,g,b);
@@ -134,14 +141,14 @@ static msg_t watchdogThreadRun(void *arg) {
 
   RCC->CSR |= RCC_CSR_RMVF;
   IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-  IWDG_SetReload(10);
+  IWDG_SetReload(80);
   IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
   IWDG_ReloadCounter();
   IWDG_Enable();
 
   while (true) {
     IWDG_ReloadCounter();
-    chThdSleepMicroseconds(200);
+    chThdSleepMilliseconds(2);
   }
 
   return CH_SUCCESS; // Should never get here
@@ -172,12 +179,12 @@ int main(void) {
 
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
-  chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
+  chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), HIGHPRIO, commsThreadRun, NULL);
   chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO, sensorThreadRun, NULL);
-  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), HIGHPRIO, controlThreadRun, NULL);
+  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), NORMALPRIO, controlThreadRun, NULL);
   chThdCreateStatic(watchdog_thread_wa, sizeof(watchdog_thread_wa), HIGHPRIO, watchdogThreadRun, NULL);
 
-  // Wait forever and reset IDWG
+  // Wait forever
   while (true) {
     chThdSleepMilliseconds(1000);
   }

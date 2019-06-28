@@ -35,11 +35,13 @@ if __name__ == '__main__':
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.004)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.04)
 
     client = BLDCControllerClient(ser)
     initialized = initBoards(client, board_ids)
     
+    client.leaveBootloader(board_ids)
+
     client.resetInputBuffer()
 
     initMotor(client, board_ids)

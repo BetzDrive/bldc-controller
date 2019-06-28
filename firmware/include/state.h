@@ -101,7 +101,7 @@ struct Calibration {
 };
 
 struct Parameters {
-  uint8_t control_mode = control_mode_raw_phase_pwm;  // Control mode
+  uint8_t control_mode = control_mode_foc_current;  // Control mode
   float foc_q_current_sp = 0.0f;                      // FOC quadrature current setpoint in amperes
   float foc_d_current_sp = 0.0f;                      // FOC direct current setpoint in amperes
   bool override_led_color = false;                    // Override normal status LED behavior

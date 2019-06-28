@@ -72,6 +72,10 @@ int main(void) {
   halInit();
   chSysInit();
 
+  if (RCC->CSR & RCC_CSR_WDGRSTF) {
+    flashJumpApplication((uint32_t)firmware_ptr);
+  }
+
   // Start peripherals
   startPeripherals();
 
@@ -81,11 +85,6 @@ int main(void) {
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
   chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
-
-  if (RCC->CSR & RCC_CSR_WDGRSTF) {
-    RCC->CSR |= RCC_CSR_RMVF;
-    flashJumpApplication((uint32_t)firmware_ptr);
-  }
 
   // Wait forever
   while (true) {
