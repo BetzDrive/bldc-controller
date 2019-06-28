@@ -103,17 +103,17 @@ During normal operation, the bootloader will pulse the RGB LED blue.
 ## Firmware
 The firmware code starts by initializing hardware devices and then splits into a number of threads.
 
-### LED Indicator <low priority>
+### LED Indicator [low priority]
 During normal operation, the firmware will pulse the RGB LED green. If a red or blue pulse is seen while in firmware, the driver chip Fault and/or OTW pins have activated. Refer to the DRV8312 datasheet for the type of fault.
 
-### Sensor Thread <low priority>
+### Sensor Thread [low priority]
 Pulls updates from the accelerometer and temperature sensor.
   
-### Control Thread <normal priority>
+### Control Thread [normal priority]
 Pulls updates from ADC for current/voltage measurements as well as queues reads to the absolute encoder. With this data, FOC is computed with output duty cycles to STM32 timing hardware.
   
-### Communication Thread <high priority>
+### Communication Thread [high priority]
 Used to update motor targets and read current position, velocity, accelerometer data, temperature, etc.
 
-### Independent Watchdog Thread <high priority>
+### Independent Watchdog Thread [high priority]
 Used to keep the system live while protecting from the chance of a hard fault or any other unforseen errors. When a lock-up occurs, the system will reset into bootloader which will then check the watchdog reset flag. If it is active, the bootloader will return the system to firmware mode.
