@@ -3,6 +3,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stm32f4xx.h"
+#include "stm32f4xx_iwdg.h"
 #include "stdbool.h"
 #include "chprintf.h"
 #include "peripherals.h"
@@ -37,11 +38,25 @@ static msg_t blinkerThreadRun(void *arg) {
 
   while (true) {
     uint8_t g = ::abs(t - 255);
-    if (gate_driver.hasFault() || gate_driver.hasOCTW()) {
-      setStatusLEDColor(g < 50 ? 255 : 0, g, 0);
-    } else {
-      setStatusLEDColor(0, g, 0);
+    uint8_t r = 0;
+    uint8_t b = 0;
+    bool fault = gate_driver.hasFault();
+    bool OCTW = gate_driver.hasOCTW();
+    if (fault) {
+      r = g < 50 ? 255 : r;
+      g = g < 50 ? 0 : g;
+      parameters.gate_fault = true;
     }
+    if (OCTW) {
+      b = g > 200 ? 255 : b;
+      g = g > 200 ? 0 : g;
+      parameters.gate_fault = true;
+    }
+    if (not (fault or OCTW)) {
+      parameters.gate_fault = false;
+    }
+
+    setStatusLEDColor(r,g,b);
 
     systime_t time_now = chTimeNow();
 
@@ -114,6 +129,31 @@ static msg_t controlThreadRun(void *arg) {
   return CH_SUCCESS; // Should never get here
 }
 
+/*
+ * Control thread
+ */
+
+static WORKING_AREA(watchdog_thread_wa, 512);
+static msg_t watchdogThreadRun(void *arg) {
+  (void)arg;
+
+  chRegSetThreadName("watchdog");
+
+  RCC->CSR |= RCC_CSR_RMVF;
+  IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+  IWDG_SetReload(80);
+  IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
+  IWDG_ReloadCounter();
+  IWDG_Enable();
+
+  while (true) {
+    IWDG_ReloadCounter();
+    chThdSleepMilliseconds(2);
+  }
+
+  return CH_SUCCESS; // Should never get here
+}
+
 int main(void) {
   // Start RTOS
   halInit();
@@ -131,14 +171,18 @@ int main(void) {
   // Start peripherals
   startPeripherals();
 
+  // Load Calibrations from Flash
+  loadCalibration();
+
   // Set comms activity callback
   comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
 
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
-  chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
+  chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), HIGHPRIO, commsThreadRun, NULL);
   chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO, sensorThreadRun, NULL);
-  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), HIGHPRIO, controlThreadRun, NULL);
+  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), NORMALPRIO, controlThreadRun, NULL);
+  chThdCreateStatic(watchdog_thread_wa, sizeof(watchdog_thread_wa), HIGHPRIO, watchdogThreadRun, NULL);
 
   // Wait forever
   while (true) {

@@ -208,7 +208,9 @@ class LSM6DS3Sensor
       uint8_t add = (uint8_t) ((address >> 1) & 0x7F);
       systime_t tmo = MS2ST(3);
       msg_t status = RDY_OK;
+      i2cAcquireBus(dev_i2c);
       status = i2cMasterTransmitTimeout(dev_i2c, add, &RegisterAddr, 1, pBuffer, NumByteToRead, tmo);
+      i2cReleaseBus(dev_i2c);
       if (status == RDY_OK) {
         return 0;
       } else {
@@ -233,7 +235,9 @@ class LSM6DS3Sensor
       }
       systime_t tmo = MS2ST(3);
       msg_t status = RDY_OK;
+      i2cAcquireBus(dev_i2c);
       status = i2cMasterTransmitTimeout(dev_i2c, add, txbuf, NumByteToWrite + 1, pBuffer, 0, tmo);
+      i2cReleaseBus(dev_i2c);
       if (status == RDY_OK) {
         return 0;
       } else {

@@ -7,8 +7,10 @@
 #include "fast_math.h"
 #include "chprintf.h"
 #include "SVM.h"
-#include "PID.h"
+#include "pid.h"
 #include "constants.h"
+
+#include <cmath>
 
 namespace motor_driver {
 
@@ -45,9 +47,19 @@ static float getEncoderAngleCorrection(float raw_enc_pos) {
   }
 }
 
+static float clamp(float val, float min, float max) {
+  if (val > max) {
+    return max;
+  } else if (val < min) {
+    return min;
+  } else {
+    return val;
+  }
+}
+
 void initControl() {
-  pid_id.setInputLimits(-ivsense_current_max, ivsense_current_max);
-  pid_iq.setInputLimits(-ivsense_current_max, ivsense_current_max);
+  pid_id.setLimits(-ivsense_current_max, ivsense_current_max);
+  pid_iq.setLimits(-ivsense_current_max, ivsense_current_max);
   last_control_timeout_reset = chTimeNow();
 }
 
@@ -62,27 +74,12 @@ void resumeInnerControlLoop() {
 void runInnerControlLoop() {
   control_thread_ptr = chThdSelf();
 
-  if (results.encoder_mode == encoder_mode_as5047d) {
-    /*
-     * getPipelinedRegisterReadResultI requires startPipelinedRegisterReadI to be called beforehand
-     */
+  chSysLock();
 
-    chSysLock();
+  // getPipelinedResultI requires startPipelinedAngleReadI to be called beforehand
+  encoder.startPipelinedRegisterReadI(0x3fff);
 
-    encoder_as5047d.startPipelinedRegisterReadI(0x3fff);
-
-    chSysUnlock();
-  } else if (results.encoder_mode == encoder_mode_mlx90363) {
-    uint8_t txbuf[8];
-
-    encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
-
-    chSysLock();
-
-    encoder_mlx90363.startAsyncExchangeMessageI(txbuf);
-
-    chSysUnlock();
-  }
+  chSysUnlock();
 
   while (true) {
     /*
@@ -90,9 +87,24 @@ void runInnerControlLoop() {
      */
     chEvtWaitAny((flagsmask_t)1);
 
+    // If there is no fault, enable the motors.
+    if (!parameters.gate_active && !parameters.gate_fault) {
+      gate_driver.enableGates();
+      parameters.gate_active = true;
+    }
+
+    // If there is a fault, disable the motors.
+    if (parameters.gate_active && parameters.gate_fault) {
+      gate_driver.disableGates();
+      parameters.gate_active = false;
+      chThdSleepMicroseconds(500);
+      gate_driver.enableGates();
+      chThdSleepMicroseconds(500);
+    }
+
     if (calibration.control_timeout != 0 && (chTimeNow() - last_control_timeout_reset) >= MS2ST(calibration.control_timeout)) {
       brakeMotor();
-    }
+    } 
 
     estimateState();
 
@@ -111,48 +123,12 @@ void estimateState() {
 
   uint16_t raw_enc_value;
 
-  if (results.encoder_mode == encoder_mode_as5047d) {
-    chSysLock(); // Required for function calls with "I" suffix
+  chSysLock(); // Required for function calls with "I" suffix
 
-    raw_enc_value = encoder_as5047d.getPipelinedRegisterReadResultI();
-    encoder_as5047d.startPipelinedRegisterReadI(0x3fff);
+  raw_enc_value = encoder.getPipelinedRegisterReadResultI();
+  encoder.startPipelinedRegisterReadI(0x3fff);
 
-    chSysUnlock();
-  } else if (results.encoder_mode == encoder_mode_mlx90363) {
-    static int cycles_since_update = 0;
-
-    // MLX90363 can only provide a new position every 20 cycles
-    if (cycles_since_update >= 20) {
-      uint8_t txbuf[8];
-      uint8_t rxbuf[8];
-
-      encoder_mlx90363.createGet1AlphaMessage(txbuf, 0xffff);
-
-      chSysLock();
-
-      encoder_mlx90363.getAsyncExchangeMessageResultI(rxbuf);
-      encoder_mlx90363.startAsyncExchangeMessageI(txbuf);
-
-      chSysUnlock();
-
-      mlx90363_status_t status = encoder_mlx90363.parseAlphaMessage(rxbuf, &raw_enc_value, nullptr);
-      raw_enc_value = encoder_period - raw_enc_value; // MLX90363 angles increase in opposite direction
-
-      if (status != MLX90363_STATUS_OK) {
-        // If an error occurred, use the previous encoder position
-        raw_enc_value = results.raw_enc_value;
-      }
-
-      cycles_since_update = 0;
-    } else {
-      // Use the previous encoder position
-      raw_enc_value = results.raw_enc_value;
-    }
-
-    cycles_since_update++;
-  } else {
-    raw_enc_value = 0; // TODO
-  }
+  chSysUnlock();
 
   results.raw_enc_value = raw_enc_value;
 
@@ -174,89 +150,104 @@ void estimateState() {
   results.rotor_pos = enc_pos + results.rotor_revs * 2 * pi - calibration.position_offset;
 
   float rotor_vel_update = enc_pos_diff * current_control_freq;
-  float alpha = calibration.velocity_filter_param;
-  results.rotor_vel = alpha * rotor_vel_update + (1.0f - alpha) * results.rotor_vel;
+  // High frequency estimate used for on-board commutation
+  float hf_alpha = calibration.hf_velocity_filter_param;
+  results.hf_rotor_vel = hf_alpha * rotor_vel_update + (1.0f - hf_alpha) * results.hf_rotor_vel;
+  // Low frequency estimate sent to host
+  float lf_alpha = calibration.lf_velocity_filter_param;
+  results.lf_rotor_vel = lf_alpha * rotor_vel_update + (1.0f - lf_alpha) * results.lf_rotor_vel;
 
   /*
    * Calculate average voltages and currents
+   * This will have odd behavior if the following conditions are not met:
+   * 1) count starts at zero 
+   * 2) average arrays are not initialized to zero
    */
 
-  // TODO: should this be RMS voltage and current?
-
-  unsigned int adc_ia_sum = 0;
-  unsigned int adc_ib_sum = 0;
-  unsigned int adc_ic_sum = 0;
-  unsigned int adc_va_sum = 0;
-  unsigned int adc_vb_sum = 0;
-  unsigned int adc_vc_sum = 0;
-  unsigned int adc_vin_sum = 0;
-
-  for (size_t i = 0; i < ivsense_adc_samples_count; i++) {
-    adc_ia_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ia];
-    adc_ib_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ib];
-    adc_ic_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_ic];
-    adc_va_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_va];
-    adc_vb_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vb];
-    adc_vc_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vc];
-    adc_vin_sum += ivsense_adc_samples_ptr[i * ivsense_channel_count + ivsense_channel_vin];
+  // Subtract old values before storing/adding new values
+  // Start doing this after rolling over
+  if (rolladc.vin[rolladc.count] != 0) {
+    results.average_ia  -= adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_ib  -= adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_ic  -= adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_va  -= adcValueToVoltage((float)(rolladc.va [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_vb  -= adcValueToVoltage((float)(rolladc.vb [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_vc  -= adcValueToVoltage((float)(rolladc.vc [rolladc.count])) / ivsense_rolling_average_count;
+    results.average_vin -= adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
   }
 
-  results.average_ia = adcValueToCurrent((float)adc_ia_sum / ivsense_samples_per_cycle);
-  results.average_ib = adcValueToCurrent((float)adc_ib_sum / ivsense_samples_per_cycle);
-  results.average_ic = adcValueToCurrent((float)adc_ic_sum / ivsense_samples_per_cycle);
-  results.average_va = adcValueToVoltage((float)adc_va_sum / ivsense_samples_per_cycle);
-  results.average_vb = adcValueToVoltage((float)adc_vb_sum / ivsense_samples_per_cycle);
-  results.average_vc = adcValueToVoltage((float)adc_vc_sum / ivsense_samples_per_cycle);
-  results.average_vin = adcValueToVoltage((float)adc_vin_sum / ivsense_samples_per_cycle);
+  rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
+  rolladc.ib [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ib ];
+  rolladc.ic [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ic ];
+  rolladc.va [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_va ];
+  rolladc.vb [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vb ];
+  rolladc.vc [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vc ];
+  rolladc.vin[rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
+
+  // The new average is equal to the addition of the old value minus the last value (delta) over the count and then converted to a current.
+  // For the first (ivsense_rolling_average_count) values, the average will be wrong.
+  results.average_ia  += adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_ib  += adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_ic  += adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_va  += adcValueToVoltage((float)(rolladc.va [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vb  += adcValueToVoltage((float)(rolladc.vb [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vc  += adcValueToVoltage((float)(rolladc.vc [rolladc.count])) / ivsense_rolling_average_count;
+  results.average_vin += adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
+
+  rolladc.count = (rolladc.count + 1) % ivsense_rolling_average_count;
+
+  results.corrected_ia = results.average_ia - calibration.ia_offset;
+  results.corrected_ib = results.average_ib - calibration.ib_offset;
+  results.corrected_ic = results.average_ic - calibration.ic_offset;
+
+  //if (results.duty_a > results.duty_b && results.duty_a > results.duty_c) {
+  //  results.corrected_ia = -(results.corrected_ib + results.corrected_ic);
+  //} else if (results.duty_b > results.duty_c) {
+  //  results.corrected_ib = -(results.corrected_ia + results.corrected_ic);
+  //} else {
+  //  results.corrected_ic = -(results.corrected_ia + results.corrected_ib);
+  //}
 
   /*
    * Record data
    */
+  if (rolladc.count == 0) {
+    float recorder_new_data[recorder_channel_count];
 
-  float recorder_new_data[recorder_channel_count];
+    recorder_new_data[recorder_channel_ia] = results.corrected_ia;
+    recorder_new_data[recorder_channel_ib] = results.corrected_ib;
+    recorder_new_data[recorder_channel_ic] = results.corrected_ic;
+    recorder_new_data[recorder_channel_va] = results.average_va;
+    recorder_new_data[recorder_channel_vb] = results.average_vb;
+    recorder_new_data[recorder_channel_vc] = results.average_vc;
+    recorder_new_data[recorder_channel_vin] = results.average_vin;
+    recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
+    recorder_new_data[recorder_channel_rotor_vel] = results.hf_rotor_vel;
+    recorder_new_data[recorder_channel_ex1] = results.foc_q_current;
+    recorder_new_data[recorder_channel_ex2] = results.foc_d_current;
 
-  recorder_new_data[recorder_channel_ia] = results.average_ia;
-  recorder_new_data[recorder_channel_ib] = results.average_ib;
-  recorder_new_data[recorder_channel_ic] = results.average_ic;
-  recorder_new_data[recorder_channel_va] = results.average_va;
-  recorder_new_data[recorder_channel_vb] = results.average_vb;
-  recorder_new_data[recorder_channel_vc] = results.average_vc;
-  recorder_new_data[recorder_channel_vin] = results.average_vin;
-  recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
-  recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
-
-  recorder.recordSample(recorder_new_data);
+    recorder.recordSample(recorder_new_data);
+  }
+  
 }
 
 void runPositionControl() {
   if (parameters.control_mode == control_mode_position || parameters.control_mode == control_mode_position_velocity) {
-    pid_position.setMode(AUTO_MODE);
-    pid_position.setTunings(calibration.position_kp, calibration.position_ki, 0.0f);
-    pid_position.setInputLimits(-1.0f, 1.0f);
-    pid_position.setOutputLimits(-calibration.velocity_limit, calibration.velocity_limit);
-    pid_position.setSetPoint(0.0f);
-    pid_position.setProcessValue(results.rotor_pos - parameters.position_sp);
-    pid_position.setBias(0.0f);
-    parameters.velocity_sp = pid_position.compute();
-  } else {
-    pid_position.setMode(MANUAL_MODE);
+    pid_position.setGains(calibration.position_kp, calibration.position_ki, 0.0f);
+    pid_position.setLimits(-calibration.velocity_limit, calibration.velocity_limit);
+    pid_position.setTarget(parameters.position_sp);
+    parameters.velocity_sp = pid_position.compute(results.rotor_pos);
   }
 }
 
 void runVelocityControl() {
   if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position || parameters.control_mode == control_mode_position_velocity) {
-    pid_velocity.setMode(AUTO_MODE);
-    pid_velocity.setTunings(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
+    pid_velocity.setGains(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
     // float velocity_max = results.average_vin / calibration.motor_torque_const;
     float velocity_max = 40.0f;
-    pid_velocity.setInputLimits(-velocity_max, velocity_max);
-    pid_velocity.setOutputLimits(-calibration.torque_limit, calibration.torque_limit);
-    pid_velocity.setSetPoint(parameters.velocity_sp);
-    pid_velocity.setProcessValue(results.rotor_vel);
-    pid_velocity.setBias(0.0f);
-    parameters.torque_sp = pid_velocity.compute();
-  } else {
-    pid_velocity.setMode(MANUAL_MODE);
+    pid_velocity.setLimits(-calibration.torque_limit, calibration.torque_limit);
+    pid_velocity.setTarget(parameters.velocity_sp);
+    parameters.torque_sp = pid_velocity.compute(results.hf_rotor_vel);
   }
 }
 
@@ -270,16 +261,17 @@ void runCurrentControl() {
      * Directly set PWM duty cycles
      */
 
-    gate_driver.setPWMDutyCycle(0, parameters.phase0);
-    gate_driver.setPWMDutyCycle(1, parameters.phase1);
-    gate_driver.setPWMDutyCycle(2, parameters.phase2);
+    gate_driver.setPWMDutyCycle(0, parameters.phase0 * max_duty_cycle);
+    gate_driver.setPWMDutyCycle(1, parameters.phase1 * max_duty_cycle);
+    gate_driver.setPWMDutyCycle(2, parameters.phase2 * max_duty_cycle);
   } else {
     /*
      * Run field-oriented control
      */
-
     float ialpha, ibeta;
-    transformClarke(results.average_ia, results.average_ib, results.average_ic, ialpha, ibeta);
+    transformClarke(results.corrected_ia, 
+                    results.corrected_ib, 
+                    results.corrected_ic, ialpha, ibeta);
 
     if (calibration.flip_phases) {
       ibeta = -ibeta;
@@ -294,24 +286,19 @@ void runCurrentControl() {
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
 
-    pid_id.setMode(AUTO_MODE);
-    pid_iq.setMode(AUTO_MODE);
+    pid_id.setGains(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
+    pid_iq.setGains(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
 
-    pid_id.setTunings(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
-    pid_iq.setTunings(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
-
-    pid_id.setOutputLimits(-results.average_vin, results.average_vin);
-    pid_iq.setOutputLimits(-results.average_vin, results.average_vin);
+    pid_id.setLimits(-calibration.current_limit, calibration.current_limit);
+    pid_iq.setLimits(-calibration.current_limit, calibration.current_limit);
 
     float id_sp, iq_sp;
     if (parameters.control_mode == control_mode_foc_current) {
       // Use the provided FOC current setpoints
-
       id_sp = parameters.foc_d_current_sp;
       iq_sp = parameters.foc_q_current_sp;
     } else {
       // Generate FOC current setpoints from the reference torque
-
       id_sp = 0.0f;
       iq_sp = parameters.torque_sp / calibration.motor_torque_const;
     }
@@ -319,28 +306,23 @@ void runCurrentControl() {
     float vd = 0.0;
     float vq = 0.0;
     if (parameters.control_mode == control_mode_pwm_drive) {
-
       vd = 0;
       vq = parameters.pwm_drive;
-
     } else {
+      pid_id.setTarget(id_sp);
+      pid_iq.setTarget(iq_sp);
 
-      pid_id.setSetPoint(id_sp);
-      pid_id.setProcessValue(id);
-      pid_id.setBias(id_sp * calibration.motor_resistance);
+      results.id_output = pid_id.compute(id);
+      results.iq_output = pid_iq.compute(iq);
 
-      pid_iq.setSetPoint(iq_sp);
-      pid_iq.setProcessValue(iq);
-      pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
-
-      vd = pid_id.compute();
-      vq = pid_iq.compute();
+      vd = results.id_output * calibration.motor_resistance;
+      vq = results.iq_output * calibration.motor_resistance; // + results.hf_rotor_vel * calibration.motor_torque_const;
     }
 
-    
-
-    float vd_norm = vd / results.average_vin;
-    float vq_norm = vq / results.average_vin;
+    float mag = std::sqrt(std::pow(vd, 2) + std::pow(vq, 2));
+    float div = std::max(results.average_vin, mag);
+    float vd_norm = vd / div;
+    float vq_norm = vq / div;
 
     float valpha_norm, vbeta_norm;
     transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);
@@ -349,15 +331,21 @@ void runCurrentControl() {
       vbeta_norm = -vbeta_norm;
     }
 
-    float duty0, duty1, duty2;
-    modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
+    modulator.computeDutyCycles(valpha_norm, vbeta_norm, 
+                                results.duty_a, results.duty_b, results.duty_c);
 
-    gate_driver.setPWMDutyCycle(0, duty0);
-    gate_driver.setPWMDutyCycle(1, duty1);
-    gate_driver.setPWMDutyCycle(2, duty2);
+    results.duty_a = results.duty_a * max_duty_cycle;
+    results.duty_b = results.duty_b * max_duty_cycle;
+    results.duty_c = results.duty_c * max_duty_cycle;
+
+    gate_driver.setPWMDutyCycle(0, results.duty_a);
+    gate_driver.setPWMDutyCycle(1, results.duty_b);
+    gate_driver.setPWMDutyCycle(2, results.duty_c);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;
+    results.foc_d_voltage = vd;
+    results.foc_q_voltage = vq;
   }
 }
 
@@ -368,7 +356,6 @@ void resetControlTimeout() {
 void brakeMotor() {
   parameters.foc_d_current_sp = 0.0f;
   parameters.foc_q_current_sp = 0.0f;
-  calibration.motor_torque_const = 0.0f; // Damps the motor to prevent a voltage spike
   parameters.control_mode = control_mode_foc_current;
 }
 

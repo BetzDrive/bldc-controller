@@ -25,6 +25,14 @@ extern "C" {
  */
 void flashJumpApplication(uint32_t address);
 
+struct IWDG_Values {
+  uint8_t prescaler;
+  uint16_t reload;
+};
+
+struct IWDG_Values pauseIWDG(void);
+void resumeIWDG(struct IWDG_Values save);
+
 #ifdef __cplusplus
 }
 #endif

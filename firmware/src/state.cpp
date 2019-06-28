@@ -4,6 +4,8 @@ namespace motor_driver {
 
 Results results;
 
+RolledADC rolladc;
+
 Calibration calibration;
 
 Parameters parameters;

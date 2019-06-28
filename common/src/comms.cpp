@@ -29,7 +29,7 @@ void UARTEndpoint::start() {
 void UARTEndpoint::transmit() {
   tx_buf_[0] = 0xff; // Sync flag
   tx_buf_[1] = COMM_VERSION; // Protocol version
-  tx_buf_[2] = COMM_FG_SEND; // Flag byte 
+  tx_buf_[2] = COMM_FG_SEND; // Flag byte
   tx_buf_[3] = (tx_len_ + 2) & 0xff;
   tx_buf_[4] = ((tx_len_ + 2) >> 8) & 0xff;
   tx_buf_[5] = tx_len_ & 0xff;
@@ -216,6 +216,22 @@ uint16_t UARTEndpoint::computeCRC(const uint8_t *buf, size_t len) {
   return crc16_finalize(crc);
 }
 
+/*          Server Functions            */
+void Server::initDisco() {
+  // Initialize disco bus to have output low according to spec
+  palWritePad(disco_out_.port, disco_out_.pin, PAL_HIGH);
+}
+
+void Server::setDisco() {
+  palWritePad(disco_out_.port, disco_out_.pin, PAL_LOW);
+}
+
+bool Server::getDisco() {
+    return (PAL_LOW == palReadPad(disco_in_.port, disco_in_.pin));
+}
+
+/*       Protocol FSM Functions         */
+
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_t flags, comm_errors_t& errors) {
   /* If message from another board, decrement counter and exit. */
   if (flags & COMM_FG_SEND) {
@@ -225,7 +241,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
     resp_count_ = 0;
     state_ = State::IDLE;
   }
-    
+
   static_assert(sizeof(comm_id_t) == 1, "Assuming comm_id_t is uint8_t");
   static_assert(sizeof(comm_fg_t) == 1, "Assuming comm_fg_t is uint8_t");
   static_assert(sizeof(comm_fc_t) == 1, "Assuming comm_fc_t is uint8_t");
@@ -236,15 +252,19 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
   bool found_board = false;
 
   comm_id_t id;
-    
+
+  // Loop through full packet for the message intended for this board
   while ( ((datagram_len - index) >= sub_msg_header_len_) && !found_board ) {
     uint16_t sub_msg_len = (uint16_t)datagram[index] | ((uint16_t)datagram[index + 1] << 8);
-    index += 2;
+    if (sub_msg_len == 0) {
+      break;
+    }
+    index += sizeof(sub_msg_len);
     next_msg += sub_msg_len + sizeof(sub_msg_len);
 
     id = datagram[index++];
 
-    if (id != 0 && id != server_->getID()) {
+    if (id != COMM_ID_BROADCAST && id != server_->getID()) {
       // We only wish to increment as long as we have not received our packet.
       if (state_ == State::IDLE) resp_count_++;
 
@@ -260,7 +280,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
     resp_count_ = 0;
     return;
   }
-  
+
   function_code_ = datagram[index++];
 
   broadcast_ = (id == 0);
@@ -277,6 +297,15 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
   uint32_t sector_num, dest_addr;
   size_t dest_len;
   bool success;
+
+  /* Save for current watchdog state (workaround for missing STM32 Functionality) */
+  struct IWDG_Values save;
+  
+  /* For Enumeration */
+  uint8_t target_id;
+#ifdef BOOTLOADER
+  uint32_t id_addr;
+#endif
 
   switch (function_code_) {
     case COMM_FC_NOP:
@@ -440,7 +469,10 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       sector_num |= (uint32_t)datagram[index++] << 16;
       sector_num |= (uint32_t)datagram[index++] << 24;
 
+      // The erase operation takes a very long time. Therefore, the watchdog timer must be temporarilty disabled around it.
+      save = pauseIWDG();
       success = (flashSectorErase(sector_num) == FLASH_RETURN_SUCCESS);
+      resumeIWDG(save);
 
       if (!success) {
         errors |= COMM_ERRORS_OP_FAILED;
@@ -465,7 +497,6 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       dest_addr |= (uint32_t)datagram[index++] << 24;
 
       dest_len = datagram_len - index;
-
       success = (flashWrite(dest_addr, (char *)&datagram[index], dest_len) == FLASH_RETURN_SUCCESS);
 
       if (!success) {
@@ -560,13 +591,51 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       state_ = State::RESPONDING;
 
       break;
+    case COMM_FC_ENUMERATE:
+      /* Enumerate board ID */
+      target_id = (uint8_t)datagram[index++];
+
+      if (server_->getID() == target_id) {
+        u8_value_ = server_->getID();
+        state_ = State::RESPONDING_U8;
+      }
+      else {
+        state_ = State::IDLE;
+      }
+
+      /* Do nothing if not bootloader */
+#ifdef BOOTLOADER
+      // If the board has not been initialized yet (received an ID), check the state of the disco bus:
+      //    if the input is high, pass through the command and set the id!
+      //    if the input is low, ignore the command
+      if (server_->getDisco() && (server_->getID() == 0)) {
+        // Only update the flash if the IDs are different!
+        success = true;
+        if (target_id != *board_id_ptr && target_id != COMM_ID_BROADCAST) {
+          // Write the ID to the board!
+          id_addr = reinterpret_cast<uintptr_t>(board_id_ptr);
+          success &= (flashErase(id_addr, sizeof(target_id)) == FLASH_RETURN_SUCCESS);
+          success &= (flashWrite(id_addr, (char *)&target_id, sizeof(target_id)) == FLASH_RETURN_SUCCESS);
+        }
+        if (success) {
+          server_->setID(target_id);
+          u8_value_ = server_->getID();
+          state_ = State::RESPONDING_U8;
+        }
+      }
+#endif
+      break;
+
+    case COMM_FC_CONFIRM_ID:
+      server_->setDisco();
+      state_ = State::RESPONDING;
+      break;
 
     default:
       /* Invalid function code */
 
       errors |= COMM_ERRORS_INVALID_FC;
       state_ = State::RESPONDING;
-
       break;
   }
 }
@@ -586,12 +655,6 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
   static_assert(sizeof(comm_errors_t) == 2, "Assuming comm_errors_t is uint16_t");
 
   size_t index = 0;
-
-  if (max_datagram_len - index < 2) {
-    datagram_len = index;
-    state_ = State::IDLE;
-    return;
-  }
 
   if (broadcast_) {
     datagram[index++] = 0;
@@ -698,6 +761,12 @@ void ProtocolFSM::composeResponse(uint8_t *datagram, size_t& datagram_len, size_
 
       break;
   }
+
+  // Message is too large, don't send it.
+  if (index > max_datagram_len) {
+    datagram_len = 0;
+    state_ = State::IDLE;
+  }
 }
 
 template<typename T>
@@ -739,6 +808,11 @@ template void handleVarAccess<float>(float& var, uint8_t *buf, size_t& index, si
 
 void startComms() {
   comms_endpoint.start();
+#ifdef BOOTLOADER
+  comms_server.initDisco();
+#else
+  comms_server.setDisco();
+#endif
 }
 
 void runComms() {
@@ -773,8 +847,17 @@ void runComms() {
 
 UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
 
-Server comms_server(*board_id_ptr, commsRegAccessHandler);
-
+#ifdef BOOTLOADER
+// Wait in bootloader for a id to be assigned from the disco bus
+Server comms_server(COMM_ID_BROADCAST, commsRegAccessHandler,
+                  {GPIOB, GPIOB_DISCO_BUS_IN},
+                  {GPIOB, GPIOB_DISCO_BUS_OUT});
+#else
+// Out of the bootloader, use whatever ID is stored in memory
+Server comms_server(*board_id_ptr, commsRegAccessHandler,
+                  {GPIOB, GPIOB_DISCO_BUS_IN},
+                  {GPIOB, GPIOB_DISCO_BUS_OUT});
+#endif
 ProtocolFSM comms_protocol_fsm(comms_server);
 
 } // namespace motor_driver

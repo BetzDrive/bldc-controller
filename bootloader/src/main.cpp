@@ -3,10 +3,12 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stm32f4xx.h"
+#include "stm32f4xx_iwdg.h"
 #include "stdbool.h"
 #include "peripherals.h"
 #include "comms.h"
 #include "constants.h"
+#include "helper.h"
 
 namespace motor_driver {
 
@@ -69,6 +71,10 @@ int main(void) {
   // Start RTOS
   halInit();
   chSysInit();
+
+  if (RCC->CSR & RCC_CSR_WDGRSTF) {
+    flashJumpApplication((uint32_t)firmware_ptr);
+  }
 
   // Start peripherals
   startPeripherals();

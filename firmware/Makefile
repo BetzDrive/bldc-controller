@@ -56,6 +56,11 @@ ifeq ($(USE_FPU),)
   USE_FPU = softfp
 endif
 
+# Enable this if you really want to use the STM FWLib.
+ifeq ($(USE_FWLIB),)
+  USE_FWLIB = yes
+endif
+
 #
 # Architecture or project specific options
 ##############################################################################
@@ -102,8 +107,6 @@ CSRC = $(PORTSRC) \
        $(COMMON_SRC)/flash.c \
        $(COMMON_SRC)/helper.c \
        $(COMMON_SRC)/crc16.c \
-       $(SRC)/usbcfg.c \
-       $(SRC)/shell.c \
        $(SRC)/LSM6DS3_ACC_GYRO_driver.c \
        $(SRC)/crc_mlx.c
 
@@ -111,9 +114,9 @@ CSRC = $(PORTSRC) \
 # setting.
 CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(COMMON_SRC)/constants.cpp \
-		     $(SRC)/main.cpp \
+         $(SRC)/main.cpp \
          $(SRC)/peripherals.cpp \
-         $(SRC)/DRV8301.cpp \
+         $(SRC)/DRV8312.cpp \
          $(SRC)/AS5047D.cpp \
          $(SRC)/state.cpp \
          $(SRC)/control.cpp \
@@ -122,11 +125,10 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/transforms.cpp \
          $(SRC)/fw_comms.cpp \
          $(SRC)/SVM.cpp \
-         $(SRC)/PID.cpp \
-         $(SRC)/LM75B.cpp \
+         $(SRC)/pid.cpp \
+         $(SRC)/MCP9808.cpp \
          $(SRC)/LSM6DS3Sensor.cpp \
-         $(SRC)/Recorder.cpp \
-         $(SRC)/MLX90363.cpp
+         $(SRC)/Recorder.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -245,6 +247,13 @@ ULIBS =
 # End of user defines
 ##############################################################################
 
+ifeq ($(USE_FWLIB),yes)
+  include $(CHIBIOS)/ext/stm32lib/stm32lib.mk
+  CSRC += $(STM32SRC)
+  INCDIR += $(STM32INC)
+  USE_OPT += -DUSE_STDPERIPH_DRIVER
+endif
+
 RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
 include $(RULESPATH)/rules.mk
 
@@ -255,7 +264,10 @@ upload: build/$(PROJECT).bin
 		init;\
 		reset halt;\
 		flash probe 0;\
-		flash write_image erase build/$(PROJECT).bin 0x08008000;\
-		verify_image build/$(PROJECT).bin 0x08008000;\
+		flash write_image erase build/$(PROJECT).bin 0x08010000;\
+		verify_image build/$(PROJECT).bin 0x08010000;\
 		reset run;\
 		shutdown"
+
+debug: build/$(PROJECT).elf
+	./run_gdb.sh

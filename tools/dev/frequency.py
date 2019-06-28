@@ -1,7 +1,7 @@
 #!/usr/bin/env python
+import sys
 from comms import *
 import serial
-import sys
 import time
 
 if len(sys.argv) < 3:
@@ -32,13 +32,6 @@ for id in motor_ids:
                 client.setERevsPerMRev([id], [calibrations['epm']])
                 client.setTorqueConstant([id], [calibrations['torque']])
                 client.setPositionOffset([id], [calibrations['zero']])
-                #client.setZeroAngle([id], [1169])
-                #client.setInvertPhases([id], [1])
-                #client.setERevsPerMRev([id], [14])
-                #client.setTorqueConstant([id], [1.45])
-                #client.setPositionOffset([id], [0.0])
-                #client.setCurrentControlMode([id])
-                #starting_angles[id] = 0.0
                 client.writeRegisters([id], [0x1030], [1], [struct.pack('<H', 1000)])
                 print("Motor %d ready: supply voltage=%fV", id, client.getVoltage([id])[0])
                 success = True
@@ -65,7 +58,7 @@ while True:
     # Update user every 1000 packets.
     for _ in range(1000):
         try:
-            states = client.setCommandAndGetState(motor_ids, [0.0]*len(motor_ids))
+            states = client.setCommandAndGetState(motor_ids, [0.3]*len(motor_ids))
             for state in states:
                 if state == None:
                     errors += 1

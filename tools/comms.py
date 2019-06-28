@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import struct
 import json
 import time
@@ -8,6 +10,8 @@ class ProtocolError(Exception):
         super(ProtocolError, self).__init__(message)
 
         self.errors = errors
+
+DEBUG = False
 
 COMM_VERSION = 0xFE
 
@@ -32,17 +36,20 @@ COMM_FC_FLASH_PROGRAM = 0x86
 COMM_FC_FLASH_READ = 0x87
 COMM_FC_FLASH_VERIFY = 0x88
 COMM_FC_FLASH_VERIFY_ERASED = 0x89
+COMM_FC_CONFIRM_ID = 0xFE
+COMM_FC_ENUMERATE = 0xFF
 
 COMM_FLAG_SEND = 0x00 
 
 COMM_BOOTLOADER_OFFSET = 0x08000000
-COMM_NVPARAMS_OFFSET = 0x08004000
-COMM_FIRMWARE_OFFSET = 0x08008000
+COMM_BOARD_ID_OFFSET = 0x08004000
+COMM_NVPARAMS_OFFSET = 0x08008000
+COMM_FIRMWARE_OFFSET = 0x08010000
 COMM_DEFAULT_BAUD_RATE = 1000000
 
-COMM_SINGLE_PROGRAM_LENGTH = 128
-COMM_SINGLE_READ_LENGTH = 128
-COMM_SINGLE_VERIFY_LENGTH = 128
+COMM_SINGLE_PROGRAM_LENGTH = 64
+COMM_SINGLE_READ_LENGTH    = 64
+COMM_SINGLE_VERIFY_LENGTH  = 64
 
 class FlashSectorMap:
     def __init__(self, sector_count, sector_starts, sector_sizes):
@@ -97,9 +104,22 @@ class BLDCControllerClient:
         self._ser = ser
         self._crc_alg = crcmod.predefined.PredefinedCrc('crc-16')
 
+    def resetInputBuffer(self):
+        self._ser.reset_input_buffer()
+
+    def storeCalibration(self, server_ids):
+        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids], [1 for sid in server_ids], ['' for sid in server_ids])
+
+    def clearCalibration(self, server_ids):
+        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids], [1 for sid in server_ids], ['' for sid in server_ids])
+
     def getRotorPosition(self, server_ids):
         angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids])]
         return angles
+
+    def getRawRotorPosition(self, server_ids):
+        ticks = [struct.unpack('<H', data)[0] for data in self.readRegisters(server_ids, [0x3010 for sid in server_ids], [1 for sid in server_ids])]
+        return ticks
 
     def getState(self, server_ids):
         # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
@@ -125,27 +145,57 @@ class BLDCControllerClient:
     def setERevsPerMRev(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1001 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<B', val) for val in value])
 
+    def setDirectCurrentKp(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1003 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setDirectCurrentKi(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1004 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setQuadratureCurrentKp(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1005 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setQuadratureCurrentKi(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1006 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
     def setTorqueConstant(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1022 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
     def setPositionOffset(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1015 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
+    def setWatchdogTimeout(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1030 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<H', val) for val in value])
+
     def setCurrentControlMode(self, server_ids):
         return self.writeRegisters(server_ids, [0x2000 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<B', 0) for sid in server_ids])
 
     def setCommand(self, server_ids, value):
-        ret = self.writeRegisters(server_ids, [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
-        return ret
+        return self.writeRegisters(server_ids, [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
     def setCommandAndGetState(self, server_ids, value):
         ret = self.readWriteRegisters(server_ids, [0x3000 for sid in server_ids], [9 for sid in server_ids], [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
         states = [struct.unpack('<ffffffiii', data) for data in ret]
         return states
 
+    # Bootloader only
+    def enumerateBoards(self, server_id):
+        response = []
+        response = self.doTransaction([0], [COMM_FC_ENUMERATE], [struct.pack('<B', server_id)])
+        success = response[0][0]
+        if success:
+            data = struct.unpack('<B',response[0][1])[0]
+        else:
+            data = 0
+        return data
+
+    def confirmBoards(self, server_id):
+        response = self.doTransaction([server_id], [COMM_FC_CONFIRM_ID], [])
+        success = response[0][0]
+        return success
+
     def leaveBootloader(self, server_ids):
         self.jumpToAddress(server_ids, [COMM_FIRMWARE_OFFSET for sid in server_ids])
-        time.sleep(0.5)
+        time.sleep(0.01)
         self._ser.read_all()
 
     def enterBootloader(self, server_ids):
@@ -223,9 +273,9 @@ class BLDCControllerClient:
         return data
 
     def readCalibration(self, server_id):
-        l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET+1, 2))[0]
-        print l
-        b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET+3, l)
+        l = struct.unpack('<H', self.readFlash(server_id, COMM_NVPARAMS_OFFSET, 2))[0]
+        print("Calibration of length:", l)
+        b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET+2, l)
         return json.loads(b)
 
     def verifyFlash(self, server_id, dest_addr, data):
@@ -264,28 +314,28 @@ class BLDCControllerClient:
             sector_map = self.getFlashSectorMap(server_id)
 
         if print_progress:
-            print "Erasing flash"
+            print("Erasing flash")
 
         success = self.eraseFlash(server_id, dest_addr, len(data), sector_map)
         if not success:
             return False
 
         if print_progress:
-            print "Verifying flash was erased"
+            print("Verifying flash was erased")
 
         success = self.verifyFlashErased(server_id, dest_addr, len(data))
         if not success:
             return False
 
         if print_progress:
-            print "Programming flash"
+            print("Programming flash")
 
         success = self.programFlash(server_id, dest_addr, data)
         if not success:
             return False
 
         if print_progress:
-            print "Verifying flash was programmed"
+            print("Verifying flash was programmed")
 
         success = self.verifyFlash(server_id, dest_addr, data)
         if not success:
@@ -308,6 +358,8 @@ class BLDCControllerClient:
         return sector_map 
 
     def doTransaction(self, server_ids, func_code, data):
+        if type(server_ids) != list:
+            server_ids = [server_ids]
         # Send the request to the boards.
         self.writeRequest(server_ids, func_code, data) 
 
@@ -318,19 +370,22 @@ class BLDCControllerClient:
 
         return responses
 
-    def writeRequest(self, server_ids, func_code, data=['']):
+    def writeRequest(self, server_ids, func_code, data=[]):
         message = ''
         flags = COMM_FLAG_SEND
         for i in range(len(server_ids)):
-            sub_message = struct.pack('<BB', server_ids[i], func_code[i]) + data[i]
+            sub_message = struct.pack('<BB', server_ids[i], func_code[i])
+            if data != []:
+                sub_message = sub_message + data[i]
             message = message + struct.pack('H', len(sub_message)) + sub_message
 
         prefixed_message = struct.pack('<BBBH', 0xFF, COMM_VERSION, flags, len(message)) + message
         crc = self._computeCRC(message)
         datagram = prefixed_message + struct.pack('<H', crc) 
 
-        #print (":".join("{:02x}".format(ord(c)) for c in datagram))
-
+        if DEBUG:
+            print("Transmitting packet of length:", len(datagram))
+            print("Packet:", ":".join("{:02x}".format(ord(c)) for c in datagram))
         self._ser.write(datagram)
 
     def readResponse(self, server_id, func_code):
@@ -340,10 +395,16 @@ class BLDCControllerClient:
             # self._ser.flushInput()
             return False, None
 
+        if DEBUG:
+            print("Found Packet")
+
         version = self._ser.read()
         if len(version) != 1 or version != "\xfe":
             # self._ser.flushInput()
             return False, None
+
+        if DEBUG:
+            print("Proper Protocol")
 
         flags = self._ser.read()
 
@@ -352,9 +413,15 @@ class BLDCControllerClient:
             return False, None
 
         message_len, = struct.unpack('H', length)
+
+        if DEBUG:
+            print("Length is: ", message_len)
+
         message = self._ser.read(message_len)
         
-        #print (":".join("{:02x}".format(ord(c)) for c in message))
+        if DEBUG:
+            print("Received Message:")
+            print(":".join("{:02x}".format(ord(c)) for c in message))
 
         if len(message) < message_len:
             # self._ser.flushInput()
@@ -369,7 +436,7 @@ class BLDCControllerClient:
 
         message_server_id, message_func_code, errors = struct.unpack('<BBH', message[2:6])
 
-        if message_server_id != server_id:
+        if message_server_id != server_id and not server_id == 0:
             raise ProtocolError('received unexpected server ID: saw ' \
                                 + str(message_server_id) + ', expected ' + str(server_id))
 
@@ -385,24 +452,26 @@ class BLDCControllerClient:
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
+        if (errors & COMM_ERRORS_OP_FAILED) != 0:
+            raise ProtocolError('operation failed')
+
+        if (errors & COMM_ERRORS_MALFORMED) != 0:
+            raise ProtocolError('malformed request')
+
+        if (errors & COMM_ERRORS_INVALID_FC) != 0:
+            raise ProtocolError('invalid function code')
+
+        if (errors & COMM_ERRORS_INVALID_ARGS) != 0:
+            raise ProtocolError('invalid arguments')
+
+        if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
+            raise ProtocolError('buffer length mismatch')
+        
         # Raise an exception if another type of error occurred
         if (errors & ~COMM_ERRORS_OP_FAILED) != 0:
             raise ProtocolError('other error flags set', errors)
 
-        # if (errors & COMM_ERRORS_OP_FAILED) != 0:
-        #     raise ProtocolError('operation failed')
 
-        # if (errors & COMM_ERRORS_MALFORMED) != 0:
-        #     raise ProtocolError('malformed request')
-
-        # if (errors & COMM_ERRORS_INVALID_FC) != 0:
-        #     raise ProtocolError('invalid function code')
-
-        # if (errors & COMM_ERRORS_INVALID_ARGS) != 0:
-        #     raise ProtocolError('invalid arguments')
-
-        # if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
-        #     raise ProtocolError('buffer length mismatch')
 
         return success, message[6:]
 

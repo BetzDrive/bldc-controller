@@ -1,77 +1,62 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
+from comms import *
+from boards import *
 
 import argparse
-from comms import *
 import serial
 import time
 import json
 import struct
-
-def is_int(i):
-    try:
-        int(i)
-        return True
-    except ValueError:
-        return False
-
-def flash_board(client, board_id, data):
-    client.resetSystem([board_id])
-    time.sleep(0.2) # Wait for the controller to reset
-    ser.reset_input_buffer()
-
-    old_board_id = client.readFlash([board_id], COMM_NVPARAMS_OFFSET, 1)
-
-    flash_sector_map = client.getFlashSectorMap([board_id])
-
-    success = client.eraseFlash([board_id], COMM_NVPARAMS_OFFSET, 1, sector_map=flash_sector_map)
-
-    buf = old_board_id + struct.pack('<H', len(data)) + data
-    print(len(data))
-
-    success = success and client.programFlash([board_id], COMM_NVPARAMS_OFFSET, buf)
-
-    l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET+1, 2))[0]
-    d = client.readFlash([board_id], COMM_NVPARAMS_OFFSET+3, l)
-
-    if success and d == data:
-        client.resetSystem([board_id])
-        print("Success", board_id)
-        print("Wrote:")
-        time.sleep(0.2)
-        ser.reset_input_buffer()
-        l = struct.unpack('<H', client.readFlash([board_id], COMM_NVPARAMS_OFFSET+1, 2))[0]
-        print(json.loads(client.readFlash([board_id], COMM_NVPARAMS_OFFSET+3, l)))
-    else:
-        print("Failed ", board_id)
-
-calibrations = {}
+import ast
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Upload calibration values to a motor driver board')
+    parser = argparse.ArgumentParser(description='Upload calibration values to motor driver board(s)')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
-    parser.add_argument('board_id', type=str, help='Board id to flash or all')
-    parser.add_argument('file', type=str, help='path to calibration file')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE)
+    parser.add_argument('board_ids', type=str, help='Board id(s) to flash')
+    parser.add_argument('--calibration_file', type=str, help='The file which the calibration(s) is/are in')
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, calibration_file='calibrations.json')
     args = parser.parse_args()
-
-    with open(args.file, 'r') as file:
-        data = file.read()
-
-    calibrations = json.loads(data)
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
     time.sleep(0.2)
     ser.reset_input_buffer()
 
+    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    make_int = lambda x: [int(y) for y in x]
+    board_ids = make_int(make_list(ast.literal_eval(args.board_ids)))
+
+    # Load in Custom Values
+    with open(args.calibration_file) as json_file:
+        calibration = json.load(json_file)
+
     client = BLDCControllerClient(ser)
-    if args.board_id == 'all':
-        for id in calibrations:
-            try:
-                flash_board(client, int(id), json.dumps(calibrations[id], separators=(',', ':')))
-            except TypeError:
-                print("Failed %s" % id)
-    elif is_int(args.board_id):
-        flash_board(client, int(args.board_id), json.dumps(calibrations[args.board_id], separators=(',', ':')))
+
+    initialized = initBoards(client, board_ids)
+        
+    client.resetInputBuffer()
+
+    if initialized:
+        for board_id, calib in zip(board_ids, calibration):
+            print(board_id, "-", calib)
+            client.leaveBootloader([board_id])
+
+            # Reset Calibration on Board
+            client.clearCalibration([board_id])
+
+            loadCalibrationFromJSON(client, board_id, calib)
+
+            client.setWatchdogTimeout([board_id], [1000])
+    
+            # Setting gains for motor
+            client.setDirectCurrentKp([board_id], [0.5])
+            client.setDirectCurrentKi([board_id], [0.1])
+            client.setQuadratureCurrentKp([board_id], [1.0])
+            client.setQuadratureCurrentKi([board_id], [0.2])
+
+            # Store Calibration struct to Parameters
+            client.storeCalibration([board_id])
 
     ser.close()

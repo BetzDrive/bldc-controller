@@ -55,6 +55,8 @@ The CRC is computed over the entire packet excluding the CRC itself.
 | `0x87` | `COMM_FC_FLASH_READ` | Read memory values | Start address (`uint32_t`), length (`uint32_t`) | Memory values (`void *`) |
 | `0x88` | `COMM_FC_FLASH_VERIFY` | Verify memory values | Start address (`uint32_t`), memory values (`void *`) | N/A |
 | `0x89` | `COMM_FC_FLASH_VERIFY_ERASED` | Verify that flash memory is erased (all `0xff`) | Start address (`uint32_t`), length (`uint32_t`) | N/A |
+| `0xFE` | `COMM_FC_CONFIRM_ID` | Confirm ID following enumeration |  |  |
+| `0xFF` | `COMM_FC_ENUMERATE` | Set next ID board in Disco Bus |  |  |
 
 The errors field in the response packet will be zero if an operation succeeded.
 

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-
 from __future__ import division
-import argparse
+
 from comms import *
+from boards import *
+
+import argparse
 import serial
 import time
-import sys
 import numpy as np
 from scipy import signal as sps, stats, interpolate
 import matplotlib.pyplot as plt
@@ -79,6 +80,8 @@ if __name__ == '__main__':
     time.sleep(0.1)
 
     client = BLDCControllerClient(ser)
+
+    initBoards(client, [args.board_id])
 
     client.leaveBootloader([args.board_id])
     time.sleep(0.2) # Wait for the controller to reset
@@ -180,13 +183,22 @@ if __name__ == '__main__':
     erev_start = (mech_rev_start % (2 * pi)) / (2 * pi) * encoder_ticks_per_rev
     erevs_per_mrev = int(round(step_count / steps_per_erev))
 
+    size = str(raw_input("What size is the motor? (S/L)\n"))
+
     calibration_dict = OrderedDict()
     calibration_dict['angle'] = int(round(erev_start))
     calibration_dict['inv'] = int(enc_angles_slope > 0)
     calibration_dict['epm'] = erevs_per_mrev
+    calibration_dict['zero'] = 0.0
+    calibration_dict['torque'] = (1.45, 0.6)[size.lower() == "s"]
     calibration_dict['eac_type'] = 'int8'
     calibration_dict['eac_scale'] = eac_scale
     calibration_dict['eac_offset'] = eac_offset
     calibration_dict['eac_table'] = eac_table.tolist()
 
     print(json.dumps(calibration_dict))
+
+    with open('calibrations.json', 'w') as outfile:  
+        json.dump(calibration_dict, outfile)
+
+

@@ -2,11 +2,12 @@
 #define _PERIPHERALS_H_
 
 #include <stdint.h>
+#include <cstring>
 #include "hal.h"
-#include "DRV8301.h"
+#include "flash.h"
+#include "DRV8312.h"
 #include "AS5047D.h"
-#include "MLX90363.h"
-#include "LM75B.h"
+#include "MCP9808.h"
 #include "LSM6DS3Sensor.h"
 #include "constants.h"
 
@@ -18,15 +19,13 @@ constexpr UARTDriver *rs485_uart_driver = &UARTD1;
 
 extern PWMConfig motor_pwm_config;
 
-extern DRV8301 gate_driver;
+extern DRV8312 gate_driver;
 
 extern const PWMConfig led_pwm_config;
 
-extern AS5047D encoder_as5047d;
+extern AS5047D encoder;
 
-extern MLX90363 encoder_mlx90363;
-
-extern LM75B temp_sensor;
+extern MCP9808 temp_sensor;
 
 extern LSM6DS3Sensor acc_gyr;
 
@@ -48,9 +47,17 @@ void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue);
 
 void setStatusLEDColor(uint32_t color);
 
+void setADCOn();
+
 void setCommsActivityLED(bool on);
 
 void setRS485TransmitMode(bool transmit);
+
+void storeCalibration();
+
+void loadCalibration();
+
+void clearCalibration();
 
 /**
  * Converts an ADC value to voltage (in volts)
@@ -63,7 +70,7 @@ inline float adcValueToVoltage(float adc_value) {
  * Converts an ADC value to current (in amperes)
  */
 inline float adcValueToCurrent(float adc_value) {
-  return (adc_value - (adc_max_value >> 1)) * ivsense_current_per_count;
+  return (ivsense_count_zero_current - adc_value) * ivsense_current_per_count;
 }
 
 } // namespace motor_driver

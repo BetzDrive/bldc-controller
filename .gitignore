@@ -2,10 +2,10 @@
 *.pyc
 *.swp
 *.swo
+results/
 spinner_log.txt
 .metadata
 RemoteSystemsTempFiles/
 firmware/.cproject
 firmware/.project
 firmware/.settings/
-
