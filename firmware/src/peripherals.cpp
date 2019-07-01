@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "state.h"
 #include "hw_conf.h"
+#include "stm32f4xx_flash.h"
 
 namespace motor_driver {
 
@@ -142,6 +143,9 @@ void initPeripherals() {
 }
 
 void startPeripherals() {
+  // Set Brownout Threshold to 2.7V
+  FLASH_OB_BORConfig(OB_BOR_LEVEL3);
+
   // Start LED PWM timer
   pwmStart(&PWMD5, &led_pwm_config);
 
