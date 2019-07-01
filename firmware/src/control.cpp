@@ -91,14 +91,14 @@ void runInnerControlLoop() {
     if (!parameters.gate_active && !parameters.gate_fault) {
       gate_driver.enableGates();
       parameters.gate_active = true;
+      chThdSleepMicroseconds(500);
     }
 
     // If there is a fault, disable the motors.
     if (parameters.gate_active && parameters.gate_fault) {
       gate_driver.disableGates();
+      brakeMotor();
       parameters.gate_active = false;
-      chThdSleepMicroseconds(500);
-      gate_driver.enableGates();
       chThdSleepMicroseconds(500);
     }
 
@@ -334,9 +334,15 @@ void runCurrentControl() {
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, 
                                 results.duty_a, results.duty_b, results.duty_c);
 
-    results.duty_a = results.duty_a * max_duty_cycle;
-    results.duty_b = results.duty_b * max_duty_cycle;
-    results.duty_c = results.duty_c * max_duty_cycle;
+    if (parameters.gate_active) {
+      results.duty_a = results.duty_a * max_duty_cycle;
+      results.duty_b = results.duty_b * max_duty_cycle;
+      results.duty_c = results.duty_c * max_duty_cycle;
+    } else {
+      results.duty_a = 0.0f;
+      results.duty_b = 0.0f;
+      results.duty_c = 0.0f;
+    }
 
     gate_driver.setPWMDutyCycle(0, results.duty_a);
     gate_driver.setPWMDutyCycle(1, results.duty_b);

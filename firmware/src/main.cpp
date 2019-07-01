@@ -12,6 +12,7 @@
 #include "fast_math.h"
 #include "state.h"
 #include "constants.h"
+#include "helper.h"
 
 namespace motor_driver {
 
@@ -130,7 +131,7 @@ static msg_t controlThreadRun(void *arg) {
 }
 
 /*
- * Control thread
+ * Independent Watchdog thread
  */
 
 static WORKING_AREA(watchdog_thread_wa, 512);
@@ -140,15 +141,19 @@ static msg_t watchdogThreadRun(void *arg) {
   chRegSetThreadName("watchdog");
 
   RCC->CSR |= RCC_CSR_RMVF;
+
+  // Refer to table 107 in reference manual for configuration.
   IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-  IWDG_SetReload(80);
+  IWDG_SetPrescaler(IWDG_Prescaler_4); // 0.125 ms per count
+  IWDG_SetReload(80);                  // 10 ms timeout
   IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
+
   IWDG_ReloadCounter();
   IWDG_Enable();
 
   while (true) {
     IWDG_ReloadCounter();
-    chThdSleepMilliseconds(2);
+    chThdSleepMilliseconds(5);
   }
 
   return CH_SUCCESS; // Should never get here
@@ -193,6 +198,10 @@ int main(void) {
 }
 
 } // namespace motor_driver
+
+extern "C" void HardFault_Handler(void) {
+  flashJumpApplication((uint32_t)motor_driver::firmware_ptr);
+}
 
 // FIXME: hack
 int main(void) {
