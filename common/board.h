@@ -617,14 +617,14 @@
                                      PIN_PUPDR_FLOATING(GPIOC_SPI_MOSI) |   \
                                      PIN_PUPDR_PULLUP(GPIOC_TEMP_INT) |     \
                                      PIN_PUPDR_PULLUP(GPIOC_IMU_INT1) |     \
-                                     PIN_PUPDR_PULLUP(GPIOC_RS485_SHUNT_EN))
+                                     PIN_PUPDR_FLOATING(GPIOC_RS485_SHUNT_EN))
 #define VAL_GPIOC_ODR               (PIN_ODR_HIGH(GPIOC_ISENSE_A) |         \
                                      PIN_ODR_HIGH(GPIOC_ISENSE_B) |         \
                                      PIN_ODR_HIGH(GPIOC_ISENSE_C) |         \
                                      PIN_ODR_HIGH(GPIOC_VSENSE_VIN) |       \
                                      PIN_ODR_HIGH(GPIOC_VSENSE_C) |         \
                                      PIN_ODR_HIGH(GPIOC_VSENSE_B) |         \
-                                     PIN_ODR_LOW(GPIOC_MDRV_EN) |           \
+                                     PIN_ODR_HIGH(GPIOC_MDRV_EN) |          \
                                      PIN_ODR_HIGH(GPIOC_ENC_MAG_HI) |       \
                                      PIN_ODR_LOW(GPIOC_MDRV_NFAULT) |       \
                                      PIN_ODR_LOW(GPIOC_MDRV_NOCTW) |        \

@@ -332,7 +332,7 @@
       <pin6
         ID="MDRV_EN"
         Type="PushPull"
-        Level="Low"
+        Level="High"
         Speed="Maximum"
         Resistor="Floating"
         Mode="Output"
@@ -404,9 +404,9 @@
       <pin15
         ID="RS485_SHUNT_EN"
         Type="PushPull"
-        Level="High"
+        Level="Low"
         Speed="Maximum"
-        Resistor="PullDown"
+        Resistor="Floating"
         Mode="Output"
         Alternate="0" />
     </GPIOC>
