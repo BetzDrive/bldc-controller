@@ -31,13 +31,13 @@ struct Results {
   float hf_rotor_vel = 0;                   // Rotor velocity High Frequency Estimate (radians/second)
   float lf_rotor_vel = 0;                   // Rotor velocity Low Frequency Estimate (radians/second)
 
-  uint16_t raw_average_va = 0;              // Pre-conversion values from ADC for rolling average
-  uint16_t raw_average_vb = 0;              // Pre-conversion values from ADC for rolling average
-  uint16_t raw_average_vc = 0;              // Pre-conversion values from ADC for rolling average
-  uint16_t raw_average_vin = 0;             // Pre-conversion values from ADC for rolling average
-  uint16_t raw_average_ia = 0;              // Pre-conversion values from ADC for rolling average
-  uint16_t raw_average_ib = 0;              // Pre-conversion values from ADC for rolling average
-  uint16_t raw_average_ic = 0;              // Pre-conversion values from ADC for rolling average
+  uint32_t raw_average_va = 0;              // Pre-conversion values from ADC for rolling average
+  uint32_t raw_average_vb = 0;              // Pre-conversion values from ADC for rolling average
+  uint32_t raw_average_vc = 0;              // Pre-conversion values from ADC for rolling average
+  uint32_t raw_average_vin = 0;             // Pre-conversion values from ADC for rolling average
+  uint32_t raw_average_ia = 0;              // Pre-conversion values from ADC for rolling average
+  uint32_t raw_average_ib = 0;              // Pre-conversion values from ADC for rolling average
+  uint32_t raw_average_ic = 0;              // Pre-conversion values from ADC for rolling average
 
   float average_va = 0;                     // Average voltage on phase A (volts)
   float average_vb = 0;                     // Average voltage on phase B (volts)
