@@ -62,15 +62,15 @@ void clearCalibration();
 /**
  * Converts an ADC value to voltage (in volts)
  */
-inline float adcValueToVoltage(float adc_value) {
-  return adc_value * ivsense_voltage_per_count;
+inline float adcValueToVoltage(uint16_t adc_value) {
+  return static_cast<float>(adc_value) * ivsense_voltage_per_count;
 }
 
 /**
  * Converts an ADC value to current (in amperes)
  */
-inline float adcValueToCurrent(float adc_value) {
-  return (ivsense_count_zero_current - adc_value) * ivsense_current_per_count;
+inline float adcValueToCurrent(uint16_t adc_value) {
+  return (ivsense_count_zero_current - static_cast<float>(adc_value)) * ivsense_current_per_count;
 }
 
 } // namespace motor_driver

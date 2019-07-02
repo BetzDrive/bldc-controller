@@ -31,6 +31,14 @@ struct Results {
   float hf_rotor_vel = 0;                   // Rotor velocity High Frequency Estimate (radians/second)
   float lf_rotor_vel = 0;                   // Rotor velocity Low Frequency Estimate (radians/second)
 
+  uint16_t raw_average_va = 0;              // Pre-conversion values from ADC for rolling average
+  uint16_t raw_average_vb = 0;              // Pre-conversion values from ADC for rolling average
+  uint16_t raw_average_vc = 0;              // Pre-conversion values from ADC for rolling average
+  uint16_t raw_average_vin = 0;             // Pre-conversion values from ADC for rolling average
+  uint16_t raw_average_ia = 0;              // Pre-conversion values from ADC for rolling average
+  uint16_t raw_average_ib = 0;              // Pre-conversion values from ADC for rolling average
+  uint16_t raw_average_ic = 0;              // Pre-conversion values from ADC for rolling average
+
   float average_va = 0;                     // Average voltage on phase A (volts)
   float average_vb = 0;                     // Average voltage on phase B (volts)
   float average_vc = 0;                     // Average voltage on phase C (volts)
@@ -54,13 +62,13 @@ struct Results {
 
 struct RolledADC {
   uint16_t count = 0;
-  float ia[ivsense_rolling_average_count] = {0};
-  float ib[ivsense_rolling_average_count] = {0};
-  float ic[ivsense_rolling_average_count] = {0};
-  float va[ivsense_rolling_average_count] = {0};
-  float vb[ivsense_rolling_average_count] = {0};
-  float vc[ivsense_rolling_average_count] = {0};
-  float vin[ivsense_rolling_average_count] = {0};
+  uint16_t ia[ivsense_rolling_average_count] = {0};
+  uint16_t ib[ivsense_rolling_average_count] = {0};
+  uint16_t ic[ivsense_rolling_average_count] = {0};
+  uint16_t va[ivsense_rolling_average_count] = {0};
+  uint16_t vb[ivsense_rolling_average_count] = {0};
+  uint16_t vc[ivsense_rolling_average_count] = {0};
+  uint16_t vin[ivsense_rolling_average_count] = {0};
 
   RolledADC(){}
 };

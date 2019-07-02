@@ -167,13 +167,13 @@ void estimateState() {
   // Subtract old values before storing/adding new values
   // Start doing this after rolling over
   if (rolladc.vin[rolladc.count] != 0) {
-    results.average_ia  -= adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
-    results.average_ib  -= adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
-    results.average_ic  -= adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
-    results.average_va  -= adcValueToVoltage((float)(rolladc.va [rolladc.count])) / ivsense_rolling_average_count;
-    results.average_vb  -= adcValueToVoltage((float)(rolladc.vb [rolladc.count])) / ivsense_rolling_average_count;
-    results.average_vc  -= adcValueToVoltage((float)(rolladc.vc [rolladc.count])) / ivsense_rolling_average_count;
-    results.average_vin -= adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
+    results.raw_average_ia  -= rolladc.ia [rolladc.count];
+    results.raw_average_ib  -= rolladc.ib [rolladc.count];
+    results.raw_average_ic  -= rolladc.ic [rolladc.count];
+    results.raw_average_va  -= rolladc.va [rolladc.count];
+    results.raw_average_vb  -= rolladc.vb [rolladc.count];
+    results.raw_average_vc  -= rolladc.vc [rolladc.count];
+    results.raw_average_vin -= rolladc.vin[rolladc.count];
   }
 
   rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
@@ -186,15 +186,23 @@ void estimateState() {
 
   // The new average is equal to the addition of the old value minus the last value (delta) over the count and then converted to a current.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
-  results.average_ia  += adcValueToCurrent((float)(rolladc.ia [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_ib  += adcValueToCurrent((float)(rolladc.ib [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_ic  += adcValueToCurrent((float)(rolladc.ic [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_va  += adcValueToVoltage((float)(rolladc.va [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_vb  += adcValueToVoltage((float)(rolladc.vb [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_vc  += adcValueToVoltage((float)(rolladc.vc [rolladc.count])) / ivsense_rolling_average_count;
-  results.average_vin += adcValueToVoltage((float)(rolladc.vin[rolladc.count])) / ivsense_rolling_average_count;
+  results.raw_average_ia  += rolladc.ia [rolladc.count];
+  results.raw_average_ib  += rolladc.ib [rolladc.count];
+  results.raw_average_ic  += rolladc.ic [rolladc.count];
+  results.raw_average_va  += rolladc.va [rolladc.count];
+  results.raw_average_vb  += rolladc.vb [rolladc.count];
+  results.raw_average_vc  += rolladc.vc [rolladc.count];
+  results.raw_average_vin += rolladc.vin[rolladc.count];
 
   rolladc.count = (rolladc.count + 1) % ivsense_rolling_average_count;
+
+  results.average_ia  = adcValueToCurrent(results.raw_average_ia  / ivsense_rolling_average_count);
+  results.average_ib  = adcValueToCurrent(results.raw_average_ib  / ivsense_rolling_average_count);
+  results.average_ic  = adcValueToCurrent(results.raw_average_ic  / ivsense_rolling_average_count);
+  results.average_va  = adcValueToVoltage(results.raw_average_va  / ivsense_rolling_average_count);
+  results.average_vb  = adcValueToVoltage(results.raw_average_vb  / ivsense_rolling_average_count);
+  results.average_vc  = adcValueToVoltage(results.raw_average_vc  / ivsense_rolling_average_count);
+  results.average_vin = adcValueToVoltage(results.raw_average_vin / ivsense_rolling_average_count);
 
   results.corrected_ia = results.average_ia - calibration.ia_offset;
   results.corrected_ib = results.average_ib - calibration.ib_offset;
