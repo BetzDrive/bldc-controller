@@ -57,6 +57,20 @@ static float clamp(float val, float min, float max) {
   }
 }
 
+static float Q_rsqrt( float number )
+{
+  const float x2 = number * 0.5F;
+  const float threehalfs = 1.5F;
+
+  union {
+    float f;
+    uint32_t i;
+  } conv = {number}; // member 'f' set to value of 'number'.
+  conv.i  = 0x5f3759df - ( conv.i >> 1 );
+  conv.f  *= ( threehalfs - ( x2 * conv.f * conv.f ) );
+  return conv.f;
+}
+
 void initControl() {
   pid_id.setLimits(-ivsense_current_max, ivsense_current_max);
   pid_iq.setLimits(-ivsense_current_max, ivsense_current_max);
@@ -184,7 +198,7 @@ void estimateState() {
   rolladc.vc [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vc ];
   rolladc.vin[rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
 
-  // The new average is equal to the addition of the old value minus the last value (delta) over the count and then converted to a current.
+  // The new average is equal to the addition of the old value minus the last value.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
   results.raw_average_ia  += rolladc.ia [rolladc.count];
   results.raw_average_ib  += rolladc.ib [rolladc.count];
@@ -327,10 +341,11 @@ void runCurrentControl() {
       vq = results.iq_output * calibration.motor_resistance; // + results.hf_rotor_vel * calibration.motor_torque_const;
     }
 
-    float mag = std::sqrt(std::pow(vd, 2) + std::pow(vq, 2));
-    float div = std::max(results.average_vin, mag);
-    float vd_norm = vd / div;
-    float vq_norm = vq / div;
+    // Normalize the vectors
+    float mag = Q_rsqrt(vd*vd + vq*vq);
+    float div = std::min(1.0/results.average_vin, mag);
+    float vd_norm = vd * div;
+    float vq_norm = vq * div;
 
     float valpha_norm, vbeta_norm;
     transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);
