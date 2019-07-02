@@ -4,8 +4,11 @@
 #include "hal.h"
 #include "utils.h"
 #include "comms_defs.h"
+#include "chmtx.h"
 
 namespace motor_driver {
+
+extern Mutex var_access_mutex;
 
 class UARTEndpoint;
 
