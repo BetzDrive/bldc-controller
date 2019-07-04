@@ -14,6 +14,7 @@ make
 ```
 
 ## Debugging via ST-LINK
+To debug during execution, you can attach the debugger at any time using the following code. Keep in mind this is done with a direct connection to the hardware via an ST-Link.
 ```
 cd ~/bldc_controller/<firmware or bootloader>
 openocd
@@ -22,6 +23,8 @@ cd ~/bldc_controller/<firmware or bootloader>/build
 gdb-arm-none-eabi <compiled file>.elf
 (gdb) target extended-remote :3333
 ```
+
+This functionality is also built into the make files as `make debug`.
 
 ## Uploading via ST-LINK
 ```

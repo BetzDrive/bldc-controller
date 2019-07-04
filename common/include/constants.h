@@ -29,10 +29,13 @@ constexpr unsigned int motor_pwm_cycle_freq = 20000; // Hz
 // TIM3 can't handle the full 168MHz like TIM1
 constexpr unsigned int adc_pwm_cycle_freq = motor_pwm_clock_freq/2; // Hz
 
-constexpr float current_control_freq = motor_pwm_cycle_freq; // Current control runs every PWM cycle
+// Current control should be a factor of the motor_pwm_cycle_freq
+constexpr float current_control_freq = motor_pwm_cycle_freq;  
 constexpr float current_control_interval = 1.0f / current_control_freq;
 constexpr float velocity_control_interval = current_control_interval;
 constexpr float position_control_interval = current_control_interval;
+
+constexpr unsigned int current_control_count_per_motor_cycle = motor_pwm_cycle_freq / current_control_freq;
 
 constexpr size_t ivsense_rolling_average_count = 5;
 
@@ -78,8 +81,6 @@ constexpr float ivsense_voltage_zero_current = ivsense_current_amp_gain * (ivsen
 constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;
 
 /* Actual current per ADC count */
-// BUG HERE! This formula assumes the reference current is exactly halfway between the rails, which it isnt'.
-//constexpr float ivsense_current_per_count = (ivsense_current_max - ivsense_current_zero_voltage) / adc_max_value;
 constexpr float ivsense_current_per_count = adc_v_per_count / (ivsense_current_amp_composite_gain*ivsense_current_shunt_value);
 
 /* ADC Value zero current is centered on */
