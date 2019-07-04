@@ -164,6 +164,9 @@ int main(void) {
   halInit();
   chSysInit();
 
+  // Start Watchdog Immediately.
+  chThdCreateStatic(watchdog_thread_wa, sizeof(watchdog_thread_wa), HIGHPRIO, watchdogThreadRun, NULL);
+
   // Initialize state
   initState();
 
@@ -187,7 +190,6 @@ int main(void) {
   chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), HIGHPRIO, commsThreadRun, NULL);
   chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO, sensorThreadRun, NULL);
   chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), NORMALPRIO, controlThreadRun, NULL);
-  chThdCreateStatic(watchdog_thread_wa, sizeof(watchdog_thread_wa), HIGHPRIO, watchdogThreadRun, NULL);
 
   // Wait forever
   while (true) {

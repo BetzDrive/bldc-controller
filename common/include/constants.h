@@ -29,10 +29,12 @@ constexpr unsigned int motor_pwm_cycle_freq = 20000; // Hz
 // TIM3 can't handle the full 168MHz like TIM1
 constexpr unsigned int adc_pwm_cycle_freq = motor_pwm_clock_freq/2; // Hz
 
-constexpr float current_control_freq = motor_pwm_cycle_freq; // Current control runs every PWM cycle
+constexpr float current_control_freq = 1000; // Current control runs every PWM cycle
 constexpr float current_control_interval = 1.0f / current_control_freq;
 constexpr float velocity_control_interval = current_control_interval;
 constexpr float position_control_interval = current_control_interval;
+
+constexpr unsigned int current_control_count_per_motor_cycle = motor_pwm_cycle_freq / current_control_freq;
 
 constexpr size_t ivsense_rolling_average_count = 5;
 

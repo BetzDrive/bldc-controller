@@ -9,18 +9,19 @@ namespace motor_driver {
 
 void resumeInnerControlLoop();
 
+// TODO: Make this not global?
+uint8_t events = 0;
 /**
  * Called at the start of every motor PWM cycle
  */
 static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
   (void)pwmp;
-
-  bool timer_counting_up = ((PWMD1.tim->CR1 & TIM_CR1_DIR) == 0);
-
   /*
-   * Run the inner control loop every other PWM cycle, due to center-aligned PWM
+   * Run the inner control loop at the control frequency given
+   * Increment events and set it equal to itself modulo the number of counts
+   *    per cycle. If it is zero then run the control loop.
    */
-  if (timer_counting_up) {
+  if (!(++events %= current_control_count_per_motor_cycle)) {
     resumeInnerControlLoop();
   }
 }
@@ -28,16 +29,13 @@ static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
 PWMConfig motor_pwm_config = {
   motor_pwm_clock_freq,                         // PWM clock frequency
   motor_pwm_clock_freq / motor_pwm_cycle_freq, 	// PWM period (ticks)
-  motorPWMPeriodicCallback,                		  // PWM callback
+  motorPWMPeriodicCallback,                		// PWM callback
   {
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  },
-  0,                                // CR2 (select enable signal as TRGO output)
-  0,                                            // BDTR
-  0
+  }
 };
 
 DRV8312 gate_driver(
@@ -65,10 +63,7 @@ const PWMConfig led_pwm_config = {
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  },
-  0,
-  0,
-  0
+  }
 };
 
 AS5047D encoder(
@@ -110,12 +105,12 @@ static const ADCConversionGroup ivsense_adc_group = {
   ivsenseADCErrorCallback,
   0,                                        // CR1
   ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15)
-      | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
+  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | 
+  ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
   ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
   ADC_SQR1_NUM_CH(ivsense_channel_count),   // SQR1
-  ADC_SQR2_SQ7_N(VBUS_CHANNEL),         // SQR2
-  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL)           | 
+  ADC_SQR2_SQ7_N(VBUS_CHANNEL),             // SQR2
+  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL)  | 
   ADC_SQR3_SQ4_N(VSENSE_A_CHANNEL) | ADC_SQR3_SQ5_N(VSENSE_B_CHANNEL) | ADC_SQR3_SQ6_N(VSENSE_C_CHANNEL) // SQR3
 };
 
@@ -128,10 +123,7 @@ static const PWMConfig adc_trigger_pwm_config = {
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  },
-  0, 
-  0,                                                      // BDTR
-  0
+  }
 };
 
 MCP9808 temp_sensor(I2CD1);
