@@ -16,6 +16,8 @@
 
 namespace motor_driver {
 
+MUTEX_DECL(var_access_mutex);
+
 static systime_t last_comms_activity_time = 0;
 
 static void comms_activity_callback() {
@@ -43,6 +45,8 @@ static msg_t blinkerThreadRun(void *arg) {
     uint8_t b = 0;
     bool fault = gate_driver.hasFault();
     bool OCTW = gate_driver.hasOCTW();
+
+    chMtxLock(&var_access_mutex);
     if (fault) {
       r = g < 50 ? 255 : r;
       g = g < 50 ? 0 : g;
@@ -56,6 +60,7 @@ static msg_t blinkerThreadRun(void *arg) {
     if (not (fault or OCTW)) {
       parameters.gate_fault = false;
     }
+    chMtxUnlock();
 
     setStatusLEDColor(r,g,b);
 
@@ -105,10 +110,14 @@ static msg_t sensorThreadRun(void *arg) {
     float temperature;
     acc_gyr.Get_Acc(xl);
     temp_sensor.getTemperature(&temperature);
+
+    chMtxLock(&var_access_mutex);
     results.xl_x = xl[0];
     results.xl_y = xl[1];
     results.xl_z = xl[2];
     results.temperature = temperature;
+    chMtxUnlock();
+
     chThdSleepMilliseconds(100);
   }
 
@@ -187,9 +196,9 @@ int main(void) {
 
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
-  chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), HIGHPRIO, commsThreadRun, NULL);
   chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO, sensorThreadRun, NULL);
-  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), NORMALPRIO, controlThreadRun, NULL);
+  chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
+  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), HIGHPRIO, controlThreadRun, NULL);
 
   // Wait forever
   while (true) {

@@ -780,6 +780,7 @@ void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAc
 
   uint8_t *u8_var = reinterpret_cast<uint8_t *>(&var);
 
+  chMtxLock(&var_access_mutex);
   switch (access_type) {
     case RegAccessType::READ:
       std::memcpy(buf + index, u8_var, var_size);
@@ -792,6 +793,7 @@ void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAc
     default:
       break;
   }
+  chMtxUnlock();
 }
 
 template void handleVarAccess<uint8_t>(uint8_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
