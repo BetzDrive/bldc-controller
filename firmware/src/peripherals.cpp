@@ -9,13 +9,12 @@ namespace motor_driver {
 
 void resumeInnerControlLoop();
 
-// TODO: Make this not global?
-uint8_t events = 0;
 /**
  * Called at the start of every motor PWM cycle
  */
 static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
   (void)pwmp;
+  static uint8_t events = 0;
   /*
    * Run the inner control loop at the control frequency given
    * Increment events and set it equal to itself modulo the number of counts
