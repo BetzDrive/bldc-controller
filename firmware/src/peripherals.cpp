@@ -17,10 +17,9 @@ static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
   static uint8_t events = 0;
   /*
    * Run the inner control loop at the control frequency given
-   * Increment events and set it equal to itself modulo the number of counts
-   *    per cycle. If it is zero then run the control loop.
    */
-  if (!(++events %= current_control_count_per_motor_cycle)) {
+  events = (events + 1) % current_control_count_per_motor_cycle;
+  if (events == 0) {
     resumeInnerControlLoop();
   }
 }
