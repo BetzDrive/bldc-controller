@@ -612,9 +612,9 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       if (server_->getDisco() && (server_->getID() == 0)) {
         // Only update the flash if the IDs are different!
         success = true;
-        if (target_id != *board_id_ptr && target_id != COMM_ID_BROADCAST) {
+        if (target_id != *consts::board_id_ptr && target_id != COMM_ID_BROADCAST) {
           // Write the ID to the board!
-          id_addr = reinterpret_cast<uintptr_t>(board_id_ptr);
+          id_addr = reinterpret_cast<uintptr_t>(consts::board_id_ptr);
           success &= (flashErase(id_addr, sizeof(target_id)) == FLASH_RETURN_SUCCESS);
           success &= (flashWrite(id_addr, (char *)&target_id, sizeof(target_id)) == FLASH_RETURN_SUCCESS);
         }
@@ -781,7 +781,7 @@ void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAc
 
   uint8_t *u8_var = reinterpret_cast<uint8_t *>(&var);
 
-  chMtxLock(&var_access_mutex);
+  chMtxLock(&peripherals::var_access_mutex);
   switch (access_type) {
     case RegAccessType::READ:
       std::memcpy(buf + index, u8_var, var_size);
@@ -848,7 +848,7 @@ void runComms() {
   }
 }
 
-UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, rs485_baud);
+UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, consts::rs485_baud);
 
 #ifdef BOOTLOADER
 // Wait in bootloader for a id to be assigned from the disco bus
@@ -857,7 +857,7 @@ Server comms_server(COMM_ID_BROADCAST, commsRegAccessHandler,
                   {GPIOB, GPIOB_DISCO_BUS_OUT});
 #else
 // Out of the bootloader, use whatever ID is stored in memory
-Server comms_server(*board_id_ptr, commsRegAccessHandler,
+Server comms_server(*consts::board_id_ptr, commsRegAccessHandler,
                   {GPIOB, GPIOB_DISCO_BUS_IN},
                   {GPIOB, GPIOB_DISCO_BUS_OUT});
 #endif

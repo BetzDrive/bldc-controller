@@ -6,6 +6,7 @@
 #include <cstring>
 
 namespace motor_driver {
+namespace comms {
 
 size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
   (void)buf;
@@ -33,4 +34,5 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
   return index; // Number of bytes read/written
 }
 
+} // namespace comms
 } // namespace motor_driver

@@ -16,12 +16,10 @@
 
 namespace motor_driver {
 
-MUTEX_DECL(var_access_mutex);
-
 static systime_t last_comms_activity_time = 0;
 
 static void comms_activity_callback() {
-  resetControlTimeout();
+  controller::resetControlTimeout();
   last_comms_activity_time = chTimeNow();
 }
 
@@ -37,36 +35,36 @@ static msg_t blinkerThreadRun(void *arg) {
 
   int t = 0;
 
-  setCommsActivityLED(false);
+  peripherals::setCommsActivityLED(false);
 
   while (true) {
     uint8_t g = ::abs(t - 255);
     uint8_t r = 0;
     uint8_t b = 0;
-    bool fault = gate_driver.hasFault();
-    bool OCTW = gate_driver.hasOCTW();
+    bool fault = peripherals::gate_driver.hasFault();
+    bool OCTW = peripherals::gate_driver.hasOCTW();
 
-    chMtxLock(&var_access_mutex);
+    chMtxLock(&peripherals::var_access_mutex);
     if (fault) {
       r = g < 50 ? 255 : r;
       g = g < 50 ? 0 : g;
-      parameters.gate_fault = true;
+      state::parameters.gate_fault = true;
     }
     if (OCTW) {
       b = g > 200 ? 255 : b;
       g = g > 200 ? 0 : g;
-      parameters.gate_fault = true;
+      state::parameters.gate_fault = true;
     }
     if (not (fault or OCTW)) {
-      parameters.gate_fault = false;
+      state::parameters.gate_fault = false;
     }
     chMtxUnlock();
 
-    setStatusLEDColor(r,g,b);
+    peripherals::setStatusLEDColor(r,g,b);
 
     systime_t time_now = chTimeNow();
 
-    setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(comms_activity_led_duration) &&
+    peripherals::setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(consts::comms_activity_led_duration) &&
                         last_comms_activity_time != 0);
 
     t = (t + 10) % 510;
@@ -86,10 +84,10 @@ static msg_t commsThreadRun(void *arg) {
 
   chRegSetThreadName("comms");
 
-  startComms();
+  comms::startComms();
 
   while (true) {
-    runComms();
+    comms::runComms();
   }
 
   return CH_SUCCESS; // Should never get here
@@ -108,14 +106,14 @@ static msg_t sensorThreadRun(void *arg) {
   while (true) {
     int32_t xl[3];
     float temperature;
-    acc_gyr.Get_Acc(xl);
-    temp_sensor.getTemperature(&temperature);
+    peripherals::acc_gyr.Get_Acc(xl);
+    peripherals::temp_sensor.getTemperature(&temperature);
 
-    chMtxLock(&var_access_mutex);
-    results.xl_x = xl[0];
-    results.xl_y = xl[1];
-    results.xl_z = xl[2];
-    results.temperature = temperature;
+    chMtxLock(&peripherals::var_access_mutex);
+    state::results.xl_x = xl[0];
+    state::results.xl_y = xl[1];
+    state::results.xl_z = xl[2];
+    state::results.temperature = temperature;
     chMtxUnlock();
 
     chThdSleepMilliseconds(100);
@@ -134,7 +132,7 @@ static msg_t controlThreadRun(void *arg) {
 
   chRegSetThreadName("control");
 
-  runInnerControlLoop();
+  controller::runInnerControlLoop();
 
   return CH_SUCCESS; // Should never get here
 }
@@ -177,22 +175,22 @@ int main(void) {
   chThdCreateStatic(watchdog_thread_wa, sizeof(watchdog_thread_wa), HIGHPRIO, watchdogThreadRun, NULL);
 
   // Initialize state
-  initState();
+  state::initState();
 
   // Initialize peripherals
-  initPeripherals();
+  peripherals::initPeripherals();
 
   // Initialize control
-  initControl();
+  controller::initControl();
 
   // Start peripherals
-  startPeripherals();
+  peripherals::startPeripherals();
 
   // Load Calibrations from Flash
-  loadCalibration();
+  state::loadCalibration();
 
   // Set comms activity callback
-  comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
+  comms::comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
 
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
@@ -211,7 +209,7 @@ int main(void) {
 } // namespace motor_driver
 
 extern "C" void HardFault_Handler(void) {
-  flashJumpApplication((uint32_t)motor_driver::firmware_ptr);
+  flashJumpApplication((uint32_t)motor_driver::consts::firmware_ptr);
 }
 
 // FIXME: hack

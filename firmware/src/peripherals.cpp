@@ -10,6 +10,8 @@ namespace peripherals {
 
 void resumeInnerControlLoop();
 
+MUTEX_DECL(var_access_mutex);
+
 /**
  * Called at the start of every motor PWM cycle
  */
@@ -21,7 +23,7 @@ static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
    */
   events = (events + 1) % consts::current_control_count_per_motor_cycle;
   if (events == 0) {
-    resumeInnerControlLoop();
+    controller::resumeInnerControlLoop();
   }
 }
 
@@ -34,7 +36,10 @@ PWMConfig motor_pwm_config = {
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  }
+  },
+  0,     // CR2
+  0,     // BDTR
+  0,     // DIER
 };
 
 DRV8312 gate_driver(
@@ -62,7 +67,10 @@ const PWMConfig led_pwm_config = {
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  }
+  },
+  0,    // CR2
+  0,    // BDTR
+  0,    // DIER
 };
 
 AS5047D encoder(
@@ -107,7 +115,7 @@ static const ADCConversionGroup ivsense_adc_group = {
   ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | 
   ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
   ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
-  ADC_SQR1_NUM_CH(ivsense_channel_count),   // SQR1
+  ADC_SQR1_NUM_CH(consts::ivsense_channel_count),   // SQR1
   ADC_SQR2_SQ7_N(VBUS_CHANNEL),             // SQR2
   ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL)  | 
   ADC_SQR3_SQ4_N(VSENSE_A_CHANNEL) | ADC_SQR3_SQ5_N(VSENSE_B_CHANNEL) | ADC_SQR3_SQ6_N(VSENSE_C_CHANNEL) // SQR3
@@ -122,7 +130,10 @@ static const PWMConfig adc_trigger_pwm_config = {
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  }
+  },
+  0,    // CR2
+  0,    // BDTR
+  0,    // DIER
 };
 
 MCP9808 temp_sensor(I2CD1);
@@ -208,30 +219,5 @@ void setCommsActivityLED(bool on) {
 void setRS485TransmitMode(bool transmit) {
   palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);
 }
-
-void storeCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
-  flashWrite(addr, (char *)&calibration, sizeof(Calibration));
-}
-
-void loadCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
-  uint16_t start_sequence = 0;
-  // Retry loading flash until successful load. This is critical to read.
-  while (not (flashRead(addr, (char *)&start_sequence, sizeof(uint16_t)) == FLASH_RETURN_SUCCESS));
-  if (start_sequence == calib_ss) {
-    while (not (flashRead(addr, (char *)&calibration, sizeof(Calibration)) == FLASH_RETURN_SUCCESS));
-  }
-}
-
-void clearCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
-  flashErase(addr, sizeof(Calibration));
-
-  // Copy default values into calibration.
-  Calibration temp_calib;
-  std::memcpy(&calibration, &temp_calib, sizeof(Calibration));
-}
-
 } // namespace peripherals
 } // namespace motor_driver

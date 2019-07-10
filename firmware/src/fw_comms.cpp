@@ -42,10 +42,10 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x0003: // Bootloader Version
           break;
         case 0x0004: // Store Motor Calibration to Memory
-          storeCalibration();
+          state::storeCalibration();
           break;
         case 0x0005: // Clear Motor Calibration from Memory
-          clearCalibration();
+          state::clearCalibration();
           break;
 
         case 0x1000: // Electrical Revolution Start
@@ -193,17 +193,17 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           handleVarAccess(state::results.xl_z, buf, index, buf_size, access_type, errors);
           break;
         case 0x3009: { // Recorder start
-          uint8_t success = (uint8_t) recorder.startRecording();
+          uint8_t success = (uint8_t) state::recorder.startRecording();
           handleVarAccess(success, buf, index, buf_size, access_type, errors);
           break;
         }
         case 0x300a: { // Recorder buffer length / ready
-          uint16_t rec_size = recorder.size();
+          uint16_t rec_size = state::recorder.size();
           handleVarAccess(rec_size, buf, index, buf_size, access_type, errors);
           break;
         }
         case 0x300b: { // Recorder reset
-          recorder.reset();
+          state::recorder.reset();
           uint8_t flag = 1;
           handleVarAccess(flag, buf, index, buf_size, access_type, errors);
           break;

@@ -30,15 +30,15 @@ static msg_t blinkerThreadRun(void *arg) {
 
   int t = 0;
 
-  setCommsActivityLED(false);
+  peripherals::setCommsActivityLED(false);
 
   while (true) {
     uint8_t g = ::abs(t - 255);
-    setStatusLEDColor(0, 0, g);
+    peripherals::setStatusLEDColor(0, 0, g);
 
     systime_t time_now = chTimeNow();
 
-    setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(comms_activity_led_duration) &&
+    peripherals::setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(consts::comms_activity_led_duration) &&
                         last_comms_activity_time != 0);
 
     t = (t + 10) % 510;
@@ -58,10 +58,10 @@ static msg_t commsThreadRun(void *arg) {
 
   chRegSetThreadName("comms");
 
-  startComms();
+  comms::startComms();
 
   while (true) {
-    runComms();
+    comms::runComms();
   }
 
   return CH_SUCCESS; // Should never get here
@@ -73,14 +73,14 @@ int main(void) {
   chSysInit();
 
   if (RCC->CSR & RCC_CSR_WDGRSTF) {
-    flashJumpApplication((uint32_t)firmware_ptr);
+    flashJumpApplication((uint32_t)consts::firmware_ptr);
   }
 
   // Start peripherals
-  startPeripherals();
+  peripherals::startPeripherals();
 
   // Set comms activity callback
-  comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
+  comms::comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
 
   // Start threads
   chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);

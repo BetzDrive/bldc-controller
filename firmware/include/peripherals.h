@@ -2,9 +2,7 @@
 #define _PERIPHERALS_H_
 
 #include <stdint.h>
-#include <cstring>
 #include "hal.h"
-#include "flash.h"
 #include "DRV8312.h"
 #include "AS5047D.h"
 #include "MCP9808.h"
@@ -12,11 +10,12 @@
 #include "constants.h"
 
 namespace motor_driver {
+namespace controller {
+extern void resumeInnerControlLoop();
+}
 namespace peripherals {
 
 constexpr UARTDriver *rs485_uart_driver = &UARTD1;
-
-extern Mutex var_access_mutex;
 
 extern PWMConfig motor_pwm_config;
 
@@ -38,6 +37,8 @@ extern volatile size_t ivsense_adc_samples_count;
 
 extern adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
 
+extern Mutex var_access_mutex;
+
 void initPeripherals();
 
 void startPeripherals();
@@ -53,12 +54,6 @@ void setADCOn();
 void setCommsActivityLED(bool on);
 
 void setRS485TransmitMode(bool transmit);
-
-void storeCalibration();
-
-void loadCalibration();
-
-void clearCalibration();
 
 /**
  * Converts an ADC value to voltage (in volts)

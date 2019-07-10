@@ -5,6 +5,7 @@
 #include "hal.h"
 
 namespace motor_driver {
+namespace peripherals {
 
 constexpr UARTDriver *rs485_uart_driver = &UARTD1;
 
@@ -20,6 +21,7 @@ void setCommsActivityLED(bool on);
 
 void setRS485TransmitMode(bool transmit);
 
+} // namespace peripherals
 } // namespace motor_driver
 
 #endif /* _PERIPHERALS_H_ */

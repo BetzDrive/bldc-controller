@@ -19,30 +19,30 @@ static Thread *control_thread_ptr = nullptr;
 
 static SVM modulator(SVMStrategy::MIDPOINT_CLAMP);
 
-static PID pid_id(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f, consts::current_control_interval);
+static PID pid_id(state::calibration.foc_kp_d, state::calibration.foc_ki_d, 0.0f, consts::current_control_interval);
 
-static PID pid_iq(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f, consts::current_control_interval);
+static PID pid_iq(state::calibration.foc_kp_q, state::calibration.foc_ki_q, 0.0f, consts::current_control_interval);
 
-static PID pid_velocity(calibration.velocity_kp, calibration.velocity_ki, 0.0f, consts::velocity_control_interval);
+static PID pid_velocity(state::calibration.velocity_kp, state::calibration.velocity_ki, 0.0f, consts::velocity_control_interval);
 
-static PID pid_position(calibration.position_kp, calibration.position_ki, 0.0f, consts::position_control_interval);
+static PID pid_position(state::calibration.position_kp, state::calibration.position_ki, 0.0f, consts::position_control_interval);
 
 static systime_t last_control_timeout_reset;
 
-static const LFFlipType enc_ang_corr_periodicity_flips[] = {
-  LFFlipType::NONE
+static const math::LFFlipType enc_ang_corr_periodicity_flips[] = {
+  math::LFFlipType::NONE
 };
 
-static const LFPeriodicity enc_ang_corr_periodicity = {
+static const math::LFPeriodicity enc_ang_corr_periodicity = {
   1,
   enc_ang_corr_periodicity_flips
 };
 
-static LUTFunction<int8_t> enc_ang_corr_table(0, 2 * pi, calibration.enc_ang_corr_table_values, consts::enc_ang_corr_table_size, enc_ang_corr_periodicity);
+static math::LUTFunction<int8_t> enc_ang_corr_table(0, 2 * consts::pi, state::calibration.enc_ang_corr_table_values, consts::enc_ang_corr_table_size, enc_ang_corr_periodicity);
 
 static float getEncoderAngleCorrection(float raw_enc_pos) {
-  if (calibration.enc_ang_corr_scale != 0.0f) {
-    return enc_ang_corr_table(raw_enc_pos) * calibration.enc_ang_corr_scale + calibration.enc_ang_corr_offset;
+  if (state::calibration.enc_ang_corr_scale != 0.0f) {
+    return enc_ang_corr_table(raw_enc_pos) * state::calibration.enc_ang_corr_scale + state::calibration.enc_ang_corr_offset;
   } else {
     return 0.0f;
   }
@@ -92,7 +92,7 @@ void runInnerControlLoop() {
   chSysLock();
 
   // getPipelinedResultI requires startPipelinedAngleReadI to be called beforehand
-  encoder.startPipelinedRegisterReadI(0x3fff);
+  peripherals::encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
 
@@ -103,21 +103,22 @@ void runInnerControlLoop() {
     chEvtWaitAny((flagsmask_t)1);
 
     // If there is no fault, enable the motors.
-    if (!parameters.gate_active && !parameters.gate_fault) {
-      gate_driver.enableGates();
-      parameters.gate_active = true;
+    if (!state::parameters.gate_active && !state::parameters.gate_fault) {
+      peripherals::gate_driver.enableGates();
+      state::parameters.gate_active = true;
       chThdSleepMicroseconds(500);
     }
 
     // If there is a fault, disable the motors.
-    if (parameters.gate_active && parameters.gate_fault) {
-      gate_driver.disableGates();
+    if (state::parameters.gate_active && state::parameters.gate_fault) {
+      peripherals::gate_driver.disableGates();
       brakeMotor();
-      parameters.gate_active = false;
+      state::parameters.gate_active = false;
       chThdSleepMicroseconds(500);
     }
 
-    if (calibration.control_timeout != 0 && (chTimeNow() - last_control_timeout_reset) >= MS2ST(calibration.control_timeout)) {
+    if (state::calibration.control_timeout != 0 && 
+        (chTimeNow() - last_control_timeout_reset) >= MS2ST(state::calibration.control_timeout)) {
       brakeMotor();
     } 
 
@@ -144,29 +145,29 @@ void estimateState() {
 
   chSysLock(); // Required for function calls with "I" suffix
 
-  raw_enc_value = encoder.getPipelinedRegisterReadResultI();
-  encoder.startPipelinedRegisterReadI(0x3fff);
+  raw_enc_value = peripherals::encoder.getPipelinedRegisterReadResultI();
+  peripherals::encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
 
-  results.raw_enc_value = raw_enc_value;
+  state::results.raw_enc_value = raw_enc_value;
 
   float raw_enc_pos = raw_enc_value * consts::rad_per_enc_tick;
   float enc_pos = raw_enc_pos + getEncoderAngleCorrection(raw_enc_pos);
 
-  float prev_enc_pos = results.enc_pos;
-  results.enc_pos = enc_pos;
+  float prev_enc_pos = state::results.enc_pos;
+  state::results.enc_pos = enc_pos;
 
   float enc_pos_diff = enc_pos - prev_enc_pos;
   if (enc_pos_diff < -consts::pi) {
-    results.rotor_revs += 1;
+    state::results.rotor_revs += 1;
     enc_pos_diff += 2 * consts::pi; // Normalize to (-pi, pi) range
   } else if (enc_pos_diff > consts::pi) {
-    results.rotor_revs -= 1;
+    state::results.rotor_revs -= 1;
     enc_pos_diff -= 2 * consts::pi; // Normalize to (-pi, pi) range
   }
 
-  state::results.rotor_pos = enc_pos + state::results.rotor_revs * 2 * pi - state::calibration.position_offset;
+  state::results.rotor_pos = enc_pos + state::results.rotor_revs * 2 * consts::pi - state::calibration.position_offset;
 
   float rotor_vel_update = enc_pos_diff * consts::current_control_freq;
   // High frequency estimate used for on-board commutation
@@ -185,7 +186,7 @@ void estimateState() {
 
   // Subtract old values before storing/adding new values
   // Start doing this after rolling over
-  if (rolladc.vin[rolladc.count] != 0) {
+  if (state::rolladc.vin[state::rolladc.count] != 0) {
     state::results.raw_average_ia  -= state::rolladc.ia [state::rolladc.count];
     state::results.raw_average_ib  -= state::rolladc.ib [state::rolladc.count];
     state::results.raw_average_ic  -= state::rolladc.ic [state::rolladc.count];
@@ -195,13 +196,13 @@ void estimateState() {
     state::results.raw_average_vin -= state::rolladc.vin[state::rolladc.count];
   }
 
-  state::rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
-  state::rolladc.ib [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ib ];
-  state::rolladc.ic [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ic ];
-  state::rolladc.va [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_va ];
-  state::rolladc.vb [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vb ];
-  state::rolladc.vc [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vc ];
-  state::rolladc.vin[rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
+  state::rolladc.ia [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ia ];
+  state::rolladc.ib [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ib ];
+  state::rolladc.ic [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ic ];
+  state::rolladc.va [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_va ];
+  state::rolladc.vb [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vb ];
+  state::rolladc.vc [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vc ];
+  state::rolladc.vin[state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vin];
 
   // The new average is equal to the addition of the old value minus the last value.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
@@ -213,7 +214,7 @@ void estimateState() {
   state::results.raw_average_vc  += state::rolladc.vc [state::rolladc.count];
   state::results.raw_average_vin += state::rolladc.vin[state::rolladc.count];
 
-  rolladc.count = (rolladc.count + 1) % ivsense_rolling_average_count;
+  state::rolladc.count = (state::rolladc.count + 1) % consts::ivsense_rolling_average_count;
 
   state::results.average_ia  = peripherals::adcValueToCurrent(state::results.raw_average_ia  / consts::ivsense_rolling_average_count);
   state::results.average_ib  = peripherals::adcValueToCurrent(state::results.raw_average_ib  / consts::ivsense_rolling_average_count);
@@ -238,7 +239,7 @@ void estimateState() {
   /*
    * Record data
    */
-  if (rolladc.count == 0) {
+  if (state::rolladc.count == 0) {
     float recorder_new_data[consts::recorder_channel_count];
 
     recorder_new_data[consts::recorder_channel_ia]        = state::results.corrected_ia;
@@ -253,7 +254,7 @@ void estimateState() {
     recorder_new_data[consts::recorder_channel_ex1]       = state::results.foc_q_current;
     recorder_new_data[consts::recorder_channel_ex2]       = state::results.foc_d_current;
 
-    recorder.recordSample(recorder_new_data);
+    state::recorder.recordSample(recorder_new_data);
   }
   
 }
@@ -291,15 +292,15 @@ void runCurrentControl() {
      * Directly set PWM duty cycles
      */
 
-    gate_driver.setPWMDutyCycle(0, state::parameters.phase0 * consts::max_duty_cycle);
-    gate_driver.setPWMDutyCycle(1, state::parameters.phase1 * consts::max_duty_cycle);
-    gate_driver.setPWMDutyCycle(2, state::parameters.phase2 * consts::max_duty_cycle);
+    peripherals::gate_driver.setPWMDutyCycle(0, state::parameters.phase0 * consts::max_duty_cycle);
+    peripherals::gate_driver.setPWMDutyCycle(1, state::parameters.phase1 * consts::max_duty_cycle);
+    peripherals::gate_driver.setPWMDutyCycle(2, state::parameters.phase2 * consts::max_duty_cycle);
   } else {
     /*
      * Run field-oriented control
      */
     float ialpha, ibeta;
-    transformClarke(state::results.corrected_ia, 
+    math::transformClarke(state::results.corrected_ia, 
                     state::results.corrected_ib, 
                     state::results.corrected_ic, ialpha, ibeta);
 
@@ -310,11 +311,11 @@ void runCurrentControl() {
     float mech_pos = state::results.enc_pos - state::calibration.erev_start * consts::rad_per_enc_tick;
     float elec_pos = mech_pos * state::calibration.erevs_per_mrev;
 
-    float cos_theta = fast_cos(elec_pos);
-    float sin_theta = fast_sin(elec_pos);
+    float cos_theta = math::fast_cos(elec_pos);
+    float sin_theta = math::fast_sin(elec_pos);
 
     float id, iq;
-    transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
+    math::transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
 
     pid_id.setGains(state::calibration.foc_kp_d, state::calibration.foc_ki_d, 0.0f);
     pid_iq.setGains(state::calibration.foc_kp_q, state::calibration.foc_ki_q, 0.0f);
@@ -342,8 +343,8 @@ void runCurrentControl() {
       pid_id.setTarget(id_sp);
       pid_iq.setTarget(iq_sp);
 
-      results.id_output = pid_id.compute(id);
-      results.iq_output = pid_iq.compute(iq);
+      state::results.id_output = pid_id.compute(id);
+      state::results.iq_output = pid_iq.compute(iq);
 
       vd = state::results.id_output * state::calibration.motor_resistance;
       vq = state::results.iq_output * state::calibration.motor_resistance; // + state::results.hf_rotor_vel * state::calibration.motor_torque_const;
@@ -356,7 +357,7 @@ void runCurrentControl() {
     float vq_norm = vq * div;
 
     float valpha_norm, vbeta_norm;
-    transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);
+    math::transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);
 
     if (state::calibration.flip_phases) {
       vbeta_norm = -vbeta_norm;
@@ -367,7 +368,7 @@ void runCurrentControl() {
                                 state::results.duty_b, 
                                 state::results.duty_c);
 
-    if (parameters.gate_active) {
+    if (state::parameters.gate_active) {
       state::results.duty_a = state::results.duty_a * consts::max_duty_cycle;
       state::results.duty_b = state::results.duty_b * consts::max_duty_cycle;
       state::results.duty_c = state::results.duty_c * consts::max_duty_cycle;
@@ -377,9 +378,9 @@ void runCurrentControl() {
       state::results.duty_c = 0.0f;
     }
 
-    gate_driver.setPWMDutyCycle(0, state::results.duty_a);
-    gate_driver.setPWMDutyCycle(1, state::results.duty_b);
-    gate_driver.setPWMDutyCycle(2, state::results.duty_c);
+    peripherals::gate_driver.setPWMDutyCycle(0, state::results.duty_a);
+    peripherals::gate_driver.setPWMDutyCycle(1, state::results.duty_b);
+    peripherals::gate_driver.setPWMDutyCycle(2, state::results.duty_c);
 
     state::results.foc_d_current = id;
     state::results.foc_q_current = iq;

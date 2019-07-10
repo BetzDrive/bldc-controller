@@ -1,7 +1,7 @@
 #include "Recorder.h"
 
 namespace motor_driver {
-namespace recorder {
+namespace state {
 
 bool Recorder::startRecording() {
   // TODO: start another record as soon as it is over, if already recording
@@ -45,5 +45,5 @@ uint16_t Recorder::size() {
   }
 }
 
-} // namespace recorder
+} // namespace state
 } // namespace motor_driver

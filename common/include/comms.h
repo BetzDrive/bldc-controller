@@ -7,9 +7,10 @@
 #include "chmtx.h"
 
 namespace motor_driver {
-namespace comms {
-
+namespace peripherals {
 extern Mutex var_access_mutex;
+}
+namespace comms {
 
 class UARTEndpoint;
 
