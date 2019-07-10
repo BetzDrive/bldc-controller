@@ -6,6 +6,7 @@
 #include "stm32f4xx_flash.h"
 
 namespace motor_driver {
+namespace peripherals {
 
 void resumeInnerControlLoop();
 
@@ -18,16 +19,16 @@ static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
   /*
    * Run the inner control loop at the control frequency given
    */
-  events = (events + 1) % current_control_count_per_motor_cycle;
+  events = (events + 1) % consts::current_control_count_per_motor_cycle;
   if (events == 0) {
     resumeInnerControlLoop();
   }
 }
 
 PWMConfig motor_pwm_config = {
-  motor_pwm_clock_freq,                         // PWM clock frequency
-  motor_pwm_clock_freq / motor_pwm_cycle_freq, 	// PWM period (ticks)
-  motorPWMPeriodicCallback,                		// PWM callback
+  consts::motor_pwm_clock_freq,                                 // PWM clock frequency
+  consts::motor_pwm_clock_freq / consts::motor_pwm_cycle_freq, 	// PWM period (ticks)
+  motorPWMPeriodicCallback,                		                // PWM callback
   {
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
@@ -49,8 +50,8 @@ DRV8312 gate_driver(
   {GPIOC, GPIOC_MDRV_NOCTW}
 );
 
-constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
-constexpr unsigned int led_pwm_period = 52500; // clock cycles
+static constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
+static constexpr unsigned int led_pwm_period = 52500; // clock cycles
 
 const PWMConfig led_pwm_config = {
   led_pwm_clock_freq,
@@ -75,7 +76,7 @@ volatile adcsample_t *ivsense_adc_samples_ptr = nullptr;
 
 volatile size_t ivsense_adc_samples_count;
 
-adcsample_t ivsense_sample_buf[ivsense_channel_count * ivsense_sample_buf_depth];
+adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
 
 static void ivsenseADCEndCallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
   (void)adcp;
@@ -98,7 +99,7 @@ static void ivsenseADCErrorCallback(ADCDriver *adcp, adcerror_t err) {
 
 static const ADCConversionGroup ivsense_adc_group = {
   true,                                     // Use circular buffer
-  ivsense_channel_count,
+  consts::ivsense_channel_count,
   ivsenseADCEndCallback,
   ivsenseADCErrorCallback,
   0,                                        // CR1
@@ -113,7 +114,7 @@ static const ADCConversionGroup ivsense_adc_group = {
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
-  adc_pwm_cycle_freq, 
+  consts::adc_pwm_cycle_freq, 
   10,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
   NULL,               // Callback                                  
   {
@@ -159,7 +160,7 @@ void startPeripherals() {
 
   // Start ADC
   adcStart(&ADCD1, NULL);
-  adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, ivsense_sample_buf_depth);
+  adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, consts::ivsense_sample_buf_depth);
   // Configure ADC trigger timer and pause it
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
@@ -187,7 +188,7 @@ void startPeripherals() {
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
-  return led_gamma_table[intensity];
+  return consts::led_gamma_table[intensity];
 }
 
 void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue) {
@@ -209,7 +210,7 @@ void setRS485TransmitMode(bool transmit) {
 }
 
 void storeCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
+  uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
   flashWrite(addr, (char *)&calibration, sizeof(Calibration));
 }
 
@@ -224,7 +225,7 @@ void loadCalibration() {
 }
 
 void clearCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
+  uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
   flashErase(addr, sizeof(Calibration));
 
   // Copy default values into calibration.
@@ -232,4 +233,5 @@ void clearCalibration() {
   std::memcpy(&calibration, &temp_calib, sizeof(Calibration));
 }
 
+} // namespace peripherals
 } // namespace motor_driver

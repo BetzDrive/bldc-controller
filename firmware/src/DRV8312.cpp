@@ -1,6 +1,7 @@
 #include "DRV8312.h"
 
 namespace motor_driver {
+namespace peripherals {
 
 void DRV8312::start() {
 
@@ -66,4 +67,5 @@ void DRV8312::disableGates()
   palClearPad(rst_c_.port, rst_c_.pin);
 }
 
+} // namespace peripherals
 } // namespace motor_driver

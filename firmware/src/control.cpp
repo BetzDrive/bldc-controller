@@ -13,18 +13,19 @@
 #include <cmath>
 
 namespace motor_driver {
+namespace controller {
 
 static Thread *control_thread_ptr = nullptr;
 
 static SVM modulator(SVMStrategy::MIDPOINT_CLAMP);
 
-static PID pid_id(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f, current_control_interval);
+static PID pid_id(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f, consts::current_control_interval);
 
-static PID pid_iq(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f, current_control_interval);
+static PID pid_iq(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f, consts::current_control_interval);
 
-static PID pid_velocity(calibration.velocity_kp, calibration.velocity_ki, 0.0f, velocity_control_interval);
+static PID pid_velocity(calibration.velocity_kp, calibration.velocity_ki, 0.0f, consts::velocity_control_interval);
 
-static PID pid_position(calibration.position_kp, calibration.position_ki, 0.0f, position_control_interval);
+static PID pid_position(calibration.position_kp, calibration.position_ki, 0.0f, consts::position_control_interval);
 
 static systime_t last_control_timeout_reset;
 
@@ -37,7 +38,7 @@ static const LFPeriodicity enc_ang_corr_periodicity = {
   enc_ang_corr_periodicity_flips
 };
 
-static LUTFunction<int8_t> enc_ang_corr_table(0, 2 * pi, calibration.enc_ang_corr_table_values, enc_ang_corr_table_size, enc_ang_corr_periodicity);
+static LUTFunction<int8_t> enc_ang_corr_table(0, 2 * pi, calibration.enc_ang_corr_table_values, consts::enc_ang_corr_table_size, enc_ang_corr_periodicity);
 
 static float getEncoderAngleCorrection(float raw_enc_pos) {
   if (calibration.enc_ang_corr_scale != 0.0f) {
@@ -72,8 +73,8 @@ static float Q_rsqrt( float number )
 }
 
 void initControl() {
-  pid_id.setLimits(-ivsense_current_max, ivsense_current_max);
-  pid_iq.setLimits(-ivsense_current_max, ivsense_current_max);
+  pid_id.setLimits(-consts::ivsense_current_max, consts::ivsense_current_max);
+  pid_iq.setLimits(-consts::ivsense_current_max, consts::ivsense_current_max);
   last_control_timeout_reset = chTimeNow();
 }
 
@@ -120,7 +121,7 @@ void runInnerControlLoop() {
       brakeMotor();
     } 
 
-    chMtxLock(&var_access_mutex);
+    chMtxLock(&peripherals::var_access_mutex);
 
     estimateState();
 
@@ -150,30 +151,30 @@ void estimateState() {
 
   results.raw_enc_value = raw_enc_value;
 
-  float raw_enc_pos = raw_enc_value * rad_per_enc_tick;
+  float raw_enc_pos = raw_enc_value * consts::rad_per_enc_tick;
   float enc_pos = raw_enc_pos + getEncoderAngleCorrection(raw_enc_pos);
 
   float prev_enc_pos = results.enc_pos;
   results.enc_pos = enc_pos;
 
   float enc_pos_diff = enc_pos - prev_enc_pos;
-  if (enc_pos_diff < -pi) {
+  if (enc_pos_diff < -consts::pi) {
     results.rotor_revs += 1;
-    enc_pos_diff += 2 * pi; // Normalize to (-pi, pi) range
-  } else if (enc_pos_diff > pi) {
+    enc_pos_diff += 2 * consts::pi; // Normalize to (-pi, pi) range
+  } else if (enc_pos_diff > consts::pi) {
     results.rotor_revs -= 1;
-    enc_pos_diff -= 2 * pi; // Normalize to (-pi, pi) range
+    enc_pos_diff -= 2 * consts::pi; // Normalize to (-pi, pi) range
   }
 
-  results.rotor_pos = enc_pos + results.rotor_revs * 2 * pi - calibration.position_offset;
+  state::results.rotor_pos = enc_pos + state::results.rotor_revs * 2 * pi - state::calibration.position_offset;
 
-  float rotor_vel_update = enc_pos_diff * current_control_freq;
+  float rotor_vel_update = enc_pos_diff * consts::current_control_freq;
   // High frequency estimate used for on-board commutation
-  float hf_alpha = calibration.hf_velocity_filter_param;
-  results.hf_rotor_vel = hf_alpha * rotor_vel_update + (1.0f - hf_alpha) * results.hf_rotor_vel;
+  float hf_alpha = state::calibration.hf_velocity_filter_param;
+  state::results.hf_rotor_vel = hf_alpha * rotor_vel_update + (1.0f - hf_alpha) * state::results.hf_rotor_vel;
   // Low frequency estimate sent to host
-  float lf_alpha = calibration.lf_velocity_filter_param;
-  results.lf_rotor_vel = lf_alpha * rotor_vel_update + (1.0f - lf_alpha) * results.lf_rotor_vel;
+  float lf_alpha = state::calibration.lf_velocity_filter_param;
+  state::results.lf_rotor_vel = lf_alpha * rotor_vel_update + (1.0f - lf_alpha) * state::results.lf_rotor_vel;
 
   /*
    * Calculate average voltages and currents
@@ -185,46 +186,46 @@ void estimateState() {
   // Subtract old values before storing/adding new values
   // Start doing this after rolling over
   if (rolladc.vin[rolladc.count] != 0) {
-    results.raw_average_ia  -= rolladc.ia [rolladc.count];
-    results.raw_average_ib  -= rolladc.ib [rolladc.count];
-    results.raw_average_ic  -= rolladc.ic [rolladc.count];
-    results.raw_average_va  -= rolladc.va [rolladc.count];
-    results.raw_average_vb  -= rolladc.vb [rolladc.count];
-    results.raw_average_vc  -= rolladc.vc [rolladc.count];
-    results.raw_average_vin -= rolladc.vin[rolladc.count];
+    state::results.raw_average_ia  -= state::rolladc.ia [state::rolladc.count];
+    state::results.raw_average_ib  -= state::rolladc.ib [state::rolladc.count];
+    state::results.raw_average_ic  -= state::rolladc.ic [state::rolladc.count];
+    state::results.raw_average_va  -= state::rolladc.va [state::rolladc.count];
+    state::results.raw_average_vb  -= state::rolladc.vb [state::rolladc.count];
+    state::results.raw_average_vc  -= state::rolladc.vc [state::rolladc.count];
+    state::results.raw_average_vin -= state::rolladc.vin[state::rolladc.count];
   }
 
-  rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
-  rolladc.ib [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ib ];
-  rolladc.ic [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ic ];
-  rolladc.va [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_va ];
-  rolladc.vb [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vb ];
-  rolladc.vc [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vc ];
-  rolladc.vin[rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
+  state::rolladc.ia [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ia ];
+  state::rolladc.ib [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ib ];
+  state::rolladc.ic [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_ic ];
+  state::rolladc.va [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_va ];
+  state::rolladc.vb [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vb ];
+  state::rolladc.vc [rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vc ];
+  state::rolladc.vin[rolladc.count] = ivsense_adc_samples_ptr[ivsense_channel_vin];
 
   // The new average is equal to the addition of the old value minus the last value.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
-  results.raw_average_ia  += rolladc.ia [rolladc.count];
-  results.raw_average_ib  += rolladc.ib [rolladc.count];
-  results.raw_average_ic  += rolladc.ic [rolladc.count];
-  results.raw_average_va  += rolladc.va [rolladc.count];
-  results.raw_average_vb  += rolladc.vb [rolladc.count];
-  results.raw_average_vc  += rolladc.vc [rolladc.count];
-  results.raw_average_vin += rolladc.vin[rolladc.count];
+  state::results.raw_average_ia  += state::rolladc.ia [state::rolladc.count];
+  state::results.raw_average_ib  += state::rolladc.ib [state::rolladc.count];
+  state::results.raw_average_ic  += state::rolladc.ic [state::rolladc.count];
+  state::results.raw_average_va  += state::rolladc.va [state::rolladc.count];
+  state::results.raw_average_vb  += state::rolladc.vb [state::rolladc.count];
+  state::results.raw_average_vc  += state::rolladc.vc [state::rolladc.count];
+  state::results.raw_average_vin += state::rolladc.vin[state::rolladc.count];
 
   rolladc.count = (rolladc.count + 1) % ivsense_rolling_average_count;
 
-  results.average_ia  = adcValueToCurrent(results.raw_average_ia  / ivsense_rolling_average_count);
-  results.average_ib  = adcValueToCurrent(results.raw_average_ib  / ivsense_rolling_average_count);
-  results.average_ic  = adcValueToCurrent(results.raw_average_ic  / ivsense_rolling_average_count);
-  results.average_va  = adcValueToVoltage(results.raw_average_va  / ivsense_rolling_average_count);
-  results.average_vb  = adcValueToVoltage(results.raw_average_vb  / ivsense_rolling_average_count);
-  results.average_vc  = adcValueToVoltage(results.raw_average_vc  / ivsense_rolling_average_count);
-  results.average_vin = adcValueToVoltage(results.raw_average_vin / ivsense_rolling_average_count);
+  state::results.average_ia  = peripherals::adcValueToCurrent(state::results.raw_average_ia  / consts::ivsense_rolling_average_count);
+  state::results.average_ib  = peripherals::adcValueToCurrent(state::results.raw_average_ib  / consts::ivsense_rolling_average_count);
+  state::results.average_ic  = peripherals::adcValueToCurrent(state::results.raw_average_ic  / consts::ivsense_rolling_average_count);
+  state::results.average_va  = peripherals::adcValueToVoltage(state::results.raw_average_va  / consts::ivsense_rolling_average_count);
+  state::results.average_vb  = peripherals::adcValueToVoltage(state::results.raw_average_vb  / consts::ivsense_rolling_average_count);
+  state::results.average_vc  = peripherals::adcValueToVoltage(state::results.raw_average_vc  / consts::ivsense_rolling_average_count);
+  state::results.average_vin = peripherals::adcValueToVoltage(state::results.raw_average_vin / consts::ivsense_rolling_average_count);
 
-  results.corrected_ia = results.average_ia - calibration.ia_offset;
-  results.corrected_ib = results.average_ib - calibration.ib_offset;
-  results.corrected_ic = results.average_ic - calibration.ic_offset;
+  state::results.corrected_ia = state::results.average_ia - state::calibration.ia_offset;
+  state::results.corrected_ib = state::results.average_ib - state::calibration.ib_offset;
+  state::results.corrected_ic = state::results.average_ic - state::calibration.ic_offset;
 
   //if (results.duty_a > results.duty_b && results.duty_a > results.duty_c) {
   //  results.corrected_ia = -(results.corrected_ib + results.corrected_ic);
@@ -238,19 +239,19 @@ void estimateState() {
    * Record data
    */
   if (rolladc.count == 0) {
-    float recorder_new_data[recorder_channel_count];
+    float recorder_new_data[consts::recorder_channel_count];
 
-    recorder_new_data[recorder_channel_ia] = results.corrected_ia;
-    recorder_new_data[recorder_channel_ib] = results.corrected_ib;
-    recorder_new_data[recorder_channel_ic] = results.corrected_ic;
-    recorder_new_data[recorder_channel_va] = results.average_va;
-    recorder_new_data[recorder_channel_vb] = results.average_vb;
-    recorder_new_data[recorder_channel_vc] = results.average_vc;
-    recorder_new_data[recorder_channel_vin] = results.average_vin;
-    recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
-    recorder_new_data[recorder_channel_rotor_vel] = results.hf_rotor_vel;
-    recorder_new_data[recorder_channel_ex1] = results.foc_q_current;
-    recorder_new_data[recorder_channel_ex2] = results.foc_d_current;
+    recorder_new_data[consts::recorder_channel_ia]        = state::results.corrected_ia;
+    recorder_new_data[consts::recorder_channel_ib]        = state::results.corrected_ib;
+    recorder_new_data[consts::recorder_channel_ic]        = state::results.corrected_ic;
+    recorder_new_data[consts::recorder_channel_va]        = state::results.average_va;
+    recorder_new_data[consts::recorder_channel_vb]        = state::results.average_vb;
+    recorder_new_data[consts::recorder_channel_vc]        = state::results.average_vc;
+    recorder_new_data[consts::recorder_channel_vin]       = state::results.average_vin;
+    recorder_new_data[consts::recorder_channel_rotor_pos] = state::results.rotor_pos;
+    recorder_new_data[consts::recorder_channel_rotor_vel] = state::results.hf_rotor_vel;
+    recorder_new_data[consts::recorder_channel_ex1]       = state::results.foc_q_current;
+    recorder_new_data[consts::recorder_channel_ex2]       = state::results.foc_d_current;
 
     recorder.recordSample(recorder_new_data);
   }
@@ -258,22 +259,25 @@ void estimateState() {
 }
 
 void runPositionControl() {
-  if (parameters.control_mode == control_mode_position || parameters.control_mode == control_mode_position_velocity) {
-    pid_position.setGains(calibration.position_kp, calibration.position_ki, 0.0f);
-    pid_position.setLimits(-calibration.velocity_limit, calibration.velocity_limit);
-    pid_position.setTarget(parameters.position_sp);
-    parameters.velocity_sp = pid_position.compute(results.rotor_pos);
+  if (state::parameters.control_mode == consts::control_mode_position || 
+      state::parameters.control_mode == consts::control_mode_position_velocity) {
+    pid_position.setGains(state::calibration.position_kp, state::calibration.position_ki, 0.0f);
+    pid_position.setLimits(-state::calibration.velocity_limit, state::calibration.velocity_limit);
+    pid_position.setTarget(state::parameters.position_sp);
+    state::parameters.velocity_sp = pid_position.compute(state::results.rotor_pos);
   }
 }
 
 void runVelocityControl() {
-  if (parameters.control_mode == control_mode_velocity || parameters.control_mode == control_mode_position || parameters.control_mode == control_mode_position_velocity) {
-    pid_velocity.setGains(calibration.velocity_kp, calibration.velocity_ki, 0.0f);
+  if (state::parameters.control_mode == consts::control_mode_velocity || 
+      state::parameters.control_mode == consts::control_mode_position || 
+      state::parameters.control_mode == consts::control_mode_position_velocity) {
+    pid_velocity.setGains(state::calibration.velocity_kp, state::calibration.velocity_ki, 0.0f);
     // float velocity_max = results.average_vin / calibration.motor_torque_const;
     float velocity_max = 40.0f;
-    pid_velocity.setLimits(-calibration.torque_limit, calibration.torque_limit);
-    pid_velocity.setTarget(parameters.velocity_sp);
-    parameters.torque_sp = pid_velocity.compute(results.hf_rotor_vel);
+    pid_velocity.setLimits(-state::calibration.torque_limit, state::calibration.torque_limit);
+    pid_velocity.setTarget(state::parameters.velocity_sp);
+    state::parameters.torque_sp = pid_velocity.compute(state::results.hf_rotor_vel);
   }
 }
 
@@ -282,29 +286,29 @@ void runCurrentControl() {
    * Compute phase duty cycles
    */
 
-  if (parameters.control_mode == control_mode_raw_phase_pwm) {
+  if (state::parameters.control_mode == consts::control_mode_raw_phase_pwm) {
     /*
      * Directly set PWM duty cycles
      */
 
-    gate_driver.setPWMDutyCycle(0, parameters.phase0 * max_duty_cycle);
-    gate_driver.setPWMDutyCycle(1, parameters.phase1 * max_duty_cycle);
-    gate_driver.setPWMDutyCycle(2, parameters.phase2 * max_duty_cycle);
+    gate_driver.setPWMDutyCycle(0, state::parameters.phase0 * consts::max_duty_cycle);
+    gate_driver.setPWMDutyCycle(1, state::parameters.phase1 * consts::max_duty_cycle);
+    gate_driver.setPWMDutyCycle(2, state::parameters.phase2 * consts::max_duty_cycle);
   } else {
     /*
      * Run field-oriented control
      */
     float ialpha, ibeta;
-    transformClarke(results.corrected_ia, 
-                    results.corrected_ib, 
-                    results.corrected_ic, ialpha, ibeta);
+    transformClarke(state::results.corrected_ia, 
+                    state::results.corrected_ib, 
+                    state::results.corrected_ic, ialpha, ibeta);
 
-    if (calibration.flip_phases) {
+    if (state::calibration.flip_phases) {
       ibeta = -ibeta;
     }
 
-    float mech_pos = results.enc_pos - calibration.erev_start * rad_per_enc_tick;
-    float elec_pos = mech_pos * calibration.erevs_per_mrev;
+    float mech_pos = state::results.enc_pos - state::calibration.erev_start * consts::rad_per_enc_tick;
+    float elec_pos = mech_pos * state::calibration.erevs_per_mrev;
 
     float cos_theta = fast_cos(elec_pos);
     float sin_theta = fast_sin(elec_pos);
@@ -312,28 +316,28 @@ void runCurrentControl() {
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
 
-    pid_id.setGains(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
-    pid_iq.setGains(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
+    pid_id.setGains(state::calibration.foc_kp_d, state::calibration.foc_ki_d, 0.0f);
+    pid_iq.setGains(state::calibration.foc_kp_q, state::calibration.foc_ki_q, 0.0f);
 
-    pid_id.setLimits(-calibration.current_limit, calibration.current_limit);
-    pid_iq.setLimits(-calibration.current_limit, calibration.current_limit);
+    pid_id.setLimits(-state::calibration.current_limit, state::calibration.current_limit);
+    pid_iq.setLimits(-state::calibration.current_limit, state::calibration.current_limit);
 
     float id_sp, iq_sp;
-    if (parameters.control_mode == control_mode_foc_current) {
+    if (state::parameters.control_mode == consts::control_mode_foc_current) {
       // Use the provided FOC current setpoints
-      id_sp = parameters.foc_d_current_sp;
-      iq_sp = parameters.foc_q_current_sp;
+      id_sp = state::parameters.foc_d_current_sp;
+      iq_sp = state::parameters.foc_q_current_sp;
     } else {
       // Generate FOC current setpoints from the reference torque
       id_sp = 0.0f;
-      iq_sp = parameters.torque_sp / calibration.motor_torque_const;
+      iq_sp = state::parameters.torque_sp / state::calibration.motor_torque_const;
     }
     
     float vd = 0.0;
     float vq = 0.0;
-    if (parameters.control_mode == control_mode_pwm_drive) {
+    if (state::parameters.control_mode == consts::control_mode_pwm_drive) {
       vd = 0;
-      vq = parameters.pwm_drive;
+      vq = state::parameters.pwm_drive;
     } else {
       pid_id.setTarget(id_sp);
       pid_iq.setTarget(iq_sp);
@@ -341,44 +345,46 @@ void runCurrentControl() {
       results.id_output = pid_id.compute(id);
       results.iq_output = pid_iq.compute(iq);
 
-      vd = results.id_output * calibration.motor_resistance;
-      vq = results.iq_output * calibration.motor_resistance; // + results.hf_rotor_vel * calibration.motor_torque_const;
+      vd = state::results.id_output * state::calibration.motor_resistance;
+      vq = state::results.iq_output * state::calibration.motor_resistance; // + state::results.hf_rotor_vel * state::calibration.motor_torque_const;
     }
 
     // Normalize the vectors
     float mag = Q_rsqrt(vd*vd + vq*vq);
-    float div = std::min(1.0/results.average_vin, mag);
+    float div = std::min(1.0/state::results.average_vin, mag);
     float vd_norm = vd * div;
     float vq_norm = vq * div;
 
     float valpha_norm, vbeta_norm;
     transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta, valpha_norm, vbeta_norm);
 
-    if (calibration.flip_phases) {
+    if (state::calibration.flip_phases) {
       vbeta_norm = -vbeta_norm;
     }
 
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, 
-                                results.duty_a, results.duty_b, results.duty_c);
+                                state::results.duty_a, 
+                                state::results.duty_b, 
+                                state::results.duty_c);
 
     if (parameters.gate_active) {
-      results.duty_a = results.duty_a * max_duty_cycle;
-      results.duty_b = results.duty_b * max_duty_cycle;
-      results.duty_c = results.duty_c * max_duty_cycle;
+      state::results.duty_a = state::results.duty_a * consts::max_duty_cycle;
+      state::results.duty_b = state::results.duty_b * consts::max_duty_cycle;
+      state::results.duty_c = state::results.duty_c * consts::max_duty_cycle;
     } else {
-      results.duty_a = 0.0f;
-      results.duty_b = 0.0f;
-      results.duty_c = 0.0f;
+      state::results.duty_a = 0.0f;
+      state::results.duty_b = 0.0f;
+      state::results.duty_c = 0.0f;
     }
 
-    gate_driver.setPWMDutyCycle(0, results.duty_a);
-    gate_driver.setPWMDutyCycle(1, results.duty_b);
-    gate_driver.setPWMDutyCycle(2, results.duty_c);
+    gate_driver.setPWMDutyCycle(0, state::results.duty_a);
+    gate_driver.setPWMDutyCycle(1, state::results.duty_b);
+    gate_driver.setPWMDutyCycle(2, state::results.duty_c);
 
-    results.foc_d_current = id;
-    results.foc_q_current = iq;
-    results.foc_d_voltage = vd;
-    results.foc_q_voltage = vq;
+    state::results.foc_d_current = id;
+    state::results.foc_q_current = iq;
+    state::results.foc_d_voltage = vd;
+    state::results.foc_q_voltage = vq;
   }
 }
 
@@ -387,9 +393,10 @@ void resetControlTimeout() {
 }
 
 void brakeMotor() {
-  parameters.foc_d_current_sp = 0.0f;
-  parameters.foc_q_current_sp = 0.0f;
-  parameters.control_mode = control_mode_foc_current;
+  state::parameters.foc_d_current_sp = 0.0f;
+  state::parameters.foc_q_current_sp = 0.0f;
+  state::parameters.control_mode = consts::control_mode_foc_current;
 }
 
+} // namespace controller
 } // namespace motor_driver

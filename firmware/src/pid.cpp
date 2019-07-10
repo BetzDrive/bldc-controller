@@ -1,5 +1,8 @@
 #include "pid.h"
 
+namespace motor_driver {
+namespace controller {
+
 /* Initialization and configuration functions */
 PID::PID (float kp, float ki, float kd, float interval) {
   interval_ = interval;
@@ -74,3 +77,6 @@ float PID::compute (float val) {
   return output;
 }
 /* End of PID Compute */
+
+} // namespace controller
+} // namespace motor_driver

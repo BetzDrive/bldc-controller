@@ -5,6 +5,7 @@
 #include "utils.h"
 
 namespace motor_driver {
+namespace peripherals {
 
 class AS5047D;
 
@@ -42,6 +43,7 @@ private:
   void spiEndCallback(SPIDriver *spi_driver);
 };
 
+} // namespace peripherals
 } // namespace motor_driver
 
 #endif /* _AS5047D_H_ */

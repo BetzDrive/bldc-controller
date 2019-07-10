@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 namespace motor_driver {
+namespace math {
 
 template <typename T>
 float LUTFunction<T>::lookup(float arg) const {
@@ -43,4 +44,5 @@ float LUTFunction<T>::lookupReduced(float reduced_arg) const {
 template class LUTFunction<float>;
 template class LUTFunction<int8_t>;
 
+} // namespace math
 } // namespace motor_driver

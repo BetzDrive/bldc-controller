@@ -10,6 +10,7 @@
 #include "crc16.h"
 
 namespace motor_driver {
+namespace comms {
 
 static uint32_t jump_addr = 0;
 
@@ -862,4 +863,5 @@ Server comms_server(*board_id_ptr, commsRegAccessHandler,
 #endif
 ProtocolFSM comms_protocol_fsm(comms_server);
 
+} // namespace comms
 } // namespace motor_driver

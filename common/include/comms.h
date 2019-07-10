@@ -7,6 +7,7 @@
 #include "chmtx.h"
 
 namespace motor_driver {
+namespace comms {
 
 extern Mutex var_access_mutex;
 
@@ -237,6 +238,7 @@ extern Server comms_server;
 
 extern ProtocolFSM comms_protocol_fsm;
 
+} // namespace comms
 } // namespace motor_driver
 
 #endif /* _COMMS_H_ */

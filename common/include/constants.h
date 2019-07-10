@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 namespace motor_driver {
+namespace consts {
 
 constexpr float pi = 3.1415927410125732421875f;
 constexpr float sqrt3_div_2 = 0.866025388240814208984375f;
@@ -131,6 +132,7 @@ constexpr size_t nvparams_len = 1u << 14; // 16 kiB
 /* Unique constant that identifies a valid calibration stored in memory */
 constexpr uint16_t calib_ss = 0x5454;
 
+} // namespace consts
 } // namespace motor_driver
 
 #endif /* _CONSTANTS_H_ */

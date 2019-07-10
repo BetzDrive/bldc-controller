@@ -2,6 +2,7 @@
 #define _SVM_H_
 
 namespace motor_driver {
+namespace controller {
 
 enum class SVMStrategy {
   SINUSOIDAL,
@@ -25,6 +26,7 @@ private:
   SVMStrategy strategy_;
 };
 
+} // namespace controller
 } // namespace motor_driver
 
 #endif /* _SVM_H_ */

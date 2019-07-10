@@ -7,6 +7,7 @@
 #include "constants.h"
 
 namespace motor_driver {
+namespace state {
 
 struct Results {
   float foc_d_current = 0;                  // Measured FOC direct current (amperes)
@@ -167,6 +168,7 @@ extern volatile bool should_copy_parameters;
 
 void initState();
 
+} // namespace state
 } // namespace motor_driver
 
 #endif /* _STATE_H_ */

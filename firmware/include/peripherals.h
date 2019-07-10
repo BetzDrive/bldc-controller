@@ -11,9 +11,8 @@
 #include "LSM6DS3Sensor.h"
 #include "constants.h"
 
-extern SerialUSBDriver SDU1;
-
 namespace motor_driver {
+namespace peripherals {
 
 constexpr UARTDriver *rs485_uart_driver = &UARTD1;
 
@@ -37,7 +36,7 @@ extern volatile adcsample_t *ivsense_adc_samples_ptr;
 
 extern volatile size_t ivsense_adc_samples_count;
 
-extern adcsample_t ivsense_sample_buf[ivsense_channel_count * ivsense_sample_buf_depth];
+extern adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
 
 void initPeripherals();
 
@@ -65,16 +64,17 @@ void clearCalibration();
  * Converts an ADC value to voltage (in volts)
  */
 inline float adcValueToVoltage(uint16_t adc_value) {
-  return static_cast<float>(adc_value) * ivsense_voltage_per_count;
+  return static_cast<float>(adc_value) * consts::ivsense_voltage_per_count;
 }
 
 /**
  * Converts an ADC value to current (in amperes)
  */
 inline float adcValueToCurrent(uint16_t adc_value) {
-  return (ivsense_count_zero_current - static_cast<float>(adc_value)) * ivsense_current_per_count;
+  return (consts::ivsense_count_zero_current - static_cast<float>(adc_value)) * consts::ivsense_current_per_count;
 }
 
+} // namespace peripherals
 } // namespace motor_driver
 
 #endif /* _PERIPHERALS_H_ */

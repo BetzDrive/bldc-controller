@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 namespace motor_driver {
+namespace comms {
 
 constexpr uint8_t COMM_VERSION = 0xfe;
 
@@ -46,6 +47,7 @@ using comm_addr_t = uint16_t;
 
 using comm_reg_count_t = uint8_t;
 
+} // namespace comms
 } // namespace motor_driver
 
 #endif /* _COMMS_DEFS_H_ */

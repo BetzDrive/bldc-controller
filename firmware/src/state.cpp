@@ -1,6 +1,7 @@
 #include "state.h"
 
 namespace motor_driver {
+namespace state {
 
 Results results;
 
@@ -19,4 +20,5 @@ volatile bool should_copy_parameters = false;
 void initState() {
 }
 
+} // namespace state
 } // namespace motor_driver

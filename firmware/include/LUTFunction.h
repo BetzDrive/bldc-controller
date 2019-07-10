@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 namespace motor_driver {
+namespace math {
 
 enum class LFFlipType {
   NONE,
@@ -39,6 +40,7 @@ private:
   float lookupReduced(float reduced_arg) const;
 };
 
+} // namespace math
 } // namespace motor_driver
 
 #endif /* _LUT_FUNCTION_H_ */
