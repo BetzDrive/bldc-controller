@@ -96,6 +96,7 @@
 #define LSM6DS3_TAP_DURATION_TIME_HIGH      0x0F  /**< Highest value of wake up threshold */
 
 namespace motor_driver {
+namespace peripherals {
 
 /* Typedefs ------------------------------------------------------------------*/
 typedef enum
@@ -273,6 +274,7 @@ uint8_t LSM6DS3_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint1
 #ifdef __cplusplus
 }
 #endif
+} // namespace peripherals
 } // namespace motor_driver
 
 #endif

@@ -8,6 +8,7 @@
 #include "utils.h"
 
 namespace motor_driver {
+namespace peripherals {
 
 /**
  * Texas Instruments DRV8312 Three-Phase Gate Driver With Dual Current Shunt Amplifiers and Buck Regulator
@@ -49,6 +50,7 @@ private:
   const IOPin noctw_;
 };
 
+} // namespace peripherals
 } // namespace motor_driver
 
 #endif /* _DRV8312_H_ */

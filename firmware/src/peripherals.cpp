@@ -6,8 +6,11 @@
 #include "stm32f4xx_flash.h"
 
 namespace motor_driver {
+namespace peripherals {
 
 void resumeInnerControlLoop();
+
+MUTEX_DECL(var_access_mutex);
 
 /**
  * Called at the start of every motor PWM cycle
@@ -18,22 +21,25 @@ static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
   /*
    * Run the inner control loop at the control frequency given
    */
-  events = (events + 1) % current_control_count_per_motor_cycle;
+  events = (events + 1) % consts::current_control_count_per_motor_cycle;
   if (events == 0) {
-    resumeInnerControlLoop();
+    controller::resumeInnerControlLoop();
   }
 }
 
 PWMConfig motor_pwm_config = {
-  motor_pwm_clock_freq,                         // PWM clock frequency
-  motor_pwm_clock_freq / motor_pwm_cycle_freq, 	// PWM period (ticks)
-  motorPWMPeriodicCallback,                		// PWM callback
+  consts::motor_pwm_clock_freq,                                 // PWM clock frequency
+  consts::motor_pwm_clock_freq / consts::motor_pwm_cycle_freq, 	// PWM period (ticks)
+  motorPWMPeriodicCallback,                		                // PWM callback
   {
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  }
+  },
+  0,     // CR2
+  0,     // BDTR
+  0,     // DIER
 };
 
 DRV8312 gate_driver(
@@ -49,8 +55,8 @@ DRV8312 gate_driver(
   {GPIOC, GPIOC_MDRV_NOCTW}
 );
 
-constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
-constexpr unsigned int led_pwm_period = 52500; // clock cycles
+static constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
+static constexpr unsigned int led_pwm_period = 52500; // clock cycles
 
 const PWMConfig led_pwm_config = {
   led_pwm_clock_freq,
@@ -61,7 +67,10 @@ const PWMConfig led_pwm_config = {
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_ACTIVE_LOW, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  }
+  },
+  0,    // CR2
+  0,    // BDTR
+  0,    // DIER
 };
 
 AS5047D encoder(
@@ -75,7 +84,7 @@ volatile adcsample_t *ivsense_adc_samples_ptr = nullptr;
 
 volatile size_t ivsense_adc_samples_count;
 
-adcsample_t ivsense_sample_buf[ivsense_channel_count * ivsense_sample_buf_depth];
+adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
 
 static void ivsenseADCEndCallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
   (void)adcp;
@@ -98,7 +107,7 @@ static void ivsenseADCErrorCallback(ADCDriver *adcp, adcerror_t err) {
 
 static const ADCConversionGroup ivsense_adc_group = {
   true,                                     // Use circular buffer
-  ivsense_channel_count,
+  consts::ivsense_channel_count,
   ivsenseADCEndCallback,
   ivsenseADCErrorCallback,
   0,                                        // CR1
@@ -106,14 +115,14 @@ static const ADCConversionGroup ivsense_adc_group = {
   ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | 
   ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
   ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
-  ADC_SQR1_NUM_CH(ivsense_channel_count),   // SQR1
+  ADC_SQR1_NUM_CH(consts::ivsense_channel_count),   // SQR1
   ADC_SQR2_SQ7_N(VBUS_CHANNEL),             // SQR2
   ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL)  | 
   ADC_SQR3_SQ4_N(VSENSE_A_CHANNEL) | ADC_SQR3_SQ5_N(VSENSE_B_CHANNEL) | ADC_SQR3_SQ6_N(VSENSE_C_CHANNEL) // SQR3
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
-  adc_pwm_cycle_freq, 
+  consts::adc_pwm_cycle_freq, 
   10,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
   NULL,               // Callback                                  
   {
@@ -121,7 +130,10 @@ static const PWMConfig adc_trigger_pwm_config = {
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL}
-  }
+  },
+  0,    // CR2
+  0,    // BDTR
+  0,    // DIER
 };
 
 MCP9808 temp_sensor(I2CD1);
@@ -159,7 +171,7 @@ void startPeripherals() {
 
   // Start ADC
   adcStart(&ADCD1, NULL);
-  adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, ivsense_sample_buf_depth);
+  adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, consts::ivsense_sample_buf_depth);
   // Configure ADC trigger timer and pause it
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
@@ -187,7 +199,7 @@ void startPeripherals() {
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
-  return led_gamma_table[intensity];
+  return consts::led_gamma_table[intensity];
 }
 
 void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue) {
@@ -207,29 +219,5 @@ void setCommsActivityLED(bool on) {
 void setRS485TransmitMode(bool transmit) {
   palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);
 }
-
-void storeCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
-  flashWrite(addr, (char *)&calibration, sizeof(Calibration));
-}
-
-void loadCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
-  uint16_t start_sequence = 0;
-  // Retry loading flash until successful load. This is critical to read.
-  while (not (flashRead(addr, (char *)&start_sequence, sizeof(uint16_t)) == FLASH_RETURN_SUCCESS));
-  if (start_sequence == calib_ss) {
-    while (not (flashRead(addr, (char *)&calibration, sizeof(Calibration)) == FLASH_RETURN_SUCCESS));
-  }
-}
-
-void clearCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(calibration_ptr);
-  flashErase(addr, sizeof(Calibration));
-
-  // Copy default values into calibration.
-  Calibration temp_calib;
-  std::memcpy(&calibration, &temp_calib, sizeof(Calibration));
-}
-
+} // namespace peripherals
 } // namespace motor_driver

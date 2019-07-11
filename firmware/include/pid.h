@@ -1,6 +1,9 @@
 #ifndef __PID_H__
 #define __PID_H__
 
+namespace motor_driver {
+namespace controller {
+
 class PID {
 private:
   float kp_, ki_, kd_;
@@ -27,5 +30,8 @@ public:
 
   float compute(float val);
 };
+
+} // namespace controller
+} // namespace motor_driver
 
 #endif //__PID_H__

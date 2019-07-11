@@ -24,6 +24,7 @@ static uint16_t getResultFromRxbuf(uint8_t *rxbuf) {
 }
 
 namespace motor_driver {
+namespace peripherals {
 
 void AS5047D::start() {
   spiStart(spi_driver_, &spi_config_);
@@ -83,4 +84,5 @@ void AS5047D::spiEndCallback(SPIDriver *spi_driver) {
   chSysUnlockFromIsr();
 }
 
+} // namespace peripherals
 } // namespace motor_driver

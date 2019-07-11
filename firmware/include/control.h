@@ -2,6 +2,7 @@
 #define _CONTROL_H_
 
 namespace motor_driver {
+namespace controller {
 
 void initControl();
 
@@ -21,6 +22,7 @@ void resetControlTimeout();
 
 void brakeMotor();
 
+} // namespace controller
 } // namespace motor_driver
 
 #endif /* _CONTROL_H_ */

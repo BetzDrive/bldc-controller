@@ -52,6 +52,7 @@
  * @param address the address of the component's instance
  */
 namespace motor_driver {
+namespace peripherals {
 
 LSM6DS3Sensor::LSM6DS3Sensor(I2CDriver *i2c) : dev_i2c(i2c)
 {
@@ -2188,4 +2189,5 @@ uint8_t LSM6DS3_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint1
   return ((LSM6DS3Sensor *)handle)->IO_Read(pBuffer, ReadAddr, nBytesToRead);
 }
 
+} // namespace peripherals
 } // namespace motor_driver

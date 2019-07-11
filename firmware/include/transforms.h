@@ -2,6 +2,7 @@
 #define _TRANSFORMS_H_
 
 namespace motor_driver {
+namespace math {
 
 void transformPark(float alpha, float beta, float cos_theta, float sin_theta, float& d, float& q);
 
@@ -11,6 +12,7 @@ void transformClarke(float a, float b, float c, float& alpha, float& beta);
 
 void transformInverseClarke(float alpha, float beta, float& a, float& b, float& c);
 
+} // namespace math
 } // namespace motor_driver
 
 #endif /* _TRANSFORMS_H_ */

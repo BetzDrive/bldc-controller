@@ -5,6 +5,7 @@
 #include "constants.h"
 
 namespace motor_driver {
+namespace state {
 
 class Recorder {
 public:
@@ -29,9 +30,10 @@ private:
 
   State state_;
   size_t index_;
-  float record_buf_[recorder_max_samples * recorder_channel_count];
+  float record_buf_[consts::recorder_max_samples * consts::recorder_channel_count];
 };
 
+} // namespace state
 } // namespace motor_driver
 
 #endif /* _RECORDER_H_ */

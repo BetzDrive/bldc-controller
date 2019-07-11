@@ -5,11 +5,12 @@
 #include "constants.h"
 
 namespace motor_driver {
+namespace controller {
 
 void SVM::computeDutyCycles(float v_alpha, float v_beta, float& dc_a, float& dc_b, float& dc_c) {
-  dc_a = (v_alpha) * one_div_sqrt3 + 0.5f;
-  dc_b = (-0.5f * v_alpha + sqrt3_div_2 * v_beta) * one_div_sqrt3 + 0.5f;
-  dc_c = (-0.5f * v_alpha - sqrt3_div_2 * v_beta) * one_div_sqrt3 + 0.5f;
+  dc_a = (v_alpha) * consts::one_div_sqrt3 + 0.5f;
+  dc_b = (-0.5f * v_alpha + consts::sqrt3_div_2 * v_beta) * consts::one_div_sqrt3 + 0.5f;
+  dc_c = (-0.5f * v_alpha - consts::sqrt3_div_2 * v_beta) * consts::one_div_sqrt3 + 0.5f;
 
   switch (strategy_) {
     case SVMStrategy::SINUSOIDAL:
@@ -66,7 +67,7 @@ float SVM::getMaxAmplitude() const {
     case SVMStrategy::SINUSOIDAL:
     default:
 
-      return sqrt(3.0f) / 2.0f;
+      return consts::sqrt3_div_2;
 
     case SVMStrategy::TOP_BOTTOM_CLAMP:
     case SVMStrategy::MIDPOINT_CLAMP:
@@ -75,4 +76,5 @@ float SVM::getMaxAmplitude() const {
   }
 }
 
+} // namespace controller
 } // namespace motor_driver

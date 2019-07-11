@@ -1,6 +1,7 @@
 #include "MCP9808.h"
 
 namespace motor_driver {
+namespace peripherals {
 
 void MCP9808::start() {
   uint8_t config[3];
@@ -53,5 +54,5 @@ bool MCP9808::getTemperature(float* temp) {
   return success;
 }
 
+} // namespace peripherals
 } // namespace motor_driver
-

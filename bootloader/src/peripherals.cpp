@@ -3,6 +3,7 @@
 #include "constants.h"
 
 namespace motor_driver {
+namespace peripherals {
 
 constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
 constexpr unsigned int led_pwm_period = 52500; // clock cycles
@@ -27,7 +28,7 @@ void startPeripherals() {
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
-  return led_gamma_table[intensity];
+  return consts::led_gamma_table[intensity];
 }
 
 void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue) {
@@ -48,4 +49,5 @@ void setRS485TransmitMode(bool transmit) {
   palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);
 }
 
+} // namespace peripherals
 } // namespace motor_driver
