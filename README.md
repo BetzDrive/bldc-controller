@@ -92,7 +92,7 @@ Plots the control target and the resulting quadrature/direct current commands. T
 These scripts start and read off an on-board buffer of the commutation at each control cycle. There are included plotting scripts. This interfaces directly with the Recorder class in the firmware.
 
 # System Design
-The BLDC is built on ChibiOS. The operating system allows for quick development and thread management which have been useful for this fast-paced project. To suppliment missing features, the STM32 library has been included.
+The BLDC is built on ChibiOS. The operating system allows for quick development and thread management which have been useful for this fast-paced project. To supplement missing features, the STM32 library has been included.
 
 ## Common
 In both firmware and bootloader, the primary system is the communication code. This is designed to allow users to read/write variables as well as reprogram the board remotely. When a board receives a packet, a small green LED will blink to indicate it has identified the message.
