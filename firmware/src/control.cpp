@@ -184,71 +184,83 @@ void estimateState() {
    * 2) average arrays are not initialized to zero
    */
 
+  static RolledADC rolladc;
+
+  static uint32_t raw_avg_ia = 0, raw_avg_ib = 0, raw_avg_ic = 0;
+  static uint32_t raw_avg_va = 0, raw_avg_vb = 0, raw_avg_vc = 0, raw_avg_vin = 0;
+
   // Subtract old values before storing/adding new values
   // Start doing this after rolling over
-  if (state::rolladc.vin[state::rolladc.count] != 0) {
-    state::results.raw_average_ia  -= state::rolladc.ia [state::rolladc.count];
-    state::results.raw_average_ib  -= state::rolladc.ib [state::rolladc.count];
-    state::results.raw_average_ic  -= state::rolladc.ic [state::rolladc.count];
-    state::results.raw_average_va  -= state::rolladc.va [state::rolladc.count];
-    state::results.raw_average_vb  -= state::rolladc.vb [state::rolladc.count];
-    state::results.raw_average_vc  -= state::rolladc.vc [state::rolladc.count];
-    state::results.raw_average_vin -= state::rolladc.vin[state::rolladc.count];
+  if (rolladc.vin[rolladc.count] != 0) {
+    raw_avg_ia  -= rolladc.ia [rolladc.count];
+    raw_avg_ib  -= rolladc.ib [rolladc.count];
+    raw_avg_ic  -= rolladc.ic [rolladc.count];
+    raw_avg_va  -= rolladc.va [rolladc.count];
+    raw_avg_vb  -= rolladc.vb [rolladc.count];
+    raw_avg_vc  -= rolladc.vc [rolladc.count];
+    raw_avg_vin -= rolladc.vin[rolladc.count];
   }
 
-  state::rolladc.ia [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ia ];
-  state::rolladc.ib [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ib ];
-  state::rolladc.ic [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ic ];
-  state::rolladc.va [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_va ];
-  state::rolladc.vb [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vb ];
-  state::rolladc.vc [state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vc ];
-  state::rolladc.vin[state::rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vin];
+  rolladc.ia [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ia ];
+  rolladc.ib [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ib ];
+  rolladc.ic [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ic ];
+  rolladc.va [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_va ];
+  rolladc.vb [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vb ];
+  rolladc.vc [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vc ];
+  rolladc.vin[rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vin];
 
   // The new average is equal to the addition of the old value minus the last value.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
-  state::results.raw_average_ia  += state::rolladc.ia [state::rolladc.count];
-  state::results.raw_average_ib  += state::rolladc.ib [state::rolladc.count];
-  state::results.raw_average_ic  += state::rolladc.ic [state::rolladc.count];
-  state::results.raw_average_va  += state::rolladc.va [state::rolladc.count];
-  state::results.raw_average_vb  += state::rolladc.vb [state::rolladc.count];
-  state::results.raw_average_vc  += state::rolladc.vc [state::rolladc.count];
-  state::results.raw_average_vin += state::rolladc.vin[state::rolladc.count];
+  raw_avg_ia  += rolladc.ia [rolladc.count];
+  raw_avg_ib  += rolladc.ib [rolladc.count];
+  raw_avg_ic  += rolladc.ic [rolladc.count];
+  raw_avg_va  += rolladc.va [rolladc.count];
+  raw_avg_vb  += rolladc.vb [rolladc.count];
+  raw_avg_vc  += rolladc.vc [rolladc.count];
+  raw_avg_vin += rolladc.vin[rolladc.count];
 
-  state::rolladc.count = (state::rolladc.count + 1) % consts::ivsense_rolling_average_count;
+  rolladc.count = (rolladc.count + 1) % consts::ivsense_rolling_average_count;
 
-  state::results.average_ia  = peripherals::adcValueToCurrent(state::results.raw_average_ia  / consts::ivsense_rolling_average_count);
-  state::results.average_ib  = peripherals::adcValueToCurrent(state::results.raw_average_ib  / consts::ivsense_rolling_average_count);
-  state::results.average_ic  = peripherals::adcValueToCurrent(state::results.raw_average_ic  / consts::ivsense_rolling_average_count);
-  state::results.average_va  = peripherals::adcValueToVoltage(state::results.raw_average_va  / consts::ivsense_rolling_average_count);
-  state::results.average_vb  = peripherals::adcValueToVoltage(state::results.raw_average_vb  / consts::ivsense_rolling_average_count);
-  state::results.average_vc  = peripherals::adcValueToVoltage(state::results.raw_average_vc  / consts::ivsense_rolling_average_count);
-  state::results.average_vin = peripherals::adcValueToVoltage(state::results.raw_average_vin / consts::ivsense_rolling_average_count);
+  static float avg_ia, avg_ib, avg_ic;
+  static float avg_va, avg_vb, avg_vc, avg_vin;
 
-  state::results.corrected_ia = state::results.average_ia - state::calibration.ia_offset;
-  state::results.corrected_ib = state::results.average_ib - state::calibration.ib_offset;
-  state::results.corrected_ic = state::results.average_ic - state::calibration.ic_offset;
+  avg_ia  = peripherals::adcValueToCurrent(raw_avg_ia  / consts::ivsense_rolling_average_count);
+  avg_ib  = peripherals::adcValueToCurrent(raw_avg_ib  / consts::ivsense_rolling_average_count);
+  avg_ic  = peripherals::adcValueToCurrent(raw_avg_ic  / consts::ivsense_rolling_average_count);
+  avg_va  = peripherals::adcValueToVoltage(raw_avg_va  / consts::ivsense_rolling_average_count);
+  avg_vb  = peripherals::adcValueToVoltage(raw_avg_vb  / consts::ivsense_rolling_average_count);
+  avg_vc  = peripherals::adcValueToVoltage(raw_avg_vc  / consts::ivsense_rolling_average_count);
+  avg_vin = peripherals::adcValueToVoltage(raw_avg_vin / consts::ivsense_rolling_average_count);
+
+  state::results.ia  = avg_ia - state::calibration.ia_offset;
+  state::results.ib  = avg_ib - state::calibration.ib_offset;
+  state::results.ic  = avg_ic - state::calibration.ic_offset;
+  state::results.va  = avg_va;
+  state::results.vb  = avg_vb;
+  state::results.vc  = avg_vc;
+  state::results.vin = avg_vin;
 
   //if (results.duty_a > results.duty_b && results.duty_a > results.duty_c) {
-  //  results.corrected_ia = -(results.corrected_ib + results.corrected_ic);
+  //  results.ia = -(results.ib + results.ic);
   //} else if (results.duty_b > results.duty_c) {
-  //  results.corrected_ib = -(results.corrected_ia + results.corrected_ic);
+  //  results.ib = -(results.ia + results.ic);
   //} else {
-  //  results.corrected_ic = -(results.corrected_ia + results.corrected_ib);
+  //  results.ic = -(results.ia + results.ib);
   //}
 
   /*
    * Record data
    */
-  if (state::rolladc.count == 0) {
+  if (rolladc.count == 0) {
     float recorder_new_data[consts::recorder_channel_count];
 
-    recorder_new_data[consts::recorder_channel_ia]        = state::results.corrected_ia;
-    recorder_new_data[consts::recorder_channel_ib]        = state::results.corrected_ib;
-    recorder_new_data[consts::recorder_channel_ic]        = state::results.corrected_ic;
-    recorder_new_data[consts::recorder_channel_va]        = state::results.average_va;
-    recorder_new_data[consts::recorder_channel_vb]        = state::results.average_vb;
-    recorder_new_data[consts::recorder_channel_vc]        = state::results.average_vc;
-    recorder_new_data[consts::recorder_channel_vin]       = state::results.average_vin;
+    recorder_new_data[consts::recorder_channel_ia]        = state::results.ia;
+    recorder_new_data[consts::recorder_channel_ib]        = state::results.ib;
+    recorder_new_data[consts::recorder_channel_ic]        = state::results.ic;
+    recorder_new_data[consts::recorder_channel_va]        = state::results.va;
+    recorder_new_data[consts::recorder_channel_vb]        = state::results.vb;
+    recorder_new_data[consts::recorder_channel_vc]        = state::results.vc;
+    recorder_new_data[consts::recorder_channel_vin]       = state::results.vin;
     recorder_new_data[consts::recorder_channel_rotor_pos] = state::results.rotor_pos;
     recorder_new_data[consts::recorder_channel_rotor_vel] = state::results.hf_rotor_vel;
     recorder_new_data[consts::recorder_channel_ex1]       = state::results.foc_q_current;
@@ -261,8 +273,11 @@ void estimateState() {
 
 void runPositionControl() {
   if (state::parameters.control_mode == consts::control_mode_position || 
-      state::parameters.control_mode == consts::control_mode_position_velocity) {
-    pid_position.setGains(state::calibration.position_kp, state::calibration.position_ki, 0.0f);
+      state::parameters.control_mode == consts::control_mode_position_velocity ||
+      state::parameters.control_mode == consts::control_mode_position_feed_forward
+     ) {
+    //pid_position.setGains(state::calibration.position_kp, state::calibration.position_ki, 0.0f);
+    pid_position.setGains(5, 0, 0.0f);
     pid_position.setLimits(-state::calibration.velocity_limit, state::calibration.velocity_limit);
     pid_position.setTarget(state::parameters.position_sp);
     state::parameters.velocity_sp = pid_position.compute(state::results.rotor_pos);
@@ -272,10 +287,12 @@ void runPositionControl() {
 void runVelocityControl() {
   if (state::parameters.control_mode == consts::control_mode_velocity || 
       state::parameters.control_mode == consts::control_mode_position || 
-      state::parameters.control_mode == consts::control_mode_position_velocity) {
-    pid_velocity.setGains(state::calibration.velocity_kp, state::calibration.velocity_ki, 0.0f);
-    // float velocity_max = results.average_vin / calibration.motor_torque_const;
-    float velocity_max = 40.0f;
+      state::parameters.control_mode == consts::control_mode_position_velocity ||
+      state::parameters.control_mode == consts::control_mode_position_feed_forward
+     ) {
+    //pid_velocity.setGains(state::calibration.velocity_kp, state::calibration.velocity_ki, 0.0f);
+    pid_velocity.setGains(0.1, 1e-3, 0.0f);
+    float velocity_max = state::results.vin / state::calibration.motor_torque_const;
     pid_velocity.setLimits(-state::calibration.torque_limit, state::calibration.torque_limit);
     pid_velocity.setTarget(state::parameters.velocity_sp);
     state::parameters.torque_sp = pid_velocity.compute(state::results.hf_rotor_vel);
@@ -300,9 +317,8 @@ void runCurrentControl() {
      * Run field-oriented control
      */
     float ialpha, ibeta;
-    math::transformClarke(state::results.corrected_ia, 
-                    state::results.corrected_ib, 
-                    state::results.corrected_ic, ialpha, ibeta);
+    math::transformClarke(state::results.ia, state::results.ib, state::results.ic, 
+                          ialpha, ibeta);
 
     if (state::calibration.flip_phases) {
       ibeta = -ibeta;
@@ -328,6 +344,10 @@ void runCurrentControl() {
       // Use the provided FOC current setpoints
       id_sp = state::parameters.foc_d_current_sp;
       iq_sp = state::parameters.foc_q_current_sp;
+    } else if (state::parameters.control_mode == consts::control_mode_position_feed_forward) {
+      id_sp = 0.0f;
+      iq_sp = state::parameters.torque_sp / state::calibration.motor_torque_const +
+              state::parameters.feed_forward;
     } else {
       // Generate FOC current setpoints from the reference torque
       id_sp = 0.0f;
@@ -352,7 +372,7 @@ void runCurrentControl() {
 
     // Normalize the vectors
     float mag = Q_rsqrt(vd*vd + vq*vq);
-    float div = std::min(1.0/state::results.average_vin, mag);
+    float div = std::min(1.0/state::results.vin, mag);
     float vd_norm = vd * div;
     float vq_norm = vq * div;
 

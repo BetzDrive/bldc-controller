@@ -14,6 +14,7 @@ COMM_ROR_ACC_Z = 0x3008
 COMM_ROR_ROTOR_POS_RAW = 0x3010
 
 def initBoards(client, board_ids):
+
     if type(board_ids) == int:
         board_ids = [board_ids]
 
@@ -104,7 +105,8 @@ control_modes = {'current' : 0,
                  'torque'  : 2,
                  'velocity': 3,
                  'position': 4,
-                 'pos_vel' : 5
+                 'pos_vel' : 5,
+                 'pos_ff'  : 6
                 }
 
 # This should be placed in a try/catch to handle comms errors
@@ -114,13 +116,14 @@ def driveMotor(client, board_ids, actuations, mode):
         client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', control_mode)]) # Set Control Mode
 
         if mode == 'current':
-            client.writeRegisters([board_id], [0x2001], [1], [struct.pack('<f', actuation[0])])
-            client.writeRegisters([board_id], [0x2002], [1], [struct.pack('<f', actuation[1])])
-        if mode == 'torque':
+            client.writeRegisters([board_id], [0x2001], [2], [struct.pack('<ff', actuation[0], actuation[1])])
+        elif mode == 'torque':
             client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', actuation)])
-        elif mode == 'raw_pwm':
-            client.writeRegisters([board_id], [0x2003], [1], [struct.pack('<f', actuation[0])])
-            client.writeRegisters([board_id], [0x2004], [1], [struct.pack('<f', actuation[1])])
-            client.writeRegisters([board_id], [0x2005], [1], [struct.pack('<f', actuation[2])])
+        elif mode == 'pwm':
+            client.writeRegisters([board_id], [0x2003], [3], [struct.pack('<fff', actuation[0], actuation[1], actuation[2])])
+        elif mode == 'position':
+            client.writeRegisters([board_id], [0x2008], [1], [struct.pack('<f', actuation)])
+        elif mode == 'pos_ff':
+            client.writeRegisters([board_id], [0x2008], [2], [struct.pack('<ff', actuation[0], actuation[1])])
     
 

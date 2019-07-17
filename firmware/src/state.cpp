@@ -8,8 +8,6 @@ namespace state {
 
 Results results;
 
-RolledADC rolladc;
-
 Calibration calibration;
 
 Parameters parameters;

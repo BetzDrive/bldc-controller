@@ -32,25 +32,13 @@ struct Results {
   float hf_rotor_vel = 0;                   // Rotor velocity High Frequency Estimate (radians/second)
   float lf_rotor_vel = 0;                   // Rotor velocity Low Frequency Estimate (radians/second)
 
-  uint32_t raw_average_va = 0;              // Pre-conversion values from ADC for rolling average
-  uint32_t raw_average_vb = 0;              // Pre-conversion values from ADC for rolling average
-  uint32_t raw_average_vc = 0;              // Pre-conversion values from ADC for rolling average
-  uint32_t raw_average_vin = 0;             // Pre-conversion values from ADC for rolling average
-  uint32_t raw_average_ia = 0;              // Pre-conversion values from ADC for rolling average
-  uint32_t raw_average_ib = 0;              // Pre-conversion values from ADC for rolling average
-  uint32_t raw_average_ic = 0;              // Pre-conversion values from ADC for rolling average
-
-  float average_va = 0;                     // Average voltage on phase A (volts)
-  float average_vb = 0;                     // Average voltage on phase B (volts)
-  float average_vc = 0;                     // Average voltage on phase C (volts)
-  float average_vin = 0;                    // Average supply voltage (volts)
-  float average_ia = 0;                     // Average current into phase A (amperes)
-  float average_ib = 0;                     // Average current into phase B (amperes)
-  float average_ic = 0;                     // Average current into phase C (amperes)
-
-  float corrected_ia = 0;                   // Value for current after correction math
-  float corrected_ib = 0;                   // Value for current after correction math
-  float corrected_ic = 0;                   // Value for current after correction math
+  float va = 0;                             // voltage on phase A (volts)
+  float vb = 0;                             // voltage on phase B (volts)
+  float vc = 0;                             // voltage on phase C (volts)
+  float vin = 0;                            // supply voltage (volts)
+  float ia = 0;                             // current into phase A (amperes)
+  float ib = 0;                             // current into phase B (amperes)
+  float ic = 0;                             // current into phase C (amperes)
 
   int32_t xl_x = 0;                         // X-acceleration in milli-g's
   int32_t xl_y = 0;                         // Y-acceleration in milli-g's
@@ -59,19 +47,6 @@ struct Results {
   float temperature = 0;                    // Temperature in degrees Celsius
 
   Results() {}
-};
-
-struct RolledADC {
-  uint16_t count = 0;
-  uint16_t ia [consts::ivsense_rolling_average_count] = {0};
-  uint16_t ib [consts::ivsense_rolling_average_count] = {0};
-  uint16_t ic [consts::ivsense_rolling_average_count] = {0};
-  uint16_t va [consts::ivsense_rolling_average_count] = {0};
-  uint16_t vb [consts::ivsense_rolling_average_count] = {0};
-  uint16_t vc [consts::ivsense_rolling_average_count] = {0};
-  uint16_t vin[consts::ivsense_rolling_average_count] = {0};
-
-  RolledADC(){}
 };
 
 struct Calibration {
@@ -85,7 +60,7 @@ struct Calibration {
   float foc_ki_q = 0.2f;                        // Integral gain for FOC/q PI loop
   float velocity_kp = 1.0f;                     // Proportional gain for velocity PI loop
   float velocity_ki = 0.01f;                    // Integral gain for velocity PI loop
-  float position_kp = 5.0f;                     // Proportional gain for position PI loop
+  float position_kp = 1.0f;                     // Proportional gain for position PI loop
   float position_ki = 0.01f;                    // Integral gain for position PI loop
   float current_limit = 2.0f;                   // Current limit (A)
   float torque_limit = 3.0f;                    // Torque limit (N*m)
@@ -117,12 +92,15 @@ struct Parameters {
   uint8_t led_red_intensity = 0;                            // Status LED red intensity
   uint8_t led_green_intensity = 0;                          // Status LED green intensity
   uint8_t led_blue_intensity = 0;                           // Status LED blue intensity
+
   float phase0 = 0.0f;                                      // Phase 0 duty cycle
   float phase1 = 0.0f;                                      // Phase 1 duty cycle
   float phase2 = 0.0f;                                      // Phase 2 duty cycle
+
   float torque_sp = 0.0f;                                   // Torque control setpoint (N*m)
   float velocity_sp = 0.0f;                                 // Velocity control setpoint (rad/s)
   float position_sp = 0.0f;                                 // Position control setpoint (rad)
+  float feed_forward = 0.0f;                                // Feed forward term for load compensation (A)
   float pwm_drive = 0.0f;
   bool gate_active = false;                                 // Flag for whether the gates are active or not
   bool gate_fault = false;                                  // Flag for whether the gate has a fault
@@ -134,11 +112,6 @@ struct Parameters {
  * Result values written by the control thread
  */
 extern Results results;
-
-/**
- * Rolling average of adc values 
- */
-extern RolledADC rolladc;
 
 /**
  * Calibration values

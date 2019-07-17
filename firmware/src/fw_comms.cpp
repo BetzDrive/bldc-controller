@@ -160,7 +160,10 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x2008: // Position Setpoint (rad)
           handleVarAccess(state::parameters.position_sp, buf, index, buf_size, access_type, errors);
           break;
-        case 0x2009: // PWM Drive (V)
+        case 0x2009: // Feed Forward (A)
+          handleVarAccess(state::parameters.feed_forward, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x2010: // PWM Drive (V)
           handleVarAccess(state::parameters.pwm_drive, buf, index, buf_size, access_type, errors);
           break;
 
@@ -178,7 +181,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           handleVarAccess(state::results.foc_q_current, buf, index, buf_size, access_type, errors);
           break;
         case 0x3004: // DC Supply Voltage (V)
-          handleVarAccess(state::results.average_vin, buf, index, buf_size, access_type, errors);
+          handleVarAccess(state::results.vin, buf, index, buf_size, access_type, errors);
           break;
         case 0x3005: // Board Temperature (degrees C)
           handleVarAccess(state::results.temperature, buf, index, buf_size, access_type, errors);
