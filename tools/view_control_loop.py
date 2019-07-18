@@ -36,14 +36,16 @@ if __name__ == '__main__':
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.05)
 
     client = BLDCControllerClient(ser)
     initialized = initBoards(client, board_ids)
+
+    client.leaveBootloader(board_ids)
     
     client.resetInputBuffer()
 
-    loadMotorCalibration(client, board_ids, mode)
+    initMotor(client, board_ids)
 
     def updateCurrent(i): 
         data = []

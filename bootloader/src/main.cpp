@@ -72,6 +72,7 @@ int main(void) {
   halInit();
   chSysInit();
 
+  // Check if the system reset off the watchdog and bump back into firmware
   if (RCC->CSR & RCC_CSR_WDGRSTF) {
     flashJumpApplication((uint32_t)consts::firmware_ptr);
   }

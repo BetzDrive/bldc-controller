@@ -26,6 +26,7 @@ COMM_FC_NOP = 0x00
 COMM_FC_REG_READ = 0x01
 COMM_FC_REG_WRITE = 0x02
 COMM_FC_REG_READ_WRITE = 0x03
+COMM_FC_CLEAR_IWDGRST = 0x10
 COMM_FC_SYSTEM_RESET = 0x80
 COMM_FC_JUMP_TO_ADDR = 0x81
 COMM_FC_FLASH_SECTOR_COUNT = 0x82
@@ -40,6 +41,7 @@ COMM_FC_CONFIRM_ID = 0xFE
 COMM_FC_ENUMERATE = 0xFF
 
 COMM_FLAG_SEND = 0x00 
+COMM_FLAG_CRASH = 0x02
 
 COMM_BOOTLOADER_OFFSET = 0x08000000
 COMM_BOARD_ID_OFFSET = 0x08004000
@@ -406,7 +408,10 @@ class BLDCControllerClient:
         if DEBUG:
             print("Proper Protocol")
 
-        flags = self._ser.read()
+        flags, = struct.unpack('<B', self._ser.read())
+        if flags & COMM_FLAG_CRASH:
+            #print("Board has experienced a IWDG reset")
+            pass
 
         length = self._ser.read(2)
         if length == None or len(length) == 0:

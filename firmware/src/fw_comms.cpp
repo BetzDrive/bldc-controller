@@ -78,7 +78,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x1009: // Position Controller Kp
           handleVarAccess(state::calibration.position_kp, buf, index, buf_size, access_type, errors);
           break;
-        case 0x100a: // Position Controller Ki
+        case 0x100A: // Position Controller Ki
           handleVarAccess(state::calibration.position_ki, buf, index, buf_size, access_type, errors);
           break;
         case 0x1010: // Current Limit (A)
@@ -163,7 +163,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x2009: // Feed Forward (A)
           handleVarAccess(state::parameters.feed_forward, buf, index, buf_size, access_type, errors);
           break;
-        case 0x2010: // PWM Drive (V)
+        case 0x200A: // PWM Drive (V)
           handleVarAccess(state::parameters.pwm_drive, buf, index, buf_size, access_type, errors);
           break;
 
@@ -200,12 +200,12 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           handleVarAccess(success, buf, index, buf_size, access_type, errors);
           break;
         }
-        case 0x300a: { // Recorder buffer length / ready
+        case 0x300A: { // Recorder buffer length / ready
           uint16_t rec_size = state::recorder.size();
           handleVarAccess(rec_size, buf, index, buf_size, access_type, errors);
           break;
         }
-        case 0x300b: { // Recorder reset
+        case 0x300B: { // Recorder reset
           state::recorder.reset();
           uint8_t flag = 1;
           handleVarAccess(flag, buf, index, buf_size, access_type, errors);

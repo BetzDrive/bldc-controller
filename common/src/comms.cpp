@@ -36,6 +36,13 @@ void UARTEndpoint::transmit() {
   tx_buf_[5] = tx_len_ & 0xff;
   tx_buf_[6] = (tx_len_ >> 8) & 0xff;
 
+#ifndef BOOTLOADER
+  // If the system has crashed, set the crashed flag bit in the communication protocol
+  if (RCC->CSR & RCC_CSR_WDGRSTF) {
+    tx_buf_[2] = tx_buf_[2] | COMM_FG_CRASH;
+  }
+#endif
+
   uint16_t crc = computeCRC(header_len + tx_buf_, tx_len_ + sub_msg_len);
   tx_buf_[header_len + sub_msg_len + tx_len_] = crc & 0xff;
   tx_buf_[header_len + sub_msg_len + tx_len_ + 1] = (crc >> 8) & 0xff;
@@ -375,6 +382,15 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
       reg_count_ = datagram[index++];
 
       state_ = State::RESPONDING_READ;
+
+      break;
+
+    case COMM_FC_CLEAR_IWDGRST:
+      /* Clear independent watchdog reset flag */
+
+      RCC->CSR |= RCC_CSR_RMVF;
+
+      state_ = State::RESPONDING;
 
       break;
 

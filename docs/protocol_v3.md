@@ -45,6 +45,7 @@ The CRC is computed over the entire packet excluding the CRC itself.
 | `0x01` | `COMM_FC_REG_READ` | Read registers | Start address (`uint16_t`), register count (`uint8_t`) | Register values (`void *`) |
 | `0x02` | `COMM_FC_REG_WRITE` | Write registers | Start address (`uint16_t`), register count (`uint8_t`), register values (`void *`) | N/A |
 | `0x03` | `COMM_FC_REG_READ_WRITE` | Read and write registers simultaneously | Read start address (`uint16_t`), read register count (`uint8_t`), write start address (`uint16_t`), write register count (`uint8_t`), write register values (`void *`) | Read register values (`void *`) |
+| `0x10` | `COMM_FC_CLEAR_IWDGRST` | Clear the independent watchdog reset flag | N/A | N/A |
 | `0x80` | `COMM_FC_SYSTEM_RESET` | Enter the bootloader | N/A | N/A |
 | `0x81` | `COMM_FC_JUMP_TO_ADDR` | Jump to an address and execute code (used to leave bootloader) | Jump address (`uint32_t`) | N/A |
 | `0x82` | `COMM_FC_FLASH_SECTOR_COUNT` | Get the number of flash sectors | N/A | Flash sector count (`uint32_t`) |
@@ -95,6 +96,8 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x0001` | Board ID | `uint8_t` |
 | `0x0002` | Firmware Version | `uint16_t` |
 | `0x0003` | Bootloader Version | `uint16_t` |
+| `0x0004` | Store Calibration | `N/A` |
+| `0x0005` | Clear Calibration | `N/A` |
 
 **Calibration Registers `(0x1***)`**
 
@@ -110,7 +113,7 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x1007` | Velocity Controller Kp | `float` |
 | `0x1008` | Velocity Controller Ki | `float` |
 | `0x1009` | Position Controller Kp | `float` |
-| `0x100a` | Position Controller Ki | `float` |
+| `0x100A` | Position Controller Ki | `float` |
 | `0x1010` | Current Limit (A) | `float` |
 | `0x1011` | Torque Limit (N*m) | `float` |
 | `0x1012` | Velocity Limit (rad/s) | `float` |
@@ -136,7 +139,8 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x2006` | Torque Setpoint (N*m) | `float` |
 | `0x2007` | Velocity Setpoint (rad/s) | `float` |
 | `0x2008` | Position Setpoint (rad) | `float` |
-| `0x2009` | PWM Drive (V) | `float` |
+| `0x2009` | Feed-Forward Setpoint (A) | `float` |
+| `0x200A` | PWM Drive (V) | `float` |
 
 **Read Only Registers `(0x3***)`**
 
@@ -152,8 +156,8 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x3007` | Accelerometer Y (milli-g) | `int32_t` |
 | `0x3008` | Accelerometer Z (milli-g) | `int32_t` |
 | `0x3009` | Recorder start | `bool` |
-| `0x300a` | Recorder ready/length | `uint16_t` |
-| `0x300b` | Recorder reset | `bool` |
+| `0x300A` | Recorder ready/length | `uint16_t` |
+| `0x300B` | Recorder reset | `bool` |
 | `0x3010` | Rotor Position (raw) | `uint16_t` |
 
 -------
@@ -168,7 +172,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | 3 | Velocity Control | Velocity Setpoint |
 | 4 | Position Control | Position Setpoint |
 | 5 | Position Velocity Control | Position Velocity Setpoints |
-| 6 | PWM Drive | PWM Drive |
+| 5 | Position Velocity Control | Position Velocity Setpoints |
+| 6 | Postion Feed-Forward | Position Feed-Forward Setpoints |
+| 7 | PWM Drive | PWM Drive |
 
 -------
 
@@ -176,8 +182,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 
 | Bit | Description |
 |-----|-------------|
-| 0 | Send/Receive (1 if packet coming from boards, 0 if from control) |
-| 1-7 | Unused |
+| 0 | Packet Send/Receive (1 if packet coming from boards, 0 if from control) |
+| 1 | Independent Watchdog Reset (1 if board has reset, 0 if no reset) |
+| 2-7 | Unused |
 
 -------
 

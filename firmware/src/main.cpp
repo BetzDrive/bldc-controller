@@ -145,9 +145,12 @@ static WORKING_AREA(watchdog_thread_wa, 512);
 static msg_t watchdogThreadRun(void *arg) {
   (void)arg;
 
-  chRegSetThreadName("watchdog");
+ /*
+  * The CSR WDG RST flag is handled in the comms code which 
+  *   notifies the host/enables them to clear the flag.
+  */
 
-  RCC->CSR |= RCC_CSR_RMVF;
+  chRegSetThreadName("watchdog");
 
   // Refer to table 107 in reference manual for configuration.
   IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);

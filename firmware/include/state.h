@@ -102,6 +102,7 @@ struct Parameters {
   float position_sp = 0.0f;                                 // Position control setpoint (rad)
   float feed_forward = 0.0f;                                // Feed forward term for load compensation (A)
   float pwm_drive = 0.0f;
+
   bool gate_active = false;                                 // Flag for whether the gates are active or not
   bool gate_fault = false;                                  // Flag for whether the gate has a fault
 
