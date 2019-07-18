@@ -7,13 +7,13 @@ git submodule update --recursive --remote --init
 sudo apt-get install gcc-arm-none-eabi
 ```
 
-## Compiling
+### Compiling
 ```
 cd ~/bldc_controller/<firmware or bootloader>
 make
 ```
 
-## Debugging via ST-LINK
+### Debugging via ST-LINK
 To debug during execution, you can attach the debugger at any time using the following code. Keep in mind this is done with a direct connection to the hardware via an ST-Link.
 ```
 cd ~/bldc_controller/<firmware or bootloader>
@@ -26,24 +26,24 @@ gdb-arm-none-eabi <compiled file>.elf
 
 This functionality is also built into the make files as `make debug`.
 
-## Uploading via ST-LINK
+### Uploading via ST-LINK
 ```
 cd ~/bldc_controller/<firmware or bootloader>
 make upload
 ```
 
-## Upload firmware via RS485
+### Upload firmware via RS485
 ```
 cd ~/bldc_controller/tools
 python upload_firmware.py <serial_port> <board_ids> ~/bldc_controller/firmware/build/motor_controller.bin
 ```
 
-## Upload bootloader via RS485
+### Upload bootloader via RS485
 Use this with caution. If this fails and a power cycle or reboot occurs, the board will have to be programmed directly. In the case of a failed upload, disable the enumeration procedure and try again with the same board ID. To be safe, first upload and test on an easy-to-remove link such as the gripper or base which are not as difficult to access in case of a failure.
 
 `upload_bootloader.py <serial_port> <board_id> <path_to_file>`
 
-## Serial Transmission Speed Limits
+### Serial Transmission Speed Limits
 USB Serial device drivers only permit at most one transmission per millisecond. By default, this is set to 16 milliseconds on our usb to RS485 converters. To change this execute the following terminal commands:
 
 ```bash
@@ -57,7 +57,7 @@ cat /sys/bus/usb-serial/devices/ttyUSB<id_num>/latency_timer
 # Python Scripts
 These scripts are made to remotely interface with the boards. They can debug, program, and run the boards. They interface using our custom communications protocol. Most scripts have been fitted with argparse which will give a description of the arguments when given the '-h' option. (i.e. `read_sensor.py -h`)
 
-## Motor Calibration
+### Motor Calibration
 To calibrate the motor board, a motor must first be attached without a load for optimal calibration. The results of calibration are based on the properties of the given motor.
 
 * `calibrate_encoder.py <serial_port> <board_id> <duty_cycle>`
@@ -68,7 +68,12 @@ To calibrate the motor board, a motor must first be attached without a load for 
 
 After completing these steps, the motor should be controllable.
 
-## Motor Control
+### Update Motor Calibration Constants (PID and Limits)
+Run this script after there's a calibration on the board. Modify the contents of the script to adjust tunings!
+
+`update_calibration.py <serial_port> <board_id>`
+
+### Motor Control
 Use this script to spin a motor with a given current command. A substantial starting point is 0.5 and increase above this with proper supervision! A negative command will reverse the direction. Description of what arguments each mode takes can be found with the '-h' option.
 
 `control_motor.py <serial_port> <board_id> <mode> <command>`
@@ -80,15 +85,15 @@ control_motor.py <serial_port> 1,2,3 torque 0.5,0.25,0
 control_motor.py <serial_port> 1,2,3 current [0,0.5],[0,0.25],[0,0]
 ```
 
-## Read Sensor
+### Read Sensor
 This script lets a user read from any of the sensors on-board the device.
 
 `read_sensor.py <serial_port> <board_ids> <sensor>`
 
-## View Control Loop
+### View Control Loop
 Plots the control target and the resulting quadrature/direct current commands. This is low frequency so use the recorder to get a better sense of the internal state of the motor driver.
 
-## Recording
+### Recording
 These scripts start and read off an on-board buffer of the commutation at each control cycle. There are included plotting scripts. This interfaces directly with the Recorder class in the firmware.
 
 # System Design
@@ -112,11 +117,11 @@ During normal operation, the firmware will pulse the RGB LED green. If a red or 
 ### Sensor Thread [low priority]
 Pulls updates from the accelerometer and temperature sensor.
   
-### Control Thread [normal priority]
-Pulls updates from ADC for current/voltage measurements as well as queues reads to the absolute encoder. With this data, FOC is computed with output duty cycles to STM32 timing hardware.
-  
-### Communication Thread [high priority]
+### Communication Thread [normal priority]
 Used to update motor targets and read current position, velocity, accelerometer data, temperature, etc.
 
+### Control Thread [high priority]
+Pulls updates from ADC for current/voltage measurements as well as queues reads to the absolute encoder. With this data, FOC is computed with output duty cycles to STM32 timing hardware.
+  
 ### Independent Watchdog Thread [high priority]
 Used to keep the system live while protecting from the chance of a hard fault or any other unforseen errors. When a lock-up occurs, the system will reset into bootloader which will then check the watchdog reset flag. If it is active, the bootloader will return the system to firmware mode.
