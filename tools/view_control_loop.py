@@ -19,11 +19,12 @@ if __name__ == '__main__':
     parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
     parser.add_argument('mode', type=str, help='Control mode: \
                                                 current (Id[A], Iq[A]), \
-                                                raw_pwm(dc,dc,dc), \
+                                                phase (dc,dc,dc), \
                                                 torque (N*m), \
                                                 velocity (rad/s), \
                                                 position (rad), \
                                                 pos_vel (rad,rad/s), \
+                                                pos_ff (rad,ff[A]), \
                                                 pwm (dc)')
     parser.add_argument('actuations', type=str, help='Actuation amount in the units of the selected mode (if requires multiple args, separate by comma)')
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)

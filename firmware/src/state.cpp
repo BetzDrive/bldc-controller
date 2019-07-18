@@ -1,6 +1,8 @@
 #include "state.h"
 
 #include "flash.h"
+#include "helper.h"
+
 #include <cstring>
 
 namespace motor_driver {
@@ -23,6 +25,11 @@ void initState() {
 
 void storeCalibration() {
   uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
+
+  struct IWDG_Values save = pauseIWDG();
+  flashErase(addr, sizeof(state::Calibration));
+  resumeIWDG(save);
+
   flashWrite(addr, (char *)&state::calibration, sizeof(state::Calibration));
 }
 
@@ -37,9 +44,6 @@ void loadCalibration() {
 }
 
 void clearCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
-  flashErase(addr, sizeof(state::Calibration));
-
   // Copy default values into calibration.
   state::Calibration temp_calib;
   std::memcpy(&state::calibration, &temp_calib, sizeof(state::Calibration));

@@ -104,6 +104,7 @@ class FlashSectorMap:
 class BLDCControllerClient:
     def __init__(self, ser):
         self._ser = ser
+        self._crash = {}
         self._crc_alg = crcmod.predefined.PredefinedCrc('crc-16')
 
     def resetInputBuffer(self):
@@ -159,6 +160,27 @@ class BLDCControllerClient:
     def setQuadratureCurrentKi(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1006 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
+    def setVelocityKp(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1007 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setVelocityKi(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1008 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setPositionKp(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1009 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setPositionKi(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x100A for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setCurrentLimit(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1010 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setTorqueLimit(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1011 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
+    def setVelocityLimit(self, server_ids, value):
+        return self.writeRegisters(server_ids, [0x1012 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
+
     def setTorqueConstant(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1022 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
@@ -178,6 +200,14 @@ class BLDCControllerClient:
         ret = self.readWriteRegisters(server_ids, [0x3000 for sid in server_ids], [9 for sid in server_ids], [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
         states = [struct.unpack('<ffffffiii', data) for data in ret]
         return states
+
+    def checkWDGRST(self):
+        return self._crash.keys()
+
+    def clearWDGRST(self, server_ids):
+        response = self.doTransaction([server_id], [COMM_FC_CLEAR_IWDGRST], [])
+        success = response[0][0]
+        return success
 
     # Bootloader only
     def enumerateBoards(self, server_id):
@@ -409,10 +439,7 @@ class BLDCControllerClient:
             print("Proper Protocol")
 
         flags, = struct.unpack('<B', self._ser.read())
-        if flags & COMM_FLAG_CRASH:
-            #print("Board has experienced a IWDG reset")
-            pass
-
+        
         length = self._ser.read(2)
         if length == None or len(length) == 0:
             return False, None
@@ -440,6 +467,10 @@ class BLDCControllerClient:
             return False, None
 
         message_server_id, message_func_code, errors = struct.unpack('<BBH', message[2:6])
+
+        if flags & COMM_FLAG_CRASH:
+            self._crash[message_server_id] = True
+            pass
 
         if message_server_id != server_id and not server_id == 0:
             raise ProtocolError('received unexpected server ID: saw ' \

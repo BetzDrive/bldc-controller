@@ -19,7 +19,7 @@ ReadOnlyRegs['temp'] = COMM_ROR_TEMPERATURE
 ReadOnlyRegs['imu'] = COMM_ROR_ACC_X
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Read temperature sensor from boards.')
+    parser = argparse.ArgumentParser(description='Read a sensor from boards.')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
