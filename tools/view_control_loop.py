@@ -63,7 +63,7 @@ if __name__ == '__main__':
                 #print("Failed to communicate with board: ", board_id)
                 data.append([0.0])
                 data.append([0.0])
-        return i, data
+        return time.time(), data
 
     flatten = lambda l: [item for sublist in l for item in sublist]
 

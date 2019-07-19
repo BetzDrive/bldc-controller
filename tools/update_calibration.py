@@ -56,6 +56,8 @@ if __name__ == '__main__':
             # Store Calibration struct to Parameters
             client.storeCalibration([board_id])
 
+            print("Updated:", board_id)
+
     print("Finished Updating Calibrations")
 
     ser.close()
