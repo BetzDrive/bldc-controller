@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 from comms import *
 from boards import *
 
@@ -28,6 +30,11 @@ if __name__ == '__main__':
     ser.reset_input_buffer()
 
     if initialized:
+        crashed = client.checkWDGRST()
+        if crashed:
+            print("Some boards have crashed, please power cycle before upload:", crashed)
+            break
+
         for board_id in board_ids:
             client.leaveBootloader([board_id])
             time.sleep(0.2) # Wait for the controller to reset
@@ -40,11 +47,10 @@ if __name__ == '__main__':
 
             success = client.writeFlash([board_id], args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
 
-            print 'Board {}'.format(board_id)
             if success:
-                print "Success"
+                print("Upload to Board", board_id, "Succeeded")
             else:
-                print "Failed"
-                break;
+                print("Upload to Board", board_id, "Failed")
+                break
 
     ser.close()

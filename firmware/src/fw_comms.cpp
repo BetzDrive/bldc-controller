@@ -217,7 +217,16 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x3011: // iq output from PID controller (A) 
           handleVarAccess(state::results.iq_output, buf, index, buf_size, access_type, errors);
           break;
-       
+        case 0x3012: // id output from PID controller (A) 
+          handleVarAccess(state::results.id_output, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x3013: // vq output from PID controller (V) 
+          handleVarAccess(state::results.foc_q_voltage, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x3014: // vd output from PID controller (V) 
+          handleVarAccess(state::results.foc_d_voltage, buf, index, buf_size, access_type, errors);
+          break;
+    
  
  
         default:

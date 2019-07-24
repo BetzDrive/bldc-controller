@@ -49,9 +49,9 @@ COMM_NVPARAMS_OFFSET = 0x08008000
 COMM_FIRMWARE_OFFSET = 0x08010000
 COMM_DEFAULT_BAUD_RATE = 1000000
 
-COMM_SINGLE_PROGRAM_LENGTH = 64
-COMM_SINGLE_READ_LENGTH    = 64
-COMM_SINGLE_VERIFY_LENGTH  = 64
+COMM_SINGLE_PROGRAM_LENGTH = 128
+COMM_SINGLE_READ_LENGTH    = 128
+COMM_SINGLE_VERIFY_LENGTH  = 128
 
 class FlashSectorMap:
     def __init__(self, sector_count, sector_starts, sector_sizes):
@@ -130,14 +130,31 @@ class BLDCControllerClient:
         return states
 
     def getVoltage(self, server_ids):
-        # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
         states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3004 for sid in server_ids], [1 for sid in server_ids])]
         return states
 
     def getTemperature(self, server_ids):
-        # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
         states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3005 for sid in server_ids], [1 for sid in server_ids])]
         return states
+
+    def getQuadratureCurrent(self, server_ids):
+        states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3011 for sid in server_ids], [1 for sid in server_ids])]
+        return states
+
+    def getDirectCurrent(self, server_ids):
+        states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3012 for sid in server_ids], [1 for sid in server_ids])]
+        return states
+
+    def getQuadratureVoltage(self, server_ids):
+        states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3013 for sid in server_ids], [1 for sid in server_ids])]
+        return states
+
+    def getDirectVoltage(self, server_ids):
+        states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3014 for sid in server_ids], [1 for sid in server_ids])]
+        return states
+
+
+
 
     def setZeroAngle(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1000 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<H', val) for val in value])

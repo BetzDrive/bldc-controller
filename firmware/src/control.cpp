@@ -356,7 +356,7 @@ void runCurrentControl() {
     float vq = 0.0;
     if (state::parameters.control_mode == consts::control_mode_pwm_drive) {
       vd = 0;
-      vq = state::parameters.pwm_drive;
+      vq = clamp(state::parameters.pwm_drive, -1.0f, 1.0f) * state::results.vin;
     } else {
       pid_id.setTarget(id_sp);
       pid_iq.setTarget(iq_sp);
