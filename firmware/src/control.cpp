@@ -412,9 +412,10 @@ void resetControlTimeout() {
 }
 
 void brakeMotor() {
-  state::parameters.foc_d_current_sp = 0.0f;
-  state::parameters.foc_q_current_sp = 0.0f;
-  state::parameters.control_mode = consts::control_mode_foc_current;
+  state::parameters.phase0 = 0;
+  state::parameters.phase1 = 0;
+  state::parameters.phase2 = 0;
+  state::parameters.control_mode = consts::control_mode_raw_phase_pwm;
 }
 
 } // namespace controller
