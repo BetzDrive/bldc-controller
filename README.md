@@ -97,18 +97,24 @@ Plots the control target and the resulting quadrature/direct current commands. T
 These scripts start and read off an on-board buffer of the commutation at each control cycle. There are included plotting scripts. This interfaces directly with the Recorder class in the firmware.
 
 # System Design
-The BLDC is built on ChibiOS. The operating system allows for quick development and thread management which have been useful for this fast-paced project. To supplement missing features, the STM32 library has been included.
+The BLDC is built on ChibiOS. The operating system allows for quick development and thread management which have been useful for this fast-paced project. To supplement missing features, the STM32 library has been included. Memory is allocated primarily for firmware though two blocks are used to store the calibration and board id (refer to section 3.3 of [reference manual](https://www.st.com/content/ccc/resource/technical/document/reference_manual/3d/6d/5a/66/b4/99/40/d4/DM00031020.pdf/files/DM00031020.pdf/jcr:content/translations/en.DM00031020.pdf "STM32F4 Reference Manual") for memory).
 
 ## Common
 In both firmware and bootloader, the primary system is the communication code. This is designed to allow users to read/write variables as well as reprogram the board remotely. When a board receives a packet, a small green LED will blink to indicate it has identified the message.
 
-## Bootloader
+## Bootloader [Flash Sector 0]
 This small system is primarily meant as a method to allow updates of the firmware without a programmer. On command, it will move the program counter to the start of the firmware code.
 
 ### LED Indicator
 During normal operation, the bootloader will pulse the RGB LED blue.
 
-## Firmware
+## Board ID [Flash Sector 1]
+To keep track of the board ID when switching between firmware and bootloader, and in case of a system fault, the board id is stored in flash.
+
+## Calibrations [Flash Sector 2]
+To keep calibrations between restarts, a section of flash is reserved and loaded to/from by firmware. Once a calibration is stored, it will load on boot without host intervention. To modify the calibration, either re-calibrate the motor or use the `update_calibration.py` tool.
+
+## Firmware [Flash Sectors 4 - 11]
 The firmware code starts by initializing hardware devices and then splits into a number of threads.
 
 ### LED Indicator [low priority]

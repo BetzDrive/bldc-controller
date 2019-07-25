@@ -172,7 +172,6 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | 3 | Velocity Control | Velocity Setpoint |
 | 4 | Position Control | Position Setpoint |
 | 5 | Position Velocity Control | Position Velocity Setpoints |
-| 5 | Position Velocity Control | Position Velocity Setpoints |
 | 6 | Postion Feed-Forward | Position Feed-Forward Setpoints |
 | 7 | PWM Drive | PWM Drive |
 
