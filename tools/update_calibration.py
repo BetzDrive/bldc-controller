@@ -46,12 +46,12 @@ if __name__ == '__main__':
             client.setQuadratureCurrentKi([board_id], [0.2])
             client.setVelocityKp([board_id], [0.1])
             client.setVelocityKi([board_id], [1e-3])
-            client.setPositionKp([board_id], [5.0])
+            client.setPositionKp([board_id], [20.0])
             client.setPositionKi([board_id], [0.0])
 
             # Modifying Limits
             client.setCurrentLimit([board_id], [2.0])
-            client.setVelocityLimit([board_id], [10.0])
+            client.setVelocityLimit([board_id], [20.0])
 
             # Store Calibration struct to Parameters
             client.storeCalibration([board_id])

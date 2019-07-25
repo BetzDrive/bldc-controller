@@ -120,6 +120,18 @@ class BLDCControllerClient:
         angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids])]
         return angles
 
+    def getRotorVelocity(self, server_ids):
+        vels = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3001 for sid in server_ids], [1 for sid in server_ids])]
+        return vels
+
+    def getReadDirectCurrent(self, server_ids):
+        states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3002 for sid in server_ids], [1 for sid in server_ids])]
+        return states
+
+    def getReadQuadratureCurrent(self, server_ids):
+        states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3003 for sid in server_ids], [1 for sid in server_ids])]
+        return states
+
     def getRawRotorPosition(self, server_ids):
         ticks = [struct.unpack('<H', data)[0] for data in self.readRegisters(server_ids, [0x3010 for sid in server_ids], [1 for sid in server_ids])]
         return ticks
@@ -137,19 +149,19 @@ class BLDCControllerClient:
         states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3005 for sid in server_ids], [1 for sid in server_ids])]
         return states
 
-    def getQuadratureCurrent(self, server_ids):
+    def getTargetQuadratureCurrent(self, server_ids):
         states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3011 for sid in server_ids], [1 for sid in server_ids])]
         return states
 
-    def getDirectCurrent(self, server_ids):
+    def getTargetDirectCurrent(self, server_ids):
         states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3012 for sid in server_ids], [1 for sid in server_ids])]
         return states
 
-    def getQuadratureVoltage(self, server_ids):
+    def getTargetQuadratureVoltage(self, server_ids):
         states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3013 for sid in server_ids], [1 for sid in server_ids])]
         return states
 
-    def getDirectVoltage(self, server_ids):
+    def getTargetDirectVoltage(self, server_ids):
         states = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3014 for sid in server_ids], [1 for sid in server_ids])]
         return states
 
