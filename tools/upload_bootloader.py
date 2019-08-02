@@ -28,23 +28,27 @@ if __name__ == '__main__':
     ser.reset_input_buffer()
 
     if initialized:
-        for board_id in board_ids:
-            client.leaveBootloader([board_id])
-            time.sleep(0.2) # Wait for the controller to reset
-            ser.reset_input_buffer()
+        crashed = client.checkWDGRST()
+        if crashed:
+            print("Some boards have crashed, please power cycle before upload:", crashed)
 
-            flash_sector_maps = client.getFlashSectorMap([board_id])
+        if not crashed:
+            for board_id in board_ids:
+                client.leaveBootloader([board_id])
+                time.sleep(0.2) # Wait for the controller to reset
+                ser.reset_input_buffer()
 
-            with open(args.bin_file, 'rb') as bin_file:
-                firmware_image = bin_file.read()
+                flash_sector_maps = client.getFlashSectorMap([board_id])
 
-            success = client.writeFlash([board_id], args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
+                with open(args.bin_file, 'rb') as bin_file:
+                    firmware_image = bin_file.read()
 
-            print 'Board {}'.format(board_id)
-            if success:
-                print "Success"
-            else:
-                print "Failed"
-                break;
+                success = client.writeFlash([board_id], args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
+
+                if success:
+                    print("Upload to Board", board_id, "Succeeded")
+                else:
+                    print("Upload to Board", board_id, "Failed")
+                    break
 
     ser.close()
