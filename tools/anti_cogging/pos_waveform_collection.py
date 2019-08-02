@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     initMotor(client, [board_id])
     
-    counts_per_rev = 2 << 14
+    counts_per_rev = 1 << 14
     steps = np.arange(0, 2*np.pi, 2*np.pi / counts_per_rev)
 
     data = []

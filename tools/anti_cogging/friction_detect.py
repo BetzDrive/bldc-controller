@@ -58,27 +58,36 @@ if __name__ == '__main__':
             pass
 
     d_min_static = d_min
+    print("Detected static:", d_min_static)
 
     print("Attempting to detect kinetic friction with minimum delta PWM of", d_del_min)
-    start_pos = last_pos
-    while (pos - last_pos) is not 0:
-        while abs(start_pos - start_pos) / (2*np.pi) < 1:
-            try:
-                driveMotor(client, [board_id], [d_min], "pwm")
-                time.sleep(0.1)
-                last_pos = pos
-                pos = client.getRotorPosition([board_id])[0]
-            except (ProtocolError, struct.error):
-                pass
-        d_min -= d_del_min
+    start_pos = last_pos 
+    counts_per_rev = 1 << 14
+    rad_per_count = 2*np.pi / counts_per_rev
+
+    while abs(pos - last_pos) > rad_per_count*2:
+        if abs(start_pos - pos) / (2*np.pi) >= 1:
+            d_min -= (d_del_min * 10)
+            start_pos = pos
+            print("Testing:", d_min)
+
+        try:
+            driveMotor(client, [board_id], [d_min], "pwm")
+            time.sleep(0.1)
+            last_pos = pos
+            pos = client.getRotorPosition([board_id])[0]
+        except (ProtocolError, struct.error):
+            pass
 
     d_min_kinetic = d_min
+    print("Detected kinetic:", d_min_kinetic)
 
     time.sleep(0.5)
     print("Testing to break static friction:", d_min_static)
     for _ in range(5):
         try:
             driveMotor(client, [board_id], [d_min_static], "pwm")
+            pos = client.getRotorPosition([board_id])[0]
             time.sleep(0.2)
         except (ProtocolError, struct.error):
             pass
@@ -87,12 +96,12 @@ if __name__ == '__main__':
     for _ in range(5):
         try:
             driveMotor(client, [board_id], [d_min_kinetic], "pwm")
+            pos = client.getRotorPosition([board_id])[0]
             time.sleep(0.2)
         except (ProtocolError, struct.error):
             pass
 
     print("Logging data at min kinetic")
-    pos = client.getRotorPosition([board_id])[0]
     start_pos = pos
     revs = (2) * 2*np.pi
     j = 0
