@@ -23,9 +23,9 @@ static PID pid_id(state::calibration.foc_kp_d, state::calibration.foc_ki_d, 0.0f
 
 static PID pid_iq(state::calibration.foc_kp_q, state::calibration.foc_ki_q, 0.0f, consts::current_control_interval);
 
-static PID pid_velocity(state::calibration.velocity_kp, state::calibration.velocity_ki, 0.0f, consts::velocity_control_interval);
+static PID pid_velocity(state::calibration.velocity_kp, 0.0f, state::calibration.velocity_kd, consts::velocity_control_interval);
 
-static PID pid_position(state::calibration.position_kp, state::calibration.position_ki, 0.0f, consts::position_control_interval);
+static PID pid_position(state::calibration.position_kp, 0.0f, state::calibration.position_kd, consts::position_control_interval);
 
 static systime_t last_control_timeout_reset;
 
@@ -276,7 +276,7 @@ void runPositionControl() {
       state::parameters.control_mode == consts::control_mode_position_velocity ||
       state::parameters.control_mode == consts::control_mode_position_feed_forward
      ) {
-    pid_position.setGains(state::calibration.position_kp, state::calibration.position_ki, 0.0f);
+    pid_position.setGains(state::calibration.position_kp, 0.0f, state::calibration.position_kd);
     pid_position.setLimits(-state::calibration.velocity_limit, state::calibration.velocity_limit);
     pid_position.setTarget(state::parameters.position_sp);
     state::parameters.velocity_sp = pid_position.compute(state::results.rotor_pos);
@@ -289,7 +289,7 @@ void runVelocityControl() {
       state::parameters.control_mode == consts::control_mode_position_velocity ||
       state::parameters.control_mode == consts::control_mode_position_feed_forward
      ) {
-    pid_velocity.setGains(state::calibration.velocity_kp, state::calibration.velocity_ki, 0.0f);
+    pid_velocity.setGains(state::calibration.velocity_kp, 0.0f, state::calibration.velocity_kp);
     float velocity_max = state::results.vin / state::calibration.motor_torque_const;
     pid_velocity.setLimits(-state::calibration.torque_limit, state::calibration.torque_limit);
     pid_velocity.setTarget(state::parameters.velocity_sp);

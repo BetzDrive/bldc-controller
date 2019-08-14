@@ -30,7 +30,7 @@ if __name__ == '__main__':
     client = BLDCControllerClient(ser)
 
     initialized = initBoards(client, board_ids)
-        
+
     client.resetInputBuffer()
 
     if initialized:
@@ -38,16 +38,16 @@ if __name__ == '__main__':
             client.leaveBootloader([board_id])
 
             client.setWatchdogTimeout([board_id], [1000])
-    
+
             # Setting gains for motor
             client.setDirectCurrentKp([board_id], [0.5])
             client.setDirectCurrentKi([board_id], [0.1])
             client.setQuadratureCurrentKp([board_id], [1.0])
             client.setQuadratureCurrentKi([board_id], [0.2])
-            client.setVelocityKp([board_id], [0.1])
-            client.setVelocityKi([board_id], [1e-3])
+            client.setVelocityKp([board_id], [0.5])
+            client.setVelocityKd([board_id], [0.01])
             client.setPositionKp([board_id], [5.0])
-            client.setPositionKi([board_id], [0.0])
+            client.setPositionKd([board_id], [0.0])
 
             # Modifying Limits
             client.setCurrentLimit([board_id], [2.0])

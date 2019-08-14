@@ -111,9 +111,9 @@ The standalone `COMM_FC_REG_READ` and `COMM_FC_REG_WRITE` commands can be used i
 | `0x1005` | Quadrature Current Controller Kp | `float` |
 | `0x1006` | Quadrature Current Controller Ki | `float` |
 | `0x1007` | Velocity Controller Kp | `float` |
-| `0x1008` | Velocity Controller Ki | `float` |
+| `0x1008` | Velocity Controller Kd | `float` |
 | `0x1009` | Position Controller Kp | `float` |
-| `0x100A` | Position Controller Ki | `float` |
+| `0x100A` | Position Controller Kd | `float` |
 | `0x1010` | Current Limit (A) | `float` |
 | `0x1011` | Torque Limit (N*m) | `float` |
 | `0x1012` | Velocity Limit (rad/s) | `float` |

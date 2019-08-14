@@ -72,14 +72,14 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x1007: // Velocity Controller Kp
           handleVarAccess(state::calibration.velocity_kp, buf, index, buf_size, access_type, errors);
           break;
-        case 0x1008: // Velocity Controller Ki
-          handleVarAccess(state::calibration.velocity_ki, buf, index, buf_size, access_type, errors);
+        case 0x1008: // Velocity Controller Kd
+          handleVarAccess(state::calibration.velocity_kd, buf, index, buf_size, access_type, errors);
           break;
         case 0x1009: // Position Controller Kp
           handleVarAccess(state::calibration.position_kp, buf, index, buf_size, access_type, errors);
           break;
-        case 0x100A: // Position Controller Ki
-          handleVarAccess(state::calibration.position_ki, buf, index, buf_size, access_type, errors);
+        case 0x100A: // Position Controller Kd
+          handleVarAccess(state::calibration.position_kd, buf, index, buf_size, access_type, errors);
           break;
         case 0x1010: // Current Limit (A)
           handleVarAccess(state::calibration.current_limit, buf, index, buf_size, access_type, errors);

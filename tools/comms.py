@@ -163,13 +163,13 @@ class BLDCControllerClient:
     def setVelocityKp(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1007 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
-    def setVelocityKi(self, server_ids, value):
+    def setVelocityKd(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1008 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
     def setPositionKp(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1009 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
-    def setPositionKi(self, server_ids, value):
+    def setPositionKd(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x100A for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
     def setCurrentLimit(self, server_ids, value):

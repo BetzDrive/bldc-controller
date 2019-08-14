@@ -87,7 +87,7 @@ def initMotor(client, board_ids):
     while not success:
         try:
             client.setWatchdogTimeout(board_ids, [1000]*len(board_ids))
-    
+
             # Setting gains for motor
             client.setDirectCurrentKp(board_ids, [0.5]*len(board_ids))
             client.setDirectCurrentKi(board_ids, [0.1]*len(board_ids))
@@ -98,7 +98,7 @@ def initMotor(client, board_ids):
         except (ProtocolError, struct.error, TypeError):
             print("Failed to calibrate board, retrying...")
     print("Finished calibration of boards:", board_ids)
- 
+
 # Defining Control Mode ID Lookup
 control_modes = {'current' : 0,
                  'phase'   : 1,
