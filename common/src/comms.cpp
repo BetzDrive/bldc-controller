@@ -819,6 +819,8 @@ template void handleVarAccess<int8_t>(int8_t& var, uint8_t *buf, size_t& index, 
 
 template void handleVarAccess<uint16_t>(uint16_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
+template void handleVarAccess<int16_t>(int16_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+
 template void handleVarAccess<uint32_t>(uint32_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
 template void handleVarAccess<int32_t>(int32_t& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);

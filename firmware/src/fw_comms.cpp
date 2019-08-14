@@ -214,10 +214,9 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x3010: // Rotor Position (raw) 
           handleVarAccess(state::results.raw_enc_value, buf, index, buf_size, access_type, errors);
           break;
-        case 0x3011: // iq output from PID controller (A) 
-          handleVarAccess(state::results.iq_output, buf, index, buf_size, access_type, errors);
+        case 0x3011: // Rotor Revs (count) 
+          handleVarAccess(state::results.rotor_revs, buf, index, buf_size, access_type, errors);
           break;
-       
  
  
         default:
