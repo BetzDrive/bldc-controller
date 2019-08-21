@@ -133,6 +133,7 @@ void runInnerControlLoop() {
     runCurrentControl();
 
     chMtxUnlock();
+
   }
 }
 
@@ -277,9 +278,10 @@ void runPositionControl() {
       state::parameters.control_mode == consts::control_mode_position_feed_forward
      ) {
     pid_position.setGains(state::calibration.position_kp, 0.0f, state::calibration.position_kd);
-    pid_position.setLimits(-state::calibration.velocity_limit, state::calibration.velocity_limit);
+    pid_position.setAlpha(consts::position_control_alpha);
+    pid_position.setLimits(-state::calibration.torque_limit, state::calibration.torque_limit);
     pid_position.setTarget(state::parameters.position_sp);
-    state::parameters.velocity_sp = pid_position.compute(state::results.rotor_pos);
+    state::parameters.torque_sp = pid_position.compute(state::results.rotor_pos);
   }
 }
 

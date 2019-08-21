@@ -16,6 +16,7 @@ PID::PID (float kp, float ki, float kd, float interval) {
 
   alpha_ = 0.0f;
   deriv_ = 0.0f;
+  err_prev_ = 0.0f;
 }
 
 void PID::setGains (float kp, float ki, float kd) {
@@ -55,7 +56,9 @@ float PID::computeIntegral (float err, float p_out) {
 
 // Use alpha to approximate derivative over time (remove HF noise in err)
 float PID::computeDerivative (float err) {
-  deriv_ = (alpha_ * err) + ((1-alpha_) * deriv_);
+  float delta = err - err_prev_;
+  deriv_ = (alpha_ * delta) + ((1-alpha_) * deriv_);
+  err_prev_ = err;
   return deriv_;
 }
 

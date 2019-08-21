@@ -44,13 +44,17 @@ if __name__ == '__main__':
             client.setDirectCurrentKi([board_id], [0.1])
             client.setQuadratureCurrentKp([board_id], [1.0])
             client.setQuadratureCurrentKi([board_id], [0.2])
+
+            # Velocity controller is not used right now. Tunings need to be adjusted.
             client.setVelocityKp([board_id], [0.5])
             client.setVelocityKd([board_id], [0.01])
+
             client.setPositionKp([board_id], [5.0])
             client.setPositionKd([board_id], [0.0])
 
             # Modifying Limits
             client.setCurrentLimit([board_id], [2.0])
+            client.setTorqueLimit([board_id], [3.0])
             client.setVelocityLimit([board_id], [10.0])
 
             # Store Calibration struct to Parameters

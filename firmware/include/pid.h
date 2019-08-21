@@ -16,6 +16,7 @@ private:
 
   float alpha_;
   float deriv_;
+  float err_prev_;
 
   float computeIntegral(float err, float p_out);
   float computeDerivative(float err);
