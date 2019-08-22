@@ -31,12 +31,17 @@ constexpr unsigned int motor_pwm_cycle_freq = 20000; // Hz
 constexpr unsigned int adc_pwm_cycle_freq = motor_pwm_clock_freq/2; // Hz
 
 // Current control should be a factor of the motor_pwm_cycle_freq
-constexpr float current_control_freq = motor_pwm_cycle_freq;  
-constexpr float current_control_interval = 1.0f / current_control_freq;
-constexpr float velocity_control_interval = current_control_interval;
-constexpr float position_control_interval = current_control_interval;
+constexpr unsigned int current_control_freq = motor_pwm_cycle_freq;  
+constexpr uint8_t vel_divider = 5;
+constexpr unsigned int velocity_control_freq = current_control_freq / vel_divider;  
+constexpr uint8_t pos_divider = 5;
+constexpr unsigned int position_control_freq = motor_pwm_cycle_freq / pos_divider;  
 
-constexpr float position_control_alpha = 0.0309f;
+constexpr float current_control_interval = 1.0f / current_control_freq;
+constexpr float velocity_control_interval = 1.0f / velocity_control_freq;
+constexpr float position_control_interval = 1.0f / position_control_freq;
+
+constexpr float position_control_alpha = 0.076f;
 
 constexpr unsigned int current_control_count_per_motor_cycle = motor_pwm_cycle_freq / current_control_freq;
 
