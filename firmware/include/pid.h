@@ -16,10 +16,10 @@ private:
 
   float alpha_;
   float deriv_;
-  float err_prev_;
+  float val_prev_;
 
   float computeIntegral(float err, float p_out);
-  float computeDerivative(float err);
+  float computeDerivative(float err, float val);
 
 public:
   PID(float kp, float ki, float kd, float interval);
