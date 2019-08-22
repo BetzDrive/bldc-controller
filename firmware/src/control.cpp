@@ -95,6 +95,8 @@ void runInnerControlLoop() {
   peripherals::encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
+   
+  unsigned int count = 0;
 
   while (true) {
     /*
@@ -126,14 +128,19 @@ void runInnerControlLoop() {
 
     estimateState();
 
-    runPositionControl();
+    if (count % consts::pos_divider == 0) {
+      runPositionControl();
+    }
 
-    runVelocityControl();
+    if (count % consts::vel_divider == 0) {
+      runVelocityControl();
+    }
 
     runCurrentControl();
 
     chMtxUnlock();
 
+    count = (count + 1) % consts::current_control_freq;
   }
 }
 
@@ -287,9 +294,7 @@ void runPositionControl() {
 
 void runVelocityControl() {
   if (state::parameters.control_mode == consts::control_mode_velocity || 
-      state::parameters.control_mode == consts::control_mode_position || 
-      state::parameters.control_mode == consts::control_mode_position_velocity ||
-      state::parameters.control_mode == consts::control_mode_position_feed_forward
+      state::parameters.control_mode == consts::control_mode_position_velocity
      ) {
     pid_velocity.setGains(state::calibration.velocity_kp, 0.0f, state::calibration.velocity_kp);
     float velocity_max = state::results.vin / state::calibration.motor_torque_const;
