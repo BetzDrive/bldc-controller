@@ -56,9 +56,9 @@ float PID::computeIntegral (float err, float p_out) {
 
 // Use alpha to approximate derivative over time (remove HF noise in err)
 float PID::computeDerivative (float err, float val) {
-  float delta = val - val_prev_;
+  float delta = (-val) - val_prev_;
   deriv_ = (alpha_ * delta) + ((1-alpha_) * deriv_);
-  val_prev_ = val;
+  val_prev_ = -val;
   return deriv_;
 }
 

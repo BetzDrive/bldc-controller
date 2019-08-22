@@ -42,7 +42,7 @@ if __name__ == '__main__':
             torque_const = client.getTorqueConstant([board_id])[0]
 
             client.setWatchdogTimeout([board_id], [1000])
-            
+
             # Setting gains for motor
             client.setDirectCurrentKp([board_id], [0.5])
             client.setDirectCurrentKi([board_id], [0.1])
@@ -53,14 +53,14 @@ if __name__ == '__main__':
             client.setVelocityKp([board_id], [0.5])
             client.setVelocityKd([board_id], [0.01])
 
-            if torque_const == large_motor_tc:
+            if torque_const > large_motor_tc - 0.01:
                 # Big motors
-                client.setPositionKp([board_id], [3.0])
-                client.setPositionKd([board_id], [600.0])
-            else:   
+                client.setPositionKp([board_id], [1.0])
+                client.setPositionKd([board_id], [1000.0])
+            else:
                 # Small motors
-                client.setPositionKp([board_id], [0.2])
-                client.setPositionKd([board_id], [70.0])
+                client.setPositionKp([board_id], [0.5])
+                client.setPositionKd([board_id], [100.0])
 
             # Modifying Limits
             client.setCurrentLimit([board_id], [2.0])
