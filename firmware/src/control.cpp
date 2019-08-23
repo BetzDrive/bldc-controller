@@ -280,10 +280,54 @@ void estimateState() {
 }
 
 void runPositionControl() {
-  if (state::parameters.control_mode == consts::control_mode_position || 
+  if (state::parameters.control_mode == consts::control_mode_position ||
       state::parameters.control_mode == consts::control_mode_position_velocity ||
       state::parameters.control_mode == consts::control_mode_position_feed_forward
-     ) {
+     )
+  {
+    static float pos_target = 0;
+
+    /* Position interpolation allows smooth motion between position commands while
+     * being commanded at a relatively low frequency! This algorithm dynamically
+     * adjusts the number of intepolation points based on the 'best so far' update speed.
+     */
+    if (state::parameters.position_interpolation) {
+      // Vars for tracking frequency at which position is being updated
+      static uint16_t run_count = 0;
+
+      // Tracking vars for interpolation
+      static float last_sp = 0.0f;
+      static float interp_delta = 0.0f;
+      static uint16_t num_interp = 1000;
+      static uint16_t interp_count = 0;
+
+      // Update interpolation variables when a new command appears
+      if (last_sp != state::parameters.position_sp) {
+        // Calculate the interpolation vars for the next (num_interp) runs
+        num_interp = std::min(num_interp, run_count);
+        interp_delta = (state::parameters.position_sp - state::results.rotor_pos) /
+                                std::max((uint16_t)1, num_interp);
+        last_sp = state::parameters.position_sp;
+        run_count = 0;
+
+        // Start the first interpolation
+        pos_target = state::results.rotor_pos + interp_delta;
+        interp_count = 1;
+      }
+      // Take a step until we've reached our target
+      else if (interp_count < num_interp) {
+        pos_target = pos_target + interp_delta;
+        interp_count++;
+      }
+
+      run_count++;
+    }
+    /* If not using position interpolation, target goes straight to commanded setpoint */
+    else {
+      pos_target = state::parameters.position_sp;
+    }
+
+    // Run position PID
     pid_position.setGains(state::calibration.position_kp, 0.0f, state::calibration.position_kd);
     pid_position.setAlpha(consts::position_control_alpha);
     pid_position.setLimits(-state::calibration.torque_limit, state::calibration.torque_limit);
@@ -295,7 +339,8 @@ void runPositionControl() {
 void runVelocityControl() {
   if (state::parameters.control_mode == consts::control_mode_velocity || 
       state::parameters.control_mode == consts::control_mode_position_velocity
-     ) {
+     )
+  {
     pid_velocity.setGains(state::calibration.velocity_kp, 0.0f, state::calibration.velocity_kp);
     float velocity_max = state::results.vin / state::calibration.motor_torque_const;
     pid_velocity.setLimits(-state::calibration.torque_limit, state::calibration.torque_limit);

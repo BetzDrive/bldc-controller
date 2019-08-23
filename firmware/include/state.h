@@ -106,6 +106,8 @@ struct Parameters {
   bool gate_active = false;                                 // Flag for whether the gates are active or not
   bool gate_fault = false;                                  // Flag for whether the gate has a fault
 
+  bool position_interpolation = true;                       // Flag for whether to use position interpolation or not.
+
   Parameters() {}
 };
 
