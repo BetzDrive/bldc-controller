@@ -95,6 +95,8 @@ void runInnerControlLoop() {
   peripherals::encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
+   
+  unsigned int count = 0;
 
   while (true) {
     /*
@@ -126,13 +128,19 @@ void runInnerControlLoop() {
 
     estimateState();
 
-    runPositionControl();
+    if (count % consts::pos_divider == 0) {
+      runPositionControl();
+    }
 
-    runVelocityControl();
+    if (count % consts::vel_divider == 0) {
+      runVelocityControl();
+    }
 
     runCurrentControl();
 
     chMtxUnlock();
+
+    count = (count + 1) % consts::current_control_freq;
   }
 }
 
@@ -277,17 +285,16 @@ void runPositionControl() {
       state::parameters.control_mode == consts::control_mode_position_feed_forward
      ) {
     pid_position.setGains(state::calibration.position_kp, 0.0f, state::calibration.position_kd);
-    pid_position.setLimits(-state::calibration.velocity_limit, state::calibration.velocity_limit);
+    pid_position.setAlpha(consts::position_control_alpha);
+    pid_position.setLimits(-state::calibration.torque_limit, state::calibration.torque_limit);
     pid_position.setTarget(state::parameters.position_sp);
-    state::parameters.velocity_sp = pid_position.compute(state::results.rotor_pos);
+    state::parameters.torque_sp = pid_position.compute(state::results.rotor_pos);
   }
 }
 
 void runVelocityControl() {
   if (state::parameters.control_mode == consts::control_mode_velocity || 
-      state::parameters.control_mode == consts::control_mode_position || 
-      state::parameters.control_mode == consts::control_mode_position_velocity ||
-      state::parameters.control_mode == consts::control_mode_position_feed_forward
+      state::parameters.control_mode == consts::control_mode_position_velocity
      ) {
     pid_velocity.setGains(state::calibration.velocity_kp, 0.0f, state::calibration.velocity_kp);
     float velocity_max = state::results.vin / state::calibration.motor_torque_const;

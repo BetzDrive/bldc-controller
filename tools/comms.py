@@ -184,6 +184,10 @@ class BLDCControllerClient:
     def setTorqueConstant(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1022 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
+    def getTorqueConstant(self, server_ids):
+        torque_const = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x1022 for sid in server_ids], [1 for sid in server_ids])]
+        return torque_const
+
     def setPositionOffset(self, server_ids, value):
         return self.writeRegisters(server_ids, [0x1015 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
 
