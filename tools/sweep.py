@@ -48,7 +48,6 @@ if __name__ == '__main__':
 
             for _ in range(args.steps):
                 curr_target[0] += diff * 1.0 / args.steps
-                print(curr_target)
                 try:
                     driveMotor(client, board_id, curr_target, 'position')
                 except (ProtocolError, struct.error):
@@ -59,6 +58,6 @@ if __name__ == '__main__':
                 t_diff = curr_time - last_time
                 time_to_sleep = interval - t_diff
                 #time.sleep(time_to_sleep)
-                time.sleep(0.008)
+                time.sleep(0.5)
                 last_time = curr_time
             last_target = target

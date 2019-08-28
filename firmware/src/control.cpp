@@ -293,7 +293,7 @@ void runPositionControl() {
      */
     if (state::parameters.position_interpolation) {
       // Vars for tracking frequency at which position is being updated
-      static uint16_t run_count = 0;
+      static uint16_t run_count = 1000;
 
       // Tracking vars for interpolation
       static float last_sp = 0.0f;
@@ -304,9 +304,8 @@ void runPositionControl() {
       // Update interpolation variables when a new command appears
       if (last_sp != state::parameters.position_sp) {
         // Calculate the interpolation vars for the next (num_interp) runs
-        num_interp = std::min(num_interp, run_count);
-        interp_delta = (state::parameters.position_sp - state::results.rotor_pos) /
-                                std::max((uint16_t)1, num_interp);
+        num_interp = std::max((uint16_t)1, std::min(num_interp, run_count));
+        interp_delta = (state::parameters.position_sp - state::results.rotor_pos) / num_interp;
         last_sp = state::parameters.position_sp;
         run_count = 0;
 
