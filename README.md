@@ -131,3 +131,6 @@ Pulls updates from ADC for current/voltage measurements as well as queues reads 
   
 ### Independent Watchdog Thread [high priority]
 Used to keep the system live while protecting from the chance of a hard fault or any other unforseen errors. When a lock-up occurs, the system will reset into bootloader which will then check the watchdog reset flag. If it is active, the bootloader will return the system to firmware mode.
+
+# Modifying Pins
+All of the code can be directly modified except for the pins (althought you can technically modify it directly too). To allow for the pin definitions and defaults to be auto-generated and easily maintained, please make any modifications in [ChibiStudio](https://osdn.net/projects/chibios/) and generate new pin files from the studio interface.
