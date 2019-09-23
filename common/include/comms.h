@@ -233,6 +233,12 @@ void startComms();
 
 void runComms();
 
+static bool watchdog_timeout_flag = false;
+
+void setWDGTimeout();
+
+void clearWDGTimeout();
+
 extern UARTEndpoint comms_endpoint;
 
 extern Server comms_server;

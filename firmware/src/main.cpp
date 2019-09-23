@@ -88,6 +88,10 @@ static msg_t commsThreadRun(void *arg) {
 
   while (true) {
     comms::runComms();
+    if (state::peripherals.timeout_flag)
+      comms::setWDGTimeout();
+    else
+      comms::clearWDGTimeout();
   }
 
   return CH_SUCCESS; // Should never get here

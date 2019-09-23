@@ -27,6 +27,14 @@ void UARTEndpoint::start() {
   chSysUnlock();
 }
 
+void setWDGTimeout() {
+  watchdog_timeout_flag = true;
+}
+
+void clearWDGTimeout() {
+  watchdog_timeout_flag = false;
+}
+
 void UARTEndpoint::transmit() {
   tx_buf_[0] = 0xff; // Sync flag
   tx_buf_[1] = COMM_VERSION; // Protocol version
@@ -36,12 +44,15 @@ void UARTEndpoint::transmit() {
   tx_buf_[5] = tx_len_ & 0xff;
   tx_buf_[6] = (tx_len_ >> 8) & 0xff;
 
-#ifndef BOOTLOADER
-  // If the system has crashed, set the crashed flag bit in the communication protocol
+  // If the system has reset, set the crash flag bit in the communication protocol
   if (RCC->CSR & RCC_CSR_WDGRSTF) {
     tx_buf_[2] = tx_buf_[2] | COMM_FG_CRASH;
   }
-#endif
+
+  // If comms has timed out, update the host until cleared with a new command
+  if (watchdog_timeout_flag) {
+    tx_buf_[2] = tx_buf_[2] | COMM_FG_TIMEOUT;
+  }
 
   uint16_t crc = computeCRC(header_len + tx_buf_, tx_len_ + sub_msg_len);
   tx_buf_[header_len + sub_msg_len + tx_len_] = crc & 0xff;

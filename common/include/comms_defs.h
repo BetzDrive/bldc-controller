@@ -25,6 +25,7 @@ using comm_fg_t = uint8_t;
 constexpr comm_fg_t COMM_FG_COMP = 0x00;
 constexpr comm_fg_t COMM_FG_SEND = 0x01;
 constexpr comm_fg_t COMM_FG_CRASH = 0x02;
+constexpr comm_fg_t COMM_FG_TIMEOUT = 0x03;
 
 using comm_fc_t = uint8_t;
 constexpr comm_fc_t COMM_FC_NOP = 0x00;
