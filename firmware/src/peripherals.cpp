@@ -47,12 +47,11 @@ DRV8312 gate_driver(
   2,
   1,
   0,
-  {GPIOB, GPIOB_MDRV_RST_A},
-  {GPIOB, GPIOB_MDRV_RST_B},
-  {GPIOB, GPIOB_MDRV_RST_C},
-  {GPIOC, GPIOC_MDRV_EN},
+  {GPIOC, GPIOC_MDRV_RST_A},
+  {GPIOC, GPIOC_MDRV_RST_B},
+  {GPIOC, GPIOC_MDRV_RST_C},
   {GPIOC, GPIOC_MDRV_NFAULT},
-  {GPIOC, GPIOC_MDRV_NOCTW}
+  {GPIOB, GPIOB_MDRV_NOCTW}
 );
 
 static constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
@@ -75,7 +74,7 @@ const PWMConfig led_pwm_config = {
 
 AS5047D encoder(
   SPID3,
-  {GPIOA, GPIOA_ENC_CSN}
+  {GPIOB, GPIOB_ENC_CSN}
 );
 
 BinarySemaphore ivsense_adc_samples_bsem;
@@ -213,7 +212,7 @@ void setStatusLEDColor(uint32_t color) {
 }
 
 void setCommsActivityLED(bool on) {
-  palWritePad(GPIOA, GPIOA_LED_Y, !on);
+  palWritePad(GPIOB, GPIOB_LED_Y, !on);
 }
 
 void setRS485TransmitMode(bool transmit) {
