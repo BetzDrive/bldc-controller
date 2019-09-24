@@ -38,7 +38,7 @@ void clearWDGTimeout() {
 void UARTEndpoint::transmit() {
   tx_buf_[0] = 0xff; // Sync flag
   tx_buf_[1] = COMM_VERSION; // Protocol version
-  tx_buf_[2] = COMM_FG_SEND; // Flag byte
+  tx_buf_[2] = COMM_FG_BOARD; // Flag byte
   tx_buf_[3] = (tx_len_ + 2) & 0xff;
   tx_buf_[4] = ((tx_len_ + 2) >> 8) & 0xff;
   tx_buf_[5] = tx_len_ & 0xff;
@@ -46,7 +46,7 @@ void UARTEndpoint::transmit() {
 
   // If the system has reset, set the crash flag bit in the communication protocol
   if (RCC->CSR & RCC_CSR_WDGRSTF) {
-    tx_buf_[2] = tx_buf_[2] | COMM_FG_CRASH;
+    tx_buf_[2] = tx_buf_[2] | COMM_FG_RESET;
   }
 
   // If comms has timed out, update the host until cleared with a new command
@@ -253,7 +253,7 @@ bool Server::getDisco() {
 
 void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_t flags, comm_errors_t& errors) {
   /* If message from another board, decrement counter and exit. */
-  if (flags & COMM_FG_SEND) {
+  if (flags & COMM_FG_BOARD) {
     resp_count_--;
     return;
   } else {
