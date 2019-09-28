@@ -119,12 +119,14 @@ void runInnerControlLoop() {
       chThdSleepMicroseconds(500);
     }
 
-    // Put motor into braking mode if the communication line times out
+    // Put motor into braking mode if the communication line times out and clear the flag if not
     if (state::calibration.control_timeout != 0 && 
         (chTimeNow() - last_control_timeout_reset) >= MS2ST(state::calibration.control_timeout)) {
       brakeMotor();
       state::parameters.timeout_flag = true;
-    } 
+    } else {
+      state::parameters.timeout_flag = false;
+    }
 
     chMtxLock(&peripherals::var_access_mutex);
 
