@@ -135,6 +135,8 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
 
         case 0x2000: // Control Mode
           handleVarAccess(state::parameters.control_mode, buf, index, buf_size, access_type, errors);
+          // Clear the timeout flag when the control mode is set
+          state::parameters.timeout_flag = false;
           break;
         case 0x2001: // Direct Current Command (A)
           handleVarAccess(state::parameters.foc_d_current_sp, buf, index, buf_size, access_type, errors);
