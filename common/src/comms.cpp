@@ -27,6 +27,8 @@ void UARTEndpoint::start() {
   chSysUnlock();
 }
 
+static bool watchdog_timeout_flag = false;
+
 void setWDGTimeout() {
   watchdog_timeout_flag = true;
 }

@@ -233,8 +233,6 @@ void startComms();
 
 void runComms();
 
-static bool watchdog_timeout_flag = false;
-
 void setWDGTimeout();
 
 void clearWDGTimeout();

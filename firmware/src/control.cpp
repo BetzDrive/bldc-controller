@@ -48,7 +48,7 @@ static float getEncoderAngleCorrection(float raw_enc_pos) {
   }
 }
 
-static float clamp(float val, float min, float max) {
+inline static float clamp(float val, float min, float max) {
   if (val > max) {
     return max;
   } else if (val < min) {
@@ -302,7 +302,7 @@ void runVelocityControl() {
       state::parameters.control_mode == consts::control_mode_position_velocity
      ) {
     pid_velocity.setGains(state::calibration.velocity_kp, 0.0f, state::calibration.velocity_kp);
-    float velocity_max = state::results.vin / state::calibration.motor_torque_const;
+    //float velocity_max = state::results.vin / state::calibration.motor_torque_const;
     pid_velocity.setLimits(-state::calibration.torque_limit, state::calibration.torque_limit);
     pid_velocity.setTarget(state::parameters.velocity_sp);
     state::parameters.torque_sp = pid_velocity.compute(state::results.hf_rotor_vel);
