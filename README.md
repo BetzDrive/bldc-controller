@@ -20,7 +20,7 @@ cd ~/bldc_controller/<firmware or bootloader>
 openocd
 ----
 cd ~/bldc_controller/<firmware or bootloader>/build
-arm-none-eabi-gdb <compiled file>.elf
+arm-none-eabi-gdb or gdb-multiarch <compiled file>.elf
 (gdb) target extended-remote :3333
 ```
 
