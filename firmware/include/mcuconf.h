@@ -136,8 +136,8 @@
 /*
  * I2C driver system settings.
  */
-#define STM32_I2C_USE_I2C1                  TRUE
-#define STM32_I2C_USE_I2C2                  FALSE
+#define STM32_I2C_USE_I2C1                  FALSE
+#define STM32_I2C_USE_I2C2                  TRUE
 #define STM32_I2C_USE_I2C3                  FALSE
 #define STM32_I2C_I2C1_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 5)
 #define STM32_I2C_I2C1_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 6)
@@ -230,7 +230,7 @@
 #define STM32_SPI_SPI2_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 3)
 #define STM32_SPI_SPI2_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 4)
 #define STM32_SPI_SPI3_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 0)
-#define STM32_SPI_SPI3_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 7)
+#define STM32_SPI_SPI3_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 5)
 #define STM32_SPI_SPI1_DMA_PRIORITY         1
 #define STM32_SPI_SPI2_DMA_PRIORITY         1
 #define STM32_SPI_SPI3_DMA_PRIORITY         1

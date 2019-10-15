@@ -38,8 +38,8 @@ static msg_t blinkerThreadRun(void *arg) {
   peripherals::setCommsActivityLED(false);
 
   while (true) {
-    uint8_t g = ::abs(t - 255);
     uint8_t r = 0;
+    uint8_t g = ::abs(t - 255);
     uint8_t b = 0;
     bool fault = peripherals::gate_driver.hasFault();
     bool OCTW = peripherals::gate_driver.hasOCTW();

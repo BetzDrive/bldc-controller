@@ -135,9 +135,9 @@ static const PWMConfig adc_trigger_pwm_config = {
   0,    // DIER
 };
 
-MCP9808 temp_sensor(I2CD1);
+MCP9808 temp_sensor(I2CD2);
 
-LSM6DS3Sensor acc_gyr(&I2CD1);
+LSM6DS3Sensor acc_gyr(&I2CD2);
 
 void initPeripherals() {
   chBSemInit(&ivsense_adc_samples_bsem, true);
@@ -202,8 +202,8 @@ static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
 }
 
 void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue) {
-  pwmEnableChannel(&PWMD5, 0, ledPWMPulseWidthFromIntensity(red));
-  pwmEnableChannel(&PWMD5, 2, ledPWMPulseWidthFromIntensity(green));
+  pwmEnableChannel(&PWMD5, 2, ledPWMPulseWidthFromIntensity(red));
+  pwmEnableChannel(&PWMD5, 0, ledPWMPulseWidthFromIntensity(green));
   pwmEnableChannel(&PWMD5, 1, ledPWMPulseWidthFromIntensity(blue));
 }
 
