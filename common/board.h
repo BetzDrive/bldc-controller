@@ -427,7 +427,7 @@
  * PB6  - RS485_TX                  (alternate 7).
  * PB7  - RS485_RX                  (alternate 7).
  * PB8  - LED_Y                     (output pushpull maximum).
- * PB9  - ENC_CSN                   (output opendrain maximum).
+ * PB9  - ENC_CSN                   (output pushpull maximum).
  * PB10 - I2C_SCL                   (alternate 4).
  * PB11 - I2C_SDA                   (alternate 4).
  * PB12 - PIN12                     (input pullup).
@@ -460,7 +460,7 @@
                                      PIN_OTYPE_PUSHPULL(GPIOB_RS485_TX) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOB_RS485_RX) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOB_LED_Y) |      \
-                                     PIN_OTYPE_OPENDRAIN(GPIOB_ENC_CSN) |   \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_ENC_CSN) |    \
                                      PIN_OTYPE_OPENDRAIN(GPIOB_I2C_SCL) |   \
                                      PIN_OTYPE_OPENDRAIN(GPIOB_I2C_SDA) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN12) |      \

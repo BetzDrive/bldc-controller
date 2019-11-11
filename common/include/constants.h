@@ -51,62 +51,70 @@ constexpr unsigned int ivsense_samples_per_cycle = 1;
 
 constexpr size_t ivsense_sample_buf_depth = ivsense_samples_per_cycle * 2; // "double-buffering"
 
-constexpr size_t ivsense_channel_count = 7; // 4 voltage channels, 3 current channels
+constexpr size_t ivsense_channel_count = 4; // 1 voltage channel, 3 current channels
 
 constexpr size_t ivsense_channel_ia = 0;    // Phase A current channel index
 constexpr size_t ivsense_channel_ib = 1;    // Phase B current channel index
 constexpr size_t ivsense_channel_ic = 2;    // Phase C current channel index
-constexpr size_t ivsense_channel_va = 3;    // Phase A voltage channel index
-constexpr size_t ivsense_channel_vb = 4;    // Phase B voltage channel index
-constexpr size_t ivsense_channel_vc = 5;    // Phase C voltage channel index
-constexpr size_t ivsense_channel_vin = 6;   // Supply voltage channel index
+constexpr size_t ivsense_channel_vin = 3;   // Supply voltage channel index
 
-constexpr float ivsense_voltage_ratio = (2.21e3f + 39.2e3f) / 2.21e3f;      // Ratio of actual voltage to ADC input voltage
-constexpr float ivsense_current_shunt_value = 0.01f;                        // Current shunt resistor value, ohms
-constexpr float ivsense_current_amp_input_divider_gain = 0.97209f;          // Ratio of the input divider to the isns amp
-constexpr float ivsense_current_amp_gain = 43.1f;                           // Current shunt amplifier gain, V/V
-constexpr float ivsense_current_amp_composite_gain = ivsense_current_amp_input_divider_gain*ivsense_current_amp_gain;
-constexpr float ivsense_current_amp_offset = 0.03436f;                      // Voltage offset pre-gain (to handle negative currents)
+
+/*******      General ADC constants      *******/
 constexpr float adc_vref_voltage = 3.3f;                                    // ADC reference voltage, volts
 constexpr unsigned int adc_max_value = 1u << 12;                            // ADC maximum value
 constexpr float adc_v_per_count = adc_vref_voltage / adc_max_value;
 
-constexpr float max_duty_cycle (0.9f); // Maximum allowable duty cycle before gate on-time interferes with ADC sampling
+/***********************************************/
+/******* Current gain constants (isense) *******/
 
-/* Maximum expected voltage measurement */
-constexpr float ivsense_voltage_max = adc_vref_voltage * ivsense_voltage_ratio;
-
-/* Maximum expected current measurement */
-constexpr float ivsense_current_max = (1.0f / ivsense_current_shunt_value) * ((1.0f / ivsense_current_amp_composite_gain) * adc_vref_voltage - ivsense_current_amp_offset);
-
-/* Current at zero volts (also the minimum) */
-constexpr float ivsense_current_zero_voltage = (1.0f / ivsense_current_shunt_value) * (-ivsense_current_amp_offset);
-
-/* Voltage at zero current */
-constexpr float ivsense_voltage_zero_current = ivsense_current_amp_gain * (ivsense_current_amp_offset);
-
-/* Actual voltage per ADC count */
-constexpr float ivsense_voltage_per_count = ivsense_voltage_max / adc_max_value;
+/* Constants for INA250A1 gain stage */
+constexpr float isense_v_per_amp = 0.200f;                                 // Gain provided by the INA250A1.
+constexpr float isense_amp_per_v = 1.0f/isense_v_per_amp;
+constexpr float isense_v_offset = 1.250f;                                  // Voltage offset post-gain (to handle negative currents)
 
 /* Actual current per ADC count */
-constexpr float ivsense_current_per_count = adc_v_per_count / (ivsense_current_amp_composite_gain*ivsense_current_shunt_value);
+constexpr float isense_current_per_count = adc_v_per_count * isense_amp_per_v; // 
+
+/* Maximum expected current measurement */
+constexpr float isense_current_max = (adc_vref_voltage - isense_v_offset) * isense_amp_per_v;
+
+/* Minimum expected current measurement */
+constexpr float ivsense_current_min = (-isense_v_offset) * isense_amp_per_v;
+
+/* Voltage at zero current */
+constexpr float isense_voltage_zero_current = isense_v_offset;
 
 /* ADC Value zero current is centered on */
-constexpr float ivsense_count_zero_current = ivsense_voltage_zero_current / adc_v_per_count;
+constexpr float isense_count_zero_current = isense_voltage_zero_current / adc_v_per_count;
 
-constexpr size_t recorder_channel_count = 11;
+/*******  End of current gain constants  *******/
+/***********************************************/
+
+/***********************************************/
+/******* Voltage gain constants (vsense) *******/
+
+/* Ratio of actual voltage to ADC input voltage */
+constexpr float vsense_voltage_ratio = (2.21e3f + 49.9e3f) / 2.21e3f;
+
+/* Maximum expected voltage measurement */
+constexpr float vsense_voltage_max = adc_vref_voltage * vsense_voltage_ratio;
+
+/* Actual voltage per ADC count */
+constexpr float vsense_voltage_per_count = vsense_voltage_max / adc_max_value;
+
+/*******  End of voltage gain constants  *******/
+/***********************************************/
+
+constexpr size_t recorder_channel_count = 8;
 
 constexpr size_t recorder_channel_ia = 0;           // Phase A current channel index
 constexpr size_t recorder_channel_ib = 1;           // Phase B current channel index
 constexpr size_t recorder_channel_ic = 2;           // Phase C current channel index
-constexpr size_t recorder_channel_va = 3;           // Phase A voltage channel index
-constexpr size_t recorder_channel_vb = 4;           // Phase B voltage channel index
-constexpr size_t recorder_channel_vc = 5;           // Phase C voltage channel index
-constexpr size_t recorder_channel_vin = 6;          // Supply voltage channel index
-constexpr size_t recorder_channel_rotor_pos = 7;    // Rotor position channel index
-constexpr size_t recorder_channel_rotor_vel = 8;    // Rotor velocity channel index
-constexpr size_t recorder_channel_ex1 = 9;          // Extra 1 channel index
-constexpr size_t recorder_channel_ex2 = 10;         // Extra 2 channel index
+constexpr size_t recorder_channel_vin = 3;          // Supply voltage channel index
+constexpr size_t recorder_channel_rotor_pos = 4;    // Rotor position channel index
+constexpr size_t recorder_channel_rotor_vel = 5;    // Rotor velocity channel index
+constexpr size_t recorder_channel_ex1 = 6;          // Extra 1 channel index
+constexpr size_t recorder_channel_ex2 = 7;         // Extra 2 channel index
 
 constexpr size_t recorder_max_samples = 2000;
 
@@ -119,6 +127,8 @@ constexpr uint8_t control_mode_position = 4;
 constexpr uint8_t control_mode_position_velocity = 5;
 constexpr uint8_t control_mode_position_feed_forward = 6;
 constexpr uint8_t control_mode_pwm_drive = 7;
+
+constexpr float max_duty_cycle (0.9f); // Maximum allowable duty cycle before gate on-time interferes with ADC sampling
 
 /* Encoder modes */
 constexpr uint8_t encoder_mode_none = 0;

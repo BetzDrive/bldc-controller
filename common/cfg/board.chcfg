@@ -225,7 +225,7 @@
         Alternate="0" />
       <pin9
         ID="ENC_CSN"
-        Type="OpenDrain"
+        Type="PushPull"
         Level="High"
         Speed="Maximum"
         Resistor="Floating"
