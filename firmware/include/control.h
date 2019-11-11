@@ -13,9 +13,6 @@ struct RolledADC {
   uint16_t ia [consts::ivsense_rolling_average_count] = {0};
   uint16_t ib [consts::ivsense_rolling_average_count] = {0};
   uint16_t ic [consts::ivsense_rolling_average_count] = {0};
-  uint16_t va [consts::ivsense_rolling_average_count] = {0};
-  uint16_t vb [consts::ivsense_rolling_average_count] = {0};
-  uint16_t vc [consts::ivsense_rolling_average_count] = {0};
   uint16_t vin[consts::ivsense_rolling_average_count] = {0};
 
   RolledADC(){}
