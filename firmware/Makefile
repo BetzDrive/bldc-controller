@@ -107,7 +107,6 @@ CSRC = $(PORTSRC) \
        $(COMMON_SRC)/flash.c \
        $(COMMON_SRC)/helper.c \
        $(COMMON_SRC)/crc16.c \
-       $(SRC)/LSM6DS3_ACC_GYRO_driver.c \
        $(SRC)/crc_mlx.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -127,7 +126,7 @@ CPPSRC = $(COMMON_SRC)/comms.cpp \
          $(SRC)/SVM.cpp \
          $(SRC)/pid.cpp \
          $(SRC)/MCP9808.cpp \
-         $(SRC)/LSM6DS3Sensor.cpp \
+         $(SRC)/IIS328DQ.cpp \
          $(SRC)/Recorder.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.

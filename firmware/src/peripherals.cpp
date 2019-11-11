@@ -111,13 +111,11 @@ static const ADCConversionGroup ivsense_adc_group = {
   ivsenseADCErrorCallback,
   0,                                        // CR1
   ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | 
-  ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
+  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15), // SMPR1
   ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
   ADC_SQR1_NUM_CH(consts::ivsense_channel_count),   // SQR1
   ADC_SQR2_SQ7_N(VBUS_CHANNEL),             // SQR2
-  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL)  | 
-  ADC_SQR3_SQ4_N(VSENSE_A_CHANNEL) | ADC_SQR3_SQ5_N(VSENSE_B_CHANNEL) | ADC_SQR3_SQ6_N(VSENSE_C_CHANNEL) // SQR3
+  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL) // SQR3
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
@@ -135,9 +133,9 @@ static const PWMConfig adc_trigger_pwm_config = {
   0,    // DIER
 };
 
-MCP9808 temp_sensor(I2CD2);
+//MCP9808 temp_sensor(I2CD2);
 
-LSM6DS3Sensor acc_gyr(&I2CD2);
+IIS328DQ acc(I2CD2);
 
 void initPeripherals() {
   chBSemInit(&ivsense_adc_samples_bsem, true);
@@ -162,11 +160,10 @@ void startPeripherals() {
   encoder.start();
 
   // Start temperature sensor
-  temp_sensor.start();
+  //temp_sensor.start();
 
   // Start accelerometer
-  acc_gyr.start();
-  acc_gyr.Enable_X();
+  acc.start();
 
   // Start ADC
   adcStart(&ADCD1, NULL);

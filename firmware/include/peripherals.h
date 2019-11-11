@@ -6,7 +6,7 @@
 #include "DRV8312.h"
 #include "AS5047D.h"
 #include "MCP9808.h"
-#include "LSM6DS3Sensor.h"
+#include "IIS328DQ.h"
 #include "constants.h"
 
 namespace motor_driver {
@@ -27,7 +27,7 @@ extern AS5047D encoder;
 
 extern MCP9808 temp_sensor;
 
-extern LSM6DS3Sensor acc_gyr;
+extern IIS328DQ acc;
 
 extern BinarySemaphore ivsense_adc_samples_bsem;
 
@@ -59,14 +59,14 @@ void setRS485TransmitMode(bool transmit);
  * Converts an ADC value to voltage (in volts)
  */
 inline float adcValueToVoltage(uint16_t adc_value) {
-  return static_cast<float>(adc_value) * consts::ivsense_voltage_per_count;
+  return static_cast<float>(adc_value) * consts::vsense_voltage_per_count;
 }
 
 /**
  * Converts an ADC value to current (in amperes)
  */
 inline float adcValueToCurrent(uint16_t adc_value) {
-  return (consts::ivsense_count_zero_current - static_cast<float>(adc_value)) * consts::ivsense_current_per_count;
+  return (consts::isense_count_zero_current - static_cast<float>(adc_value)) * consts::isense_current_per_count;
 }
 
 } // namespace peripherals
