@@ -112,6 +112,9 @@ control_modes = {'current' : 0,
 
 # This should be placed in a try/catch to handle comms errors
 def driveMotor(client, board_ids, actuations, mode):
+    if (len(board_ids) == 1):
+        actuations = [actuations]
+
     for board_id, actuation in zip(board_ids, actuations):
         control_mode = control_modes[mode]
         client.writeRegisters([board_id], [0x2000], [1], [struct.pack('<B', control_mode)]) # Set Control Mode

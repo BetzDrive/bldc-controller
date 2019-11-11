@@ -35,7 +35,7 @@ if __name__ == '__main__':
     client = BLDCControllerClient(ser)
 
     initialized = initBoards(client, board_ids)
-        
+
     client.resetInputBuffer()
 
     if initialized:
@@ -49,7 +49,7 @@ if __name__ == '__main__':
             loadCalibrationFromJSON(client, board_id, calib)
 
             client.setWatchdogTimeout([board_id], [1000])
-    
+
             # Setting gains for motor
             client.setDirectCurrentKp([board_id], [0.5])
             client.setDirectCurrentKi([board_id], [0.1])

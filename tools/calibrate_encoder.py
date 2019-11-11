@@ -30,46 +30,52 @@ if __name__ == '__main__':
     # Data collection
     #
 
+    board_ids = [args.board_id]
+
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.01)
     time.sleep(0.1)
 
     client = BLDCControllerClient(ser)
-        
-    initialized = initBoards(client, args.board_id)
 
-    client.leaveBootloader([args.board_id])
+    initialized = initBoards(client, board_ids)
+
+    client.leaveBootloader(board_ids)
 
     ser.reset_input_buffer()
 
     def set_phase_state(phase_state):
         a, b, c = phase_state
-        client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle)])
+        targets = [ a*args.duty_cycle, b*args.duty_cycle, c*args.duty_cycle ]
+        driveMotor(client, board_ids, targets, 'phase')
 
-    client.setWatchdogTimeout([args.board_id], [1000])
-    client.writeRegisters([args.board_id], [0x2003], [3], [struct.pack('<fff', 0, 0, 0)])
-    client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack('<B', 1)])
+    # Clear currently loaded current offsets
+    offset_data = struct.pack('<fff', 0, 0, 0)
+    client.writeRegisters(board_ids, [0x1050], [3], [offset_data])
+
+    client.setWatchdogTimeout(board_ids, [1000])
+    set_phase_state((0,0,0))
 
     time.sleep(0.2)
 
     # First, read floating currents to calculate offset
     # The number of values returned by the recorder (all floats)
-    num_recorder_elements = 11
-    
-    reset = struct.unpack('<B', client.readRegisters([args.board_id], [0x300b], [1])[0])[0]
+    num_recorder_elements = 8
+
+    reset = struct.unpack('<B', client.readRegisters(board_ids, [0x300b], [1])[0])[0]
     print("reset: %u" % reset)
-    success = struct.unpack('<B', client.readRegisters([args.board_id], [0x3009], [1])[0])[0]
+    success = struct.unpack('<B', client.readRegisters(board_ids, [0x3009], [1])[0])[0]
     print("started: %u" % success)
 
     data = []
-    l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
+    l = struct.unpack('<H', client.readRegisters(board_ids, [0x300a], [1])[0])[0]
     while l == 0:
-        l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
+        l = struct.unpack('<H', client.readRegisters(board_ids, [0x300a], [1])[0])[0]
         time.sleep(0.1)
     arr = []
     for i in range(0, l, num_recorder_elements):
         # Grab the recorder data
         try:
-            a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
+            a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters(board_ids, [0x8000 + i], [num_recorder_elements])[0]))
             data += [a]
         except (ProtocolError, struct.error, TypeError):
             print("Missed packet")
@@ -80,9 +86,9 @@ if __name__ == '__main__':
     ib = [e[1] for e in data]
     ic = [e[2] for e in data]
     len_data = len(data)
-    ia_offset = sum(ia)/len_data    
-    ib_offset = sum(ib)/len_data    
-    ic_offset = sum(ic)/len_data    
+    ia_offset = sum(ia)/len_data
+    ib_offset = sum(ib)/len_data
+    ic_offset = sum(ic)/len_data
 
     print("Phase A Offset:", ia_offset)
     print("Phase B Offset:", ib_offset)
@@ -98,7 +104,7 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = client.getRawRotorPosition([args.board_id])[0]
+        raw_angle = client.getRawRotorPosition(board_ids)[0]
 
         if i > 4 and abs(forward_raw_angles[0] - raw_angle) < abs(forward_raw_angles[1] - forward_raw_angles[0]) / 3.0:
             break
@@ -117,7 +123,7 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = client.getRawRotorPosition([args.board_id])[0]
+        raw_angle = client.getRawRotorPosition(board_ids)[0]
 
         backward_raw_angles.append(raw_angle)
 

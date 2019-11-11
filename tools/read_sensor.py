@@ -28,7 +28,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.004)
-    
+
     board_ids = [int(bid) for bid in args.board_ids.split(',')]
 
     client = BLDCControllerClient(ser)
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     elif sen == 'temp':
         message = '{0}: {1[0]} degC'
     if sen == 'imu':
-        decode = '<iii'
+        decode = '<hhh'
         num_regs = 3
         message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
 
@@ -79,5 +79,4 @@ if __name__ == '__main__':
         except struct.error:
             pass
         time.sleep(0.1)
-    
     print("Exiting.")

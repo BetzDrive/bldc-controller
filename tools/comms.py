@@ -245,8 +245,8 @@ class BLDCControllerClient:
     def writeRegisters(self, server_ids, start_addr, count, data):
         responses = self.doTransaction(server_ids, [COMM_FC_REG_WRITE]*len(server_ids), [struct.pack('<HB', addr, ct) + dat for addr, ct, dat in zip(start_addr, count, data)])
         success = [response[0] for response in responses]
-        return success 
-    
+        return success
+
     def readWriteRegisters(self, server_ids, read_start_addr, read_count, write_start_addr, write_count, write_data):
         message = [struct.pack('<HBHB', readsa, readct, writesa, writect) + writed for readsa, readct, writesa, writect, writed in zip(read_start_addr, read_count, write_start_addr, write_count, write_data)]
         responses = self.doTransaction(server_ids, [COMM_FC_REG_READ_WRITE]*len(server_ids), message)
@@ -278,7 +278,7 @@ class BLDCControllerClient:
 
     def eraseFlashSector(self, server_id, sector_nums):
         responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_ERASE], [struct.pack('<I', sector_nums)])[0]
-        success, _ = responses        
+        success, _ = responses
         return success
 
     def programFlash(self, server_id, dest_addr, data):
