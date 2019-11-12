@@ -111,11 +111,11 @@ static const ADCConversionGroup ivsense_adc_group = {
   ivsenseADCErrorCallback,
   0,                                        // CR1
   ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15), // SMPR1
-  ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
+  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15),// SMPR1
+  0,         // SMPR2
   ADC_SQR1_NUM_CH(consts::ivsense_channel_count),   // SQR1
-  ADC_SQR2_SQ7_N(VBUS_CHANNEL),             // SQR2
-  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL) // SQR3
+  0,             // SQR2
+  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL) | ADC_SQR3_SQ4_N(VBUS_CHANNEL) // SQR3
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
