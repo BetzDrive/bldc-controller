@@ -20,6 +20,8 @@ const static uint8_t IIS328DQ_OUT_Y_H = 0x2B;
 const static uint8_t IIS328DQ_OUT_Z_L = 0x2C;
 const static uint8_t IIS328DQ_OUT_Z_H = 0x2D;
 
+const static uint8_t IIS328DQ_MASK_SUB = 0x80;
+
 class IIS328DQ {
 public:
   IIS328DQ(I2CDriver& i2c_driver): i2c_driver_(&i2c_driver) {

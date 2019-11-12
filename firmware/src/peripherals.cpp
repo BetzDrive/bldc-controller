@@ -133,7 +133,7 @@ static const PWMConfig adc_trigger_pwm_config = {
   0,    // DIER
 };
 
-//MCP9808 temp_sensor(I2CD2);
+MCP9808 temp_sensor(I2CD2);
 
 IIS328DQ acc(I2CD2);
 
@@ -160,7 +160,7 @@ void startPeripherals() {
   encoder.start();
 
   // Start temperature sensor
-  //temp_sensor.start();
+  temp_sensor.start();
 
   // Start accelerometer
   acc.start();

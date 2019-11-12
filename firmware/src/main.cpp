@@ -43,7 +43,7 @@ static msg_t blinkerThreadRun(void *arg) {
     uint8_t b = 0;
     bool fault = peripherals::gate_driver.hasFault();
     bool OCTW = peripherals::gate_driver.hasOCTW();
-    bool valid_acc = peripherals::acc.checkID();
+    //bool valid_acc = peripherals::acc.checkID();
 
     chMtxLock(&peripherals::var_access_mutex);
     if (fault or not acc_success) {
@@ -108,13 +108,13 @@ static msg_t sensorThreadRun(void *arg) {
   float temperature;
   while (true) {
     acc_success = peripherals::acc.getAccel(xl);
-    //peripherals::temp_sensor.getTemperature(&temperature);
+    peripherals::temp_sensor.getTemperature(&temperature);
 
     chMtxLock(&peripherals::var_access_mutex);
     state::results.xl_x = xl[0];
     state::results.xl_y = xl[1];
     state::results.xl_z = xl[2];
-    //state::results.temperature = temperature;
+    state::results.temperature = temperature;
     chMtxUnlock();
 
     chThdSleepMilliseconds(100);

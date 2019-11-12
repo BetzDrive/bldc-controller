@@ -4,20 +4,20 @@ namespace motor_driver {
 namespace peripherals {
 
 void IIS328DQ::start() {
-  uint8_t config[3];
+  uint8_t config[2];
   systime_t tmo = MS2ST(4); // 4 millisecond timeout
 
-  config[0] = 0x01;
-  config[1] = 0x00;
-  config[2] = 0x08;
+  config[0] = 0x20;
+  config[1] = 0x27;
 
-  i2cStart(i2c_driver_, &i2c_config_);
+  // i2cStart should only be called once, for now called on temperature sensor init
+  //i2cStart(i2c_driver_, &i2c_config_);
 
   i2cAcquireBus(i2c_driver_);
 
   i2cMasterTransmitTimeout(i2c_driver_, 
       IIS328DQ_DEFAULT_ADDRESS,         // Address
-      config, 3,                        // TX Buffer, Len 
+      config, 2,                        // TX Buffer, Len
       NULL, 0,                          // RX Buffer, Len
       tmo);                             // Timeout
 
@@ -44,7 +44,8 @@ bool IIS328DQ::receive(uint8_t reg, uint8_t* data, size_t size) {
 
 /* Expects accel_arr to be of size 3 and stores x,y,z in that order */
 bool IIS328DQ::getAccel(int16_t* accel_arr) {
-  return IIS328DQ::receive(IIS328DQ_OUT_X_L, (uint8_t*) accel_arr, 6);
+  // Set the register address msb (SUB) to autoincrement register address
+  return IIS328DQ::receive(IIS328DQ_OUT_X_L | IIS328DQ_MASK_SUB, (uint8_t*) accel_arr, 6);
 }
 
 } // namespace peripherals
