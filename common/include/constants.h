@@ -53,9 +53,9 @@ constexpr size_t ivsense_sample_buf_depth = ivsense_samples_per_cycle * 2; // "d
 
 constexpr size_t ivsense_channel_count = 4; // 1 voltage channel, 3 current channels
 
-constexpr size_t ivsense_channel_ia = 0;    // Phase A current channel index
+constexpr size_t ivsense_channel_ia = 2;    // Phase A current channel index
 constexpr size_t ivsense_channel_ib = 1;    // Phase B current channel index
-constexpr size_t ivsense_channel_ic = 2;    // Phase C current channel index
+constexpr size_t ivsense_channel_ic = 0;    // Phase C current channel index
 constexpr size_t ivsense_channel_vin = 3;   // Supply voltage channel index
 
 
@@ -70,7 +70,7 @@ constexpr float adc_v_per_count = adc_vref_voltage / adc_max_value;
 /* Constants for INA250A1 gain stage */
 constexpr float isense_v_per_amp = 0.200f;                                 // Gain provided by the INA250A1.
 constexpr float isense_amp_per_v = 1.0f/isense_v_per_amp;
-constexpr float isense_v_offset = 1.250f;                                  // Voltage offset post-gain (to handle negative currents)
+constexpr float isense_v_offset = 1.650f;                                  // Voltage offset post-gain (to handle negative currents)
 
 /* Actual current per ADC count */
 constexpr float isense_current_per_count = adc_v_per_count * isense_amp_per_v; // 
