@@ -66,7 +66,7 @@ inline float adcValueToVoltage(uint16_t adc_value) {
  * Converts an ADC value to current (in amperes)
  */
 inline float adcValueToCurrent(uint16_t adc_value) {
-  return (consts::isense_count_zero_current - static_cast<float>(adc_value)) * consts::isense_current_per_count;
+  return (static_cast<float>(adc_value) - consts::isense_count_zero_current) * consts::isense_current_per_count;
 }
 
 } // namespace peripherals
