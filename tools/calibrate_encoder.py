@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     board_ids = [args.board_id]
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.01)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
     time.sleep(0.1)
 
     client = BLDCControllerClient(ser)
@@ -40,8 +40,9 @@ if __name__ == '__main__':
     initialized = initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
+    time.sleep(0.2)
 
-    ser.reset_input_buffer()
+    client.resetInputBuffer()
 
     def set_phase_state(phase_state):
         a, b, c = phase_state
