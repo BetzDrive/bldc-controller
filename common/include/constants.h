@@ -25,17 +25,17 @@ constexpr float rad_per_enc_tick = -2.0f * pi / encoder_period;
 
 constexpr unsigned int motor_pwm_clock_freq = 168000000; // Hz
 
-constexpr unsigned int motor_pwm_cycle_freq = 20000; // Hz
+constexpr unsigned int motor_pwm_cycle_freq = 40000; // Hz
 
 // TIM3 can't handle the full 168MHz like TIM1
 constexpr unsigned int adc_pwm_cycle_freq = motor_pwm_clock_freq/2; // Hz
 
 // Current control should be a factor of the motor_pwm_cycle_freq
-constexpr unsigned int current_control_freq = motor_pwm_cycle_freq;  
+constexpr unsigned int current_control_freq = motor_pwm_cycle_freq / 2;
 constexpr uint8_t vel_divider = 5;
-constexpr unsigned int velocity_control_freq = current_control_freq / vel_divider;  
+constexpr unsigned int velocity_control_freq = current_control_freq / vel_divider;
 constexpr uint8_t pos_divider = 5;
-constexpr unsigned int position_control_freq = motor_pwm_cycle_freq / pos_divider;  
+constexpr unsigned int position_control_freq = current_control_freq / pos_divider;
 
 constexpr float current_control_interval = 1.0f / current_control_freq;
 constexpr float velocity_control_interval = 1.0f / velocity_control_freq;

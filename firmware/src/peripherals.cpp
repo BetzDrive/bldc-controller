@@ -152,6 +152,8 @@ void startPeripherals() {
   pwmStart(&PWMD1, &motor_pwm_config);
   PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
   PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS);
+  // Center aligned
+  PWMD1.tim->CR1 |= TIM_CR1_CMS_1;
 
   // Start gate driver
   gate_driver.start();
