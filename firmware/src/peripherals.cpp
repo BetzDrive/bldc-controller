@@ -154,6 +154,8 @@ void startPeripherals() {
   PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS);
   // Center aligned
   PWMD1.tim->CR1 |= TIM_CR1_CMS_1;
+  // Halve the update interrupt rate
+  PWMD1.tim->RCR = 1;
 
   // Start gate driver
   gate_driver.start();
