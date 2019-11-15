@@ -120,7 +120,7 @@ static const ADCConversionGroup ivsense_adc_group = {
 
 static const PWMConfig adc_trigger_pwm_config = {
   consts::adc_pwm_cycle_freq, 
-  200,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
+  10,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
   NULL,               // Callback                                  
   {
     {PWM_OUTPUT_DISABLED, NULL},
@@ -153,7 +153,6 @@ void startPeripherals() {
   PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
   PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS);
   // Center aligned
-  // Set only on counting up
   PWMD1.tim->CR1 |= TIM_CR1_CMS_1;
 
   // Start gate driver
@@ -182,7 +181,7 @@ void startPeripherals() {
 
   // From section 18.3.15 of the STM32f405 reference manual
   // Set up Timer 1 (Motor PWM Output) as a master for Timer 3 (ADC Sampler)
-  PWMD1.tim->CR2  = TIM_CR2_MMS_1 | TIM_CR2_MMS_0;                        // (TIM1_MMS = 011) Set Timer 1 to send trigger on compare match
+  PWMD1.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM1_MMS = 010) Set Timer 1 to send trigger on count
   PWMD3.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM3_MMS = 010) Set Update signal as TRGO Output
   PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS)     // (TIM3_TS = 000) Enable counter on TIM1 (motor PWM) TRGO rising edge
                     | TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1                    // (TIM3_SMS = 110) Trigger mode: update event from TIM1 restarts the timer
