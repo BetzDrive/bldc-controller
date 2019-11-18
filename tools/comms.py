@@ -231,7 +231,7 @@ class BLDCControllerClient:
 
     def leaveBootloader(self, server_ids):
         self.jumpToAddress(server_ids, [COMM_FIRMWARE_OFFSET for sid in server_ids])
-        time.sleep(0.01)
+        time.sleep(0.1)
         self._ser.read_all()
 
     def enterBootloader(self, server_ids):
