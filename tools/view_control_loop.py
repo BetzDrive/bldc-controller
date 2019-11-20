@@ -57,7 +57,7 @@ if __name__ == '__main__':
                 read = struct.unpack('<f', client.readRegisters([board_id], [0x3003], [1])[0])
                 data.append(read)
                 # Read the iq command
-                read = struct.unpack('<f', client.readRegisters([board_id], [0x3011], [1])[0])
+                read = struct.unpack('<f', client.readRegisters([board_id], [0x3020], [1])[0])
                 data.append(read)
             except (ProtocolError, struct.error):
                 #print("Failed to communicate with board: ", board_id)

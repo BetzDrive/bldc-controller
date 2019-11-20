@@ -50,7 +50,7 @@ if __name__ == '__main__':
     start = time.time()
     while time.time()-start < run_time-1:
         try:
-            client.writeRegisters([args.board_id], [0x2006], [1], [struct.pack('<f', args.duty_cycle)])
+            driveMotor(client, [args.board_id], [args.duty_cycle], 'torque')
         except (ProtocolError, struct.error):
             print("Failed to communicate with board: ", board_id)
             pass

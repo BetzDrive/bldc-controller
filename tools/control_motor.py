@@ -30,23 +30,23 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
-    make_int = lambda x: [int(y) for y in x]
-    board_ids  = make_int(make_list(ast.literal_eval(args.board_ids)))
+    make_type = lambda x, to_type: [to_type(y) for y in x]
+    board_ids  = make_type(make_list(ast.literal_eval(args.board_ids)), int)
     actuations = make_list(ast.literal_eval(args.actuations))
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.04)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
 
     client = BLDCControllerClient(ser)
     initialized = initBoards(client, board_ids)
-    
+
     client.leaveBootloader(board_ids)
 
     client.resetInputBuffer()
 
     initMotor(client, board_ids)
-    
+
     start_time = time.time()
     count = 0
     rollover = 1000
@@ -64,6 +64,7 @@ if __name__ == '__main__':
                 driveMotor(client, board_ids, actuations, mode)
             except (ProtocolError, struct.error):
                 print("Failed to communicate with board: ", board_id)
+                time.sleep(0.1)
                 pass
     
         count += 1

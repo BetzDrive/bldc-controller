@@ -124,12 +124,12 @@ def driveMotor(client, board_ids, actuations, mode):
         elif mode == 'phase':
             client.writeRegisters([board_id], [0x2003], [3], [struct.pack('<fff', actuation[0], actuation[1], actuation[2])])
         elif mode == 'torque':
-            client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', actuation)])
+            client.writeRegisters([board_id], [0x2006], [1], [struct.pack('<f', actuation[0])])
         elif mode == 'velocity':
-            client.writeRegisters([board_id], [0x2007], [1], [struct.pack('<f', actuation)])
+            client.writeRegisters([board_id], [0x2007], [1], [struct.pack('<f', actuation[0])])
         elif mode == 'position':
-            client.writeRegisters([board_id], [0x2008], [1], [struct.pack('<f', actuation)])
+            client.writeRegisters([board_id], [0x2008], [1], [struct.pack('<f', actuation[0])])
         elif mode == 'pos_ff':
             client.writeRegisters([board_id], [0x2008], [2], [struct.pack('<ff', actuation[0], actuation[1])])
         elif mode == 'pwm':
-            client.writeRegisters([board_id], [0x200A], [1], [struct.pack('<f', actuation)])
+            client.writeRegisters([board_id], [0x200A], [1], [struct.pack('<f', actuation[0])])
