@@ -128,7 +128,8 @@ constexpr uint8_t control_mode_position_velocity = 5;
 constexpr uint8_t control_mode_position_feed_forward = 6;
 constexpr uint8_t control_mode_pwm_drive = 7;
 
-constexpr float max_duty_cycle (1.0f); // Maximum allowable duty cycle before gate on-time interferes with ADC sampling
+constexpr float max_duty_cycle (0.95f); // Maximum allowable duty cycle before gate on-time interferes with ADC sampling
+constexpr float min_duty_cycle (0.05f); // Minimum allowable duty cycle before gate off-time interferes with ADC sampling
 
 /* Encoder modes */
 constexpr uint8_t encoder_mode_none = 0;

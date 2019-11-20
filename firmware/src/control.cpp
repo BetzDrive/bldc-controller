@@ -206,10 +206,10 @@ void estimateState() {
     raw_avg_vin -= rolladc.vin[rolladc.count];
   }
 
-  rolladc.ia [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ia ];
-  rolladc.ib [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ib ];
-  rolladc.ic [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ic ];
-  rolladc.vin[rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vin];
+  rolladc.ia [rolladc.count] = *peripherals::curra_adc_samples_ptr;
+  rolladc.ib [rolladc.count] = *peripherals::currb_adc_samples_ptr;
+  rolladc.ic [rolladc.count] = *peripherals::currc_adc_samples_ptr;
+  rolladc.vin[rolladc.count] = *peripherals::vsense_adc_samples_ptr;
 
   // The new average is equal to the addition of the old value minus the last value.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
@@ -381,9 +381,9 @@ void runCurrentControl() {
                                 state::results.duty_c);
 
     if (state::parameters.gate_active) {
-      state::results.duty_a = state::results.duty_a * consts::max_duty_cycle;
-      state::results.duty_b = state::results.duty_b * consts::max_duty_cycle;
-      state::results.duty_c = state::results.duty_c * consts::max_duty_cycle;
+      state::results.duty_a = clamp(state::results.duty_a, consts::min_duty_cycle, consts::max_duty_cycle);
+      state::results.duty_b = clamp(state::results.duty_b, consts::min_duty_cycle, consts::max_duty_cycle);
+      state::results.duty_c = clamp(state::results.duty_c, consts::min_duty_cycle, consts::max_duty_cycle);
     } else {
       state::results.duty_a = 0.0f;
       state::results.duty_b = 0.0f;

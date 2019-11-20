@@ -31,9 +31,12 @@ extern IIS328DQ acc;
 
 extern BinarySemaphore ivsense_adc_samples_bsem;
 
-extern volatile adcsample_t *ivsense_adc_samples_ptr;
+extern volatile adcsample_t *vsense_adc_samples_ptr;
+extern volatile adcsample_t *curra_adc_samples_ptr;
+extern volatile adcsample_t *currb_adc_samples_ptr;
+extern volatile adcsample_t *currc_adc_samples_ptr;
 
-extern volatile size_t ivsense_adc_samples_count;
+//extern volatile size_t ivsense_adc_samples_count;
 
 extern adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
 
