@@ -21,6 +21,13 @@ void IIS328DQ::start() {
       NULL, 0,                          // RX Buffer, Len
       tmo);                             // Timeout
 
+  config[0] = IIS328DQ_CTRL_REG4;
+  config[1] = 0x10; // Configure sensitivity for +-4g
+  i2cMasterTransmitTimeout(i2c_driver_,
+                           IIS328DQ_DEFAULT_ADDRESS,
+                           config, 2,
+                           NULL, 0, tmo);
+
   i2cReleaseBus(i2c_driver_);
 }
 

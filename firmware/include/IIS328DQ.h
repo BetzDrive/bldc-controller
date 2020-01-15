@@ -11,6 +11,8 @@ const static uint8_t IIS328DQ_DEFAULT_ADDRESS = 0b0011000;
 const static uint8_t IIS328DQ_WHO_AM_I_ADDRESS = 0x0F;
 const static uint8_t IIS328DQ_WHO_AM_I = 0b00110010;
 
+const static uint8_t IIS328DQ_CTRL_REG4 = 0x23;
+
 const static uint8_t IIS328DQ_OUT_X_L = 0x28;
 const static uint8_t IIS328DQ_OUT_X_H = 0x29;
 
