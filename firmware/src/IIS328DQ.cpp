@@ -1,3 +1,5 @@
+/* Datasheet: https://www.st.com/resource/en/datasheet/iis328dq.pdf */
+
 #include "IIS328DQ.h"
 
 namespace motor_driver {
@@ -21,8 +23,10 @@ void IIS328DQ::start() {
       NULL, 0,                          // RX Buffer, Len
       tmo);                             // Timeout
 
+  /* Select FS from Table 3 (CTRL REG4 section 7.5) */
   config[0] = IIS328DQ_CTRL_REG4;
-  config[1] = 0x10; // Configure sensitivity for +-4g
+  /* Configure sensitivity for +-4g */
+  config[1] = 0b00010000; 
   i2cMasterTransmitTimeout(i2c_driver_,
                            IIS328DQ_DEFAULT_ADDRESS,
                            config, 2,

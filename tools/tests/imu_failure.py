@@ -14,6 +14,8 @@ import numpy as np
 from comms import *
 from boards import *
 
+GRAVITY = 9.81
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Drive motor module(s) with a given control mode.')
     parser.add_argument('serial', type=str, help='Serial port')
@@ -69,7 +71,7 @@ if __name__ == '__main__':
             for i in range(len(responses)):
                 val = struct.unpack('<hhh', responses[i])
                 np_val = np.array(val, dtype=float)
-                np_val = np_val / (1<<16) * (8 * 9.8)
+                np_val = np_val / (1<<13) * (GRAVITY)
                 bid = board_ids[i]
                 message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
                 print("Board:", bid, message.format('imu' , np_val), np.linalg.norm(np_val))
