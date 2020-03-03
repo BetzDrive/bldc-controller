@@ -32,9 +32,11 @@ if __name__ == '__main__':
 
     client = BLDCControllerClient(ser)
 
+    board_id = args.board_id
+
     initialized = initBoards(client, [args.board_id])
 
-    client.leaveBootloader([args.board_id])
+    client.leaveBootloader([board_id])
     time.sleep(0.2) # Wait for the controller to reset
     client.resetInputBuffer()
 
@@ -43,7 +45,7 @@ if __name__ == '__main__':
 
     reset = struct.unpack('<B', client.readRegisters([args.board_id], [0x300b], [1])[0])[0]
     print("reset: %u" % reset)
-    success = struct.unpack('<B', client.readRegisters([args.board_id], [0x3009], [1])[0])[0]
+    success = struct.unpack('<B', client.readRegisters([board_id], [0x3009], [1])[0])[0]
     print("started: %u" % success)
 
     run_time = 2
@@ -57,14 +59,14 @@ if __name__ == '__main__':
         time.sleep(0.1)
     time.sleep(1.2)
 
-    l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
+    l = struct.unpack('<H', client.readRegisters([board_id], [0x300a], [1])[0])[0]
     while l == 0:
-        l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
+        l = struct.unpack('<H', client.readRegisters([board_id], [0x300a], [1])[0])[0]
         time.sleep(0.1)
     arr = []
     for i in range(0, l, num_recorder_elements):
         # Grab the recorder data
-        a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([args.board_id], [0x8000 + i], [num_recorder_elements])[0]))
+        a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters([board_id], [0x8000 + i], [num_recorder_elements])[0]))
         arr += [a]
 
     if args.file_name:

@@ -40,12 +40,12 @@ if __name__ == '__main__':
 
     sen = args.sensor
     address = ReadOnlyRegs[sen]
-    decode = '<f' 
+    decode = '<f'
     num_regs = 1
     message = '{0}: {1[0]}'
 
     if sen == 'encoder_raw':
-        decode = '<H' 
+        decode = '<H'
         message = '{0}: {1[0]} ticks'
     elif sen == 'encoder':
         message = '{0}: {1[0]} radians'
@@ -66,6 +66,10 @@ if __name__ == '__main__':
 
     num_boards = len(board_ids)
     while initialized:
+        crashed = client.checkWDGRST()
+        if crashed:
+            print('boards:', crashed, 'have crashed')
+
         try:
             address = ReadOnlyRegs[args.sensor]
             responses = client.readRegisters(board_ids, [address]*num_boards, [num_regs]*num_boards)
@@ -76,7 +80,8 @@ if __name__ == '__main__':
         except ProtocolError as err:
             print(err)
             pass
-        except struct.error:
+        except struct.error as err:
+            print(err)
             pass
         time.sleep(0.1)
     print("Exiting.")

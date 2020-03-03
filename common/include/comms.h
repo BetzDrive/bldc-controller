@@ -233,6 +233,10 @@ void startComms();
 
 void runComms();
 
+void setWDGTimeout();
+
+void clearWDGTimeout();
+
 extern UARTEndpoint comms_endpoint;
 
 extern Server comms_server;

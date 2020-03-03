@@ -106,6 +106,7 @@ struct Parameters {
   bool gate_active = false;                                 // Flag for whether the gates are active or not
   bool gate_fault = false;                                  // Flag for whether the gate has a fault
 
+  bool timeout_flag = false;
   Parameters() {}
 };
 

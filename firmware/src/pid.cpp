@@ -42,7 +42,7 @@ void PID::setAlpha (float alpha) {
 
 /* Compute code for PID */
 // Windup limited by proportional term exceeding bounds!
-float PID::computeIntegral (float err, float p_out) {
+float PID::computeIntegral (float err) {
   windup_ += err;
 
   if (windup_*ki_ > max_) {
@@ -55,7 +55,7 @@ float PID::computeIntegral (float err, float p_out) {
 }
 
 // Use alpha to approximate derivative over time (remove HF noise in err)
-float PID::computeDerivative (float err, float val) {
+float PID::computeDerivative (float val) {
   float delta = (-val) - val_prev_;
   deriv_ = (alpha_ * delta) + ((1-alpha_) * deriv_);
   val_prev_ = -val;
@@ -67,8 +67,8 @@ float PID::compute (float val) {
   float p, i, d;
 
   p = kp_ * err;
-  i = ki_ * computeIntegral(err, p);
-  d = kd_ * computeDerivative(err, val);
+  i = ki_ * computeIntegral(err);
+  d = kd_ * computeDerivative(val);
 
   float output = p + i + d;
   if (output > max_) {
