@@ -22,7 +22,7 @@
   <ports>
     <GPIOA>
       <pin0
-        ID="LED_R"
+        ID="LED_G"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -38,7 +38,7 @@
         Mode="Alternate"
         Alternate="2" />
       <pin2
-        ID="LED_G"
+        ID="LED_R"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -46,43 +46,43 @@
         Mode="Alternate"
         Alternate="2" />
       <pin3
-        ID="LED_Y"
+        ID="BONUS_0"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Output"
+        Mode="Input"
         Alternate="0" />
       <pin4
-        ID=""
+        ID="BONUS_1"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Input"
         Alternate="0" />
       <pin5
-        ID=""
+        ID="BONUS_2"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Input"
         Alternate="0" />
       <pin6
-        ID=""
-        Type="PushPull"
-        Level="Low"
-        Speed="Maximum"
-        Resistor="Floating"
-        Mode="Alternate"
-        Alternate="2" />
-      <pin7
-        ID=""
+        ID="BONUS_3"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
+        Mode="Input"
+        Alternate="0" />
+      <pin7
+        ID="BONUS_4"
+        Type="PushPull"
+        Level="High"
+        Speed="Maximum"
+        Resistor="Floating"
         Mode="Input"
         Alternate="0" />
       <pin8
@@ -110,21 +110,21 @@
         Mode="Alternate"
         Alternate="1" />
       <pin11
-        ID="ENC_ALIGN"
+        ID=""
         Type="PushPull"
         Level="High"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Alternate"
-        Alternate="10" />
+        Mode="Output"
+        Alternate="0" />
       <pin12
-        ID="ENC_PROG"
+        ID="RS485_SHUNT_EN"
         Type="PushPull"
-        Level="High"
+        Level="Low"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Alternate"
-        Alternate="10" />
+        Mode="Output"
+        Alternate="0" />
       <pin13
         ID="SWDIO"
         Type="PushPull"
@@ -142,9 +142,9 @@
         Mode="Alternate"
         Alternate="0" />
       <pin15
-        ID="ENC_CSN"
+        ID="DISCO_BUS_OUT"
         Type="PushPull"
-        Level="High"
+        Level="Low"
         Speed="Maximum"
         Resistor="Floating"
         Mode="Output"
@@ -152,19 +152,19 @@
     </GPIOA>
     <GPIOB>
       <pin0
-        ID="VSENSE_A"
+        ID="BONUS_7"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Analog"
+        Mode="Input"
         Alternate="0" />
       <pin1
-        ID=""
+        ID="BONUS_8"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Input"
         Alternate="0" />
       <pin2
@@ -176,27 +176,27 @@
         Mode="Input"
         Alternate="0" />
       <pin3
-        ID="SWO"
+        ID=""
         Type="PushPull"
         Level="High"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Alternate"
+        Mode="Input"
         Alternate="0" />
       <pin4
-        ID="ENC_A"
+        ID="DISCO_BUS_IN"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Input"
         Alternate="0" />
       <pin5
-        ID="ENC_B"
+        ID=""
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Input"
         Alternate="0" />
       <pin6
@@ -216,6 +216,22 @@
         Mode="Alternate"
         Alternate="7" />
       <pin8
+        ID="LED_Y"
+        Type="PushPull"
+        Level="High"
+        Speed="Maximum"
+        Resistor="Floating"
+        Mode="Output"
+        Alternate="0" />
+      <pin9
+        ID="ENC_CSN"
+        Type="PushPull"
+        Level="High"
+        Speed="Maximum"
+        Resistor="Floating"
+        Mode="Output"
+        Alternate="0" />
+      <pin10
         ID="I2C_SCL"
         Type="OpenDrain"
         Level="High"
@@ -223,7 +239,7 @@
         Resistor="Floating"
         Mode="Alternate"
         Alternate="4" />
-      <pin9
+      <pin11
         ID="I2C_SDA"
         Type="OpenDrain"
         Level="High"
@@ -231,24 +247,8 @@
         Resistor="Floating"
         Mode="Alternate"
         Alternate="4" />
-      <pin10
-        ID="DISCO_BUS_IN"
-        Type="PushPull"
-        Level="High"
-        Speed="Maximum"
-        Resistor="Floating"
-        Mode="Input"
-        Alternate="0" />
-      <pin11
-        ID="DISCO_BUS_OUT"
-        Type="PushPull"
-        Level="Low"
-        Speed="Maximum"
-        Resistor="Floating"
-        Mode="Output"
-        Alternate="0" />
       <pin12
-        ID="ENC_MAG_LO"
+        ID=""
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -256,33 +256,33 @@
         Mode="Input"
         Alternate="0" />
       <pin13
-        ID="MDRV_RST_C"
+        ID="TEMP_INT"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Output"
-        Alternate="0" />
+        Mode="Input"
+        Alternate="0" ></pin13>
       <pin14
-        ID="MDRV_RST_B"
+        ID="IMU_INT1"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Output"
+        Mode="Input"
         Alternate="0" />
       <pin15
-        ID="MDRV_RST_A"
+        ID="MDRV_NOCTW"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
-        Resistor="Floating"
-        Mode="Output"
+        Resistor="PullUp"
+        Mode="Input"
         Alternate="0" />
     </GPIOB>
     <GPIOC>
       <pin0
-        ID="ISENSE_A"
+        ID="ISENSE_C"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -298,7 +298,7 @@
         Mode="Analog"
         Alternate="0" />
       <pin2
-        ID="ISENSE_C"
+        ID="ISENSE_A"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -314,38 +314,22 @@
         Mode="Analog"
         Alternate="0" />
       <pin4
-        ID="VSENSE_C"
-        Type="PushPull"
-        Level="High"
-        Speed="Maximum"
-        Resistor="Floating"
-        Mode="Analog"
-        Alternate="0" />
-      <pin5
-        ID="VSENSE_B"
-        Type="PushPull"
-        Level="High"
-        Speed="Maximum"
-        Resistor="Floating"
-        Mode="Analog"
-        Alternate="0" />
-      <pin6
-        ID="MDRV_EN"
-        Type="PushPull"
-        Level="High"
-        Speed="Maximum"
-        Resistor="Floating"
-        Mode="Output"
-        Alternate="0" />
-      <pin7
-        ID="ENC_MAG_HI"
+        ID="BONUS_5"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
         Resistor="Floating"
         Mode="Input"
         Alternate="0" />
-      <pin8
+      <pin5
+        ID="BONUS_6"
+        Type="PushPull"
+        Level="High"
+        Speed="Maximum"
+        Resistor="Floating"
+        Mode="Input"
+        Alternate="0" />
+      <pin6
         ID="MDRV_NFAULT"
         Type="PushPull"
         Level="Low"
@@ -353,13 +337,29 @@
         Resistor="PullUp"
         Mode="Input"
         Alternate="0" />
-      <pin9
-        ID="MDRV_NOCTW"
+      <pin7
+        ID="MDRV_RST_A"
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
-        Resistor="PullUp"
-        Mode="Input"
+        Resistor="Floating"
+        Mode="Output"
+        Alternate="0" />
+      <pin8
+        ID="MDRV_RST_B"
+        Type="PushPull"
+        Level="Low"
+        Speed="Maximum"
+        Resistor="Floating"
+        Mode="Output"
+        Alternate="0" ></pin8>
+      <pin9
+        ID="MDRV_RST_C"
+        Type="PushPull"
+        Level="Low"
+        Speed="Maximum"
+        Resistor="Floating"
+        Mode="Output"
         Alternate="0" />
       <pin10
         ID="SPI_CLK"
@@ -386,7 +386,7 @@
         Mode="Alternate"
         Alternate="6" />
       <pin13
-        ID="TEMP_INT"
+        ID=""
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
@@ -394,7 +394,7 @@
         Mode="Input"
         Alternate="0" />
       <pin14
-        ID="IMU_INT1"
+        ID=""
         Type="PushPull"
         Level="Low"
         Speed="Maximum"
@@ -402,12 +402,12 @@
         Mode="Input"
         Alternate="0" />
       <pin15
-        ID="RS485_SHUNT_EN"
+        ID=""
         Type="PushPull"
-        Level="Low"
+        Level="High"
         Speed="Maximum"
         Resistor="Floating"
-        Mode="Output"
+        Mode="Input"
         Alternate="0" />
     </GPIOC>
     <GPIOD>

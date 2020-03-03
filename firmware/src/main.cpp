@@ -26,7 +26,7 @@ static void comms_activity_callback() {
 /*
  * LED blinker thread
  */
-
+bool acc_success = false;
 static WORKING_AREA(blinker_thread_wa, 512);
 static msg_t blinkerThreadRun(void *arg) {
   (void)arg;
@@ -38,14 +38,15 @@ static msg_t blinkerThreadRun(void *arg) {
   peripherals::setCommsActivityLED(false);
 
   while (true) {
-    uint8_t g = ::abs(t - 255);
     uint8_t r = 0;
+    uint8_t g = ::abs(t - 255);
     uint8_t b = 0;
     bool fault = peripherals::gate_driver.hasFault();
     bool OCTW = peripherals::gate_driver.hasOCTW();
+    //bool valid_acc = peripherals::acc.checkID();
 
     chMtxLock(&peripherals::var_access_mutex);
-    if (fault) {
+    if (fault or not acc_success) {
       r = g < 50 ? 255 : r;
       g = g < 50 ? 0 : g;
       state::parameters.gate_fault = true;
@@ -107,10 +108,10 @@ static msg_t sensorThreadRun(void *arg) {
   
   chRegSetThreadName("sensor");
 
+  int16_t xl[3];
+  float temperature;
   while (true) {
-    int32_t xl[3];
-    float temperature;
-    peripherals::acc_gyr.Get_Acc(xl);
+    acc_success = peripherals::acc.getAccel(xl);
     peripherals::temp_sensor.getTemperature(&temperature);
 
     chMtxLock(&peripherals::var_access_mutex);

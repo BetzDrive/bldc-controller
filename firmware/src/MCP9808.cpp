@@ -28,11 +28,11 @@ bool MCP9808::checkID() {
   return true;
 }
 
-bool MCP9808::receive(uint16_t addr, uint8_t reg, uint8_t* data, size_t size) {
+bool MCP9808::receive(uint8_t reg, uint8_t* data, size_t size) {
   systime_t tmo = MS2ST(4); // 4 millisecond timeout
   i2cAcquireBus(i2c_driver_);
 
-  msg_t status = i2cMasterTransmitTimeout(i2c_driver_, addr, &reg, 1, data, size, tmo);
+  msg_t status = i2cMasterTransmitTimeout(i2c_driver_, MCP9808_DEFAULT_ADDRESS, &reg, 1, data, size, tmo);
 
   i2cReleaseBus(i2c_driver_);
   return status == RDY_OK;
@@ -44,7 +44,7 @@ bool MCP9808::receive(uint16_t addr, uint8_t reg, uint8_t* data, size_t size) {
  *  Lo |  2^3C  |  2^2C |  2^1C |  2^0C | 2^-1C | 2^-2C | 2^-3C | 2^-4C |   */
 bool MCP9808::getTemperature(float* temp) {
   uint8_t data[2];
-  bool success = MCP9808::receive(MCP9808_DEFAULT_ADDRESS, MCP9808_TEMP_AMBIENT, data, 2);
+  bool success = MCP9808::receive(MCP9808_TEMP_AMBIENT, data, 2);
 
   if (success) {
     uint16_t bits = (((uint16_t)data[0] & 0x0F) << 8 | data[1]);

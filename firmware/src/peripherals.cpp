@@ -47,12 +47,11 @@ DRV8312 gate_driver(
   2,
   1,
   0,
-  {GPIOB, GPIOB_MDRV_RST_A},
-  {GPIOB, GPIOB_MDRV_RST_B},
-  {GPIOB, GPIOB_MDRV_RST_C},
-  {GPIOC, GPIOC_MDRV_EN},
+  {GPIOC, GPIOC_MDRV_RST_A},
+  {GPIOC, GPIOC_MDRV_RST_B},
+  {GPIOC, GPIOC_MDRV_RST_C},
   {GPIOC, GPIOC_MDRV_NFAULT},
-  {GPIOC, GPIOC_MDRV_NOCTW}
+  {GPIOB, GPIOB_MDRV_NOCTW}
 );
 
 static constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
@@ -75,14 +74,17 @@ const PWMConfig led_pwm_config = {
 
 AS5047D encoder(
   SPID3,
-  {GPIOA, GPIOA_ENC_CSN}
+  {GPIOB, GPIOB_ENC_CSN}
 );
 
 BinarySemaphore ivsense_adc_samples_bsem;
 
-volatile adcsample_t *ivsense_adc_samples_ptr = nullptr;
+volatile adcsample_t *curra_adc_samples_ptr = nullptr;
+volatile adcsample_t *currb_adc_samples_ptr = nullptr;
+volatile adcsample_t *currc_adc_samples_ptr = nullptr;
+volatile adcsample_t *vsense_adc_samples_ptr = nullptr;
 
-volatile size_t ivsense_adc_samples_count;
+//volatile size_t ivsense_adc_samples_count;
 
 adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
 
@@ -90,9 +92,12 @@ static void ivsenseADCEndCallback(ADCDriver *adcp, adcsample_t *buffer, size_t n
   (void)adcp;
 
   chSysLockFromIsr();
-
-  ivsense_adc_samples_ptr = buffer;
-  ivsense_adc_samples_count = n;
+  bool is_odd_sample = (buffer - ivsense_sample_buf) >> 1;
+  curra_adc_samples_ptr = buffer;
+  vsense_adc_samples_ptr = buffer + 1;
+  currb_adc_samples_ptr = ivsense_sample_buf + 4 + is_odd_sample;
+  currc_adc_samples_ptr = ivsense_sample_buf + 6 + is_odd_sample;
+  //ivsense_adc_samples_count = n;
   chBSemSignalI(&ivsense_adc_samples_bsem); // Signal that new ADC samples are available
 
   chSysUnlockFromIsr();
@@ -105,25 +110,51 @@ static void ivsenseADCErrorCallback(ADCDriver *adcp, adcerror_t err) {
   // TODO: display error
 }
 
+static const ADCConversionGroup currc_adc_group = {
+  true,                                     // Use circular buffer
+  1,
+  NULL,
+  NULL,
+  0,                                        // CR1
+  ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
+  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15), // SMPR1
+  0,         // SMPR2
+  ADC_SQR1_NUM_CH(1),   // SQR1
+  0,             // SQR2
+  ADC_SQR3_SQ1_N(CURR_C_CHANNEL)// SQR3
+};
+
+static const ADCConversionGroup currb_adc_group = {
+  true,                                     // Use circular buffer
+  1,                                        // Channels
+  NULL,
+  NULL,
+  0,                                        // CR1
+  ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
+  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15),// SMPR1
+  0,         // SMPR2
+  ADC_SQR1_NUM_CH(1),   // SQR1
+  0,             // SQR2
+  ADC_SQR3_SQ1_N(CURR_B_CHANNEL)      // SQR3
+};
+
 static const ADCConversionGroup ivsense_adc_group = {
   true,                                     // Use circular buffer
-  consts::ivsense_channel_count,
+  2,                                        // Channels
   ivsenseADCEndCallback,
   ivsenseADCErrorCallback,
   0,                                        // CR1
   ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | 
-  ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
-  ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
-  ADC_SQR1_NUM_CH(consts::ivsense_channel_count),   // SQR1
-  ADC_SQR2_SQ7_N(VBUS_CHANNEL),             // SQR2
-  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL)  | 
-  ADC_SQR3_SQ4_N(VSENSE_A_CHANNEL) | ADC_SQR3_SQ5_N(VSENSE_B_CHANNEL) | ADC_SQR3_SQ6_N(VSENSE_C_CHANNEL) // SQR3
+  ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15),// SMPR1
+  0,         // SMPR2
+  ADC_SQR1_NUM_CH(2),   // SQR1
+  0,             // SQR2
+  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)  | ADC_SQR3_SQ2_N(VBUS_CHANNEL)      // SQR3
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
   consts::adc_pwm_cycle_freq, 
-  10,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
+  5,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
   NULL,               // Callback                                  
   {
     {PWM_OUTPUT_DISABLED, NULL},
@@ -136,9 +167,9 @@ static const PWMConfig adc_trigger_pwm_config = {
   0,    // DIER
 };
 
-MCP9808 temp_sensor(I2CD1);
+MCP9808 temp_sensor(I2CD2);
 
-LSM6DS3Sensor acc_gyr(&I2CD1);
+IIS328DQ acc(I2CD2);
 
 void initPeripherals() {
   chBSemInit(&ivsense_adc_samples_bsem, true);
@@ -155,6 +186,10 @@ void startPeripherals() {
   pwmStart(&PWMD1, &motor_pwm_config);
   PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
   PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS);
+  // Center aligned
+  PWMD1.tim->CR1 |= TIM_CR1_CMS_1;
+  // Halve the update interrupt rate
+  PWMD1.tim->RCR = 1;
 
   // Start gate driver
   gate_driver.start();
@@ -166,12 +201,16 @@ void startPeripherals() {
   temp_sensor.start();
 
   // Start accelerometer
-  acc_gyr.start();
-  acc_gyr.Enable_X();
+  acc.start();
 
   // Start ADC
   adcStart(&ADCD1, NULL);
+  adcStart(&ADCD2, NULL);
+  adcStart(&ADCD3, NULL);
+ 
   adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, consts::ivsense_sample_buf_depth);
+  adcStartConversion(&ADCD2, &currb_adc_group, ivsense_sample_buf + (2 * consts::ivsense_sample_buf_depth), consts::ivsense_sample_buf_depth);
+  adcStartConversion(&ADCD3, &currc_adc_group, ivsense_sample_buf + (3 * consts::ivsense_sample_buf_depth), consts::ivsense_sample_buf_depth);
   // Configure ADC trigger timer and pause it
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
@@ -203,8 +242,8 @@ static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {
 }
 
 void setStatusLEDColor(uint8_t red, uint8_t green, uint8_t blue) {
-  pwmEnableChannel(&PWMD5, 0, ledPWMPulseWidthFromIntensity(red));
-  pwmEnableChannel(&PWMD5, 2, ledPWMPulseWidthFromIntensity(green));
+  pwmEnableChannel(&PWMD5, 2, ledPWMPulseWidthFromIntensity(red));
+  pwmEnableChannel(&PWMD5, 0, ledPWMPulseWidthFromIntensity(green));
   pwmEnableChannel(&PWMD5, 1, ledPWMPulseWidthFromIntensity(blue));
 }
 
@@ -213,7 +252,7 @@ void setStatusLEDColor(uint32_t color) {
 }
 
 void setCommsActivityLED(bool on) {
-  palWritePad(GPIOA, GPIOA_LED_Y, !on);
+  palWritePad(GPIOB, GPIOB_LED_Y, !on);
 }
 
 void setRS485TransmitMode(bool transmit) {

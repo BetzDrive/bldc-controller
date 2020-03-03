@@ -12,9 +12,6 @@ void DRV8312::start() {
 
   // Disable control of gates.
   disableGates();
-
-  // Enable gate driver
-  palSetPad(en_gate_.port, en_gate_.pin);
 }
 
 bool DRV8312::hasFault() {

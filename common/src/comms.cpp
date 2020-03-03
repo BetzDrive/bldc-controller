@@ -885,12 +885,12 @@ UARTEndpoint comms_endpoint(UARTD1, GPTD2, {GPIOD, GPIOD_RS485_DIR}, consts::rs4
 // Wait in bootloader for a id to be assigned from the disco bus
 Server comms_server(COMM_ID_BROADCAST, commsRegAccessHandler,
                   {GPIOB, GPIOB_DISCO_BUS_IN},
-                  {GPIOB, GPIOB_DISCO_BUS_OUT});
+                  {GPIOA, GPIOA_DISCO_BUS_OUT});
 #else
 // Out of the bootloader, use whatever ID is stored in memory
 Server comms_server(*consts::board_id_ptr, commsRegAccessHandler,
                   {GPIOB, GPIOB_DISCO_BUS_IN},
-                  {GPIOB, GPIOB_DISCO_BUS_OUT});
+                  {GPIOA, GPIOA_DISCO_BUS_OUT});
 #endif
 ProtocolFSM comms_protocol_fsm(comms_server);
 

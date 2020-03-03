@@ -42,7 +42,7 @@ void setStatusLEDColor(uint32_t color) {
 }
 
 void setCommsActivityLED(bool on) {
-  palWritePad(GPIOA, GPIOA_LED_Y, !on);
+  palWritePad(GPIOB, GPIOB_LED_Y, !on);
 }
 
 void setRS485TransmitMode(bool transmit) {

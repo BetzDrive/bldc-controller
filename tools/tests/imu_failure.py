@@ -2,18 +2,22 @@
 from __future__ import print_function
 
 import sys
+sys.path.append("..")
+
 import serial
 import time
 from math import sin, cos, pi
 import argparse
 import ast
+import numpy as np
 
 from comms import *
 from boards import *
-from livegraph import livegraph
+
+GRAVITY = 9.81
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Drive motor module(s) with a given control mode and plot current measurements.')
+    parser = argparse.ArgumentParser(description='Drive motor module(s) with a given control mode.')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
@@ -31,45 +35,47 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
-    make_int = lambda x: [int(y) for y in x]
-    board_ids  = make_int(make_list(ast.literal_eval(args.board_ids)))
+    make_type = lambda x, to_type: [to_type(y) for y in x]
+    board_ids  = make_type(make_list(ast.literal_eval(args.board_ids)), int)
     actuations = make_list(ast.literal_eval(args.actuations))
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.05)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
 
     client = BLDCControllerClient(ser)
     initialized = initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
-    
+
     client.resetInputBuffer()
 
     initMotor(client, board_ids)
 
-    def updateCurrent(i): 
-        data = []
-        for board_id in board_ids:
+    start_time = time.time()
+    count = 0
+    rollover = 1000
+    getIMU = lambda bids: client.readRegisters(bids, [COMM_ROR_ACC_X]*len(bids), [3]*len(bids))
+    while True:
+        # If there's a watchdog reset, clear the reset and perform any configuration again
+        crashed = client.checkWDGRST()
+        if crashed != []:
             try:
-                driveMotor(client, board_ids, actuations, mode)
-                # Read the iq calulated
-                read = struct.unpack('<f', client.readRegisters([board_id], [0x3003], [1])[0])
-                data.append(read)
-                # Read the iq command
-                read = struct.unpack('<f', client.readRegisters([board_id], [0x3020], [1])[0])
-                data.append(read)
+                client.clearWDGRST(crashed)
             except (ProtocolError, struct.error):
-                #print("Failed to communicate with board: ", board_id)
-                data.append([0.0])
-                data.append([0.0])
-        return time.time(), data
+                pass
 
-    flatten = lambda l: [item for sublist in l for item in sublist]
+        try:
+            driveMotor(client, board_ids, actuations, mode)
+            responses = getIMU(board_ids)
+            for i in range(len(responses)):
+                val = struct.unpack('<hhh', responses[i])
+                np_val = np.array(val, dtype=float)
+                np_val = np_val / (1<<13) * (GRAVITY)
+                bid = board_ids[i]
+                message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
+                print("Board:", bid, message.format('imu' , np_val), np.linalg.norm(np_val))
 
-    labels = []
-    labels.extend([[str(bid) + '\'s iq Reading', str(bid) + '\'s iq PID output'] for bid in board_ids])
-    labels = flatten(labels)
-    graph = livegraph(updateCurrent, labels, sample_interval=1, window_size = 2000)
-
-    graph.start()
+        except (ProtocolError, struct.error):
+            time.sleep(0.1)
+            pass

@@ -18,7 +18,7 @@ public:
   DRV8312(PWMDriver& pwm_driver,
              const pwmchannel_t ch_a, const pwmchannel_t ch_b, const pwmchannel_t ch_c,
              const IOPin rst_a, const IOPin rst_b, const IOPin rst_c,
-             const IOPin en_gate, const IOPin nfault, const IOPin noctw)
+             const IOPin nfault, const IOPin noctw)
     : pwm_driver_(&pwm_driver),
       ch_a_(ch_a),
       ch_b_(ch_b),
@@ -26,7 +26,6 @@ public:
       rst_a_(rst_a),
       rst_b_(rst_b),
       rst_c_(rst_c),
-      en_gate_(en_gate),
       nfault_(nfault),
       noctw_(noctw){}
   void start();
@@ -45,7 +44,6 @@ private:
   const IOPin rst_a_;
   const IOPin rst_b_;
   const IOPin rst_c_;
-  const IOPin en_gate_;
   const IOPin nfault_;
   const IOPin noctw_;
 };

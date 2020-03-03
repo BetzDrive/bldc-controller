@@ -41,8 +41,9 @@ if __name__ == '__main__':
     client.resetInputBuffer()
 
     # The number of values returned by the recorder (all floats)
-    num_recorder_elements = 11
-    reset = struct.unpack('<B', client.readRegisters([board_id], [0x300b], [1])[0])[0]
+    num_recorder_elements = 8
+
+    reset = struct.unpack('<B', client.readRegisters([args.board_id], [0x300b], [1])[0])[0]
     print("reset: %u" % reset)
     success = struct.unpack('<B', client.readRegisters([board_id], [0x3009], [1])[0])[0]
     print("started: %u" % success)
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     start = time.time()
     while time.time()-start < run_time-1:
         try:
-            driveMotor(client, [board_id], [args.duty_cycle], 'torque')
+            driveMotor(client, [args.board_id], [args.duty_cycle], 'torque')
         except (ProtocolError, struct.error):
             print("Failed to communicate with board: ", board_id)
             pass

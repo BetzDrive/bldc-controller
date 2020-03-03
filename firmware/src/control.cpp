@@ -73,8 +73,8 @@ static float Q_rsqrt( float number )
 }
 
 void initControl() {
-  pid_id.setLimits(-consts::ivsense_current_max, consts::ivsense_current_max);
-  pid_iq.setLimits(-consts::ivsense_current_max, consts::ivsense_current_max);
+  pid_id.setLimits(-consts::isense_current_max, consts::isense_current_max);
+  pid_iq.setLimits(-consts::isense_current_max, consts::isense_current_max);
   last_control_timeout_reset = chTimeNow();
 }
 
@@ -200,7 +200,7 @@ void estimateState() {
   static RolledADC rolladc;
 
   static uint32_t raw_avg_ia = 0, raw_avg_ib = 0, raw_avg_ic = 0;
-  static uint32_t raw_avg_va = 0, raw_avg_vb = 0, raw_avg_vc = 0, raw_avg_vin = 0;
+  static uint32_t raw_avg_vin = 0;
 
   // Subtract old values before storing/adding new values
   // Start doing this after rolling over
@@ -208,49 +208,34 @@ void estimateState() {
     raw_avg_ia  -= rolladc.ia [rolladc.count];
     raw_avg_ib  -= rolladc.ib [rolladc.count];
     raw_avg_ic  -= rolladc.ic [rolladc.count];
-    raw_avg_va  -= rolladc.va [rolladc.count];
-    raw_avg_vb  -= rolladc.vb [rolladc.count];
-    raw_avg_vc  -= rolladc.vc [rolladc.count];
     raw_avg_vin -= rolladc.vin[rolladc.count];
   }
 
-  rolladc.ia [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ia ];
-  rolladc.ib [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ib ];
-  rolladc.ic [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_ic ];
-  rolladc.va [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_va ];
-  rolladc.vb [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vb ];
-  rolladc.vc [rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vc ];
-  rolladc.vin[rolladc.count] = peripherals::ivsense_adc_samples_ptr[consts::ivsense_channel_vin];
+  rolladc.ia [rolladc.count] = *peripherals::curra_adc_samples_ptr;
+  rolladc.ib [rolladc.count] = *peripherals::currb_adc_samples_ptr;
+  rolladc.ic [rolladc.count] = *peripherals::currc_adc_samples_ptr;
+  rolladc.vin[rolladc.count] = *peripherals::vsense_adc_samples_ptr;
 
   // The new average is equal to the addition of the old value minus the last value.
   // For the first (ivsense_rolling_average_count) values, the average will be wrong.
   raw_avg_ia  += rolladc.ia [rolladc.count];
   raw_avg_ib  += rolladc.ib [rolladc.count];
   raw_avg_ic  += rolladc.ic [rolladc.count];
-  raw_avg_va  += rolladc.va [rolladc.count];
-  raw_avg_vb  += rolladc.vb [rolladc.count];
-  raw_avg_vc  += rolladc.vc [rolladc.count];
   raw_avg_vin += rolladc.vin[rolladc.count];
 
   rolladc.count = (rolladc.count + 1) % consts::ivsense_rolling_average_count;
 
   static float avg_ia, avg_ib, avg_ic;
-  static float avg_va, avg_vb, avg_vc, avg_vin;
+  static float avg_vin;
 
   avg_ia  = peripherals::adcValueToCurrent(raw_avg_ia  / consts::ivsense_rolling_average_count);
   avg_ib  = peripherals::adcValueToCurrent(raw_avg_ib  / consts::ivsense_rolling_average_count);
   avg_ic  = peripherals::adcValueToCurrent(raw_avg_ic  / consts::ivsense_rolling_average_count);
-  avg_va  = peripherals::adcValueToVoltage(raw_avg_va  / consts::ivsense_rolling_average_count);
-  avg_vb  = peripherals::adcValueToVoltage(raw_avg_vb  / consts::ivsense_rolling_average_count);
-  avg_vc  = peripherals::adcValueToVoltage(raw_avg_vc  / consts::ivsense_rolling_average_count);
   avg_vin = peripherals::adcValueToVoltage(raw_avg_vin / consts::ivsense_rolling_average_count);
 
   state::results.ia  = avg_ia - state::calibration.ia_offset;
   state::results.ib  = avg_ib - state::calibration.ib_offset;
   state::results.ic  = avg_ic - state::calibration.ic_offset;
-  state::results.va  = avg_va;
-  state::results.vb  = avg_vb;
-  state::results.vc  = avg_vc;
   state::results.vin = avg_vin;
 
   //if (results.duty_a > results.duty_b && results.duty_a > results.duty_c) {
@@ -270,9 +255,11 @@ void estimateState() {
     recorder_new_data[consts::recorder_channel_ia]        = state::results.ia;
     recorder_new_data[consts::recorder_channel_ib]        = state::results.ib;
     recorder_new_data[consts::recorder_channel_ic]        = state::results.ic;
-    recorder_new_data[consts::recorder_channel_va]        = state::results.va;
-    recorder_new_data[consts::recorder_channel_vb]        = state::results.vb;
-    recorder_new_data[consts::recorder_channel_vc]        = state::results.vc;
+
+    //recorder_new_data[consts::recorder_channel_ia]        = raw_avg_ia / consts::ivsense_rolling_average_count;
+    //recorder_new_data[consts::recorder_channel_ib]        = raw_avg_ib / consts::ivsense_rolling_average_count;
+    //recorder_new_data[consts::recorder_channel_ic]        = raw_avg_ic / consts::ivsense_rolling_average_count;
+ 
     recorder_new_data[consts::recorder_channel_vin]       = state::results.vin;
     recorder_new_data[consts::recorder_channel_rotor_pos] = state::results.rotor_pos;
     recorder_new_data[consts::recorder_channel_rotor_vel] = state::results.hf_rotor_vel;
@@ -399,9 +386,9 @@ void runCurrentControl() {
                                 state::results.duty_c);
 
     if (state::parameters.gate_active) {
-      state::results.duty_a = state::results.duty_a * consts::max_duty_cycle;
-      state::results.duty_b = state::results.duty_b * consts::max_duty_cycle;
-      state::results.duty_c = state::results.duty_c * consts::max_duty_cycle;
+      state::results.duty_a = clamp(state::results.duty_a, consts::min_duty_cycle, consts::max_duty_cycle);
+      state::results.duty_b = clamp(state::results.duty_b, consts::min_duty_cycle, consts::max_duty_cycle);
+      state::results.duty_c = clamp(state::results.duty_c, consts::min_duty_cycle, consts::max_duty_cycle);
     } else {
       state::results.duty_a = 0.0f;
       state::results.duty_b = 0.0f;

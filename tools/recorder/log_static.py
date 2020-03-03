@@ -14,7 +14,6 @@ import numpy as np
 # 14-bit encoder
 phase_state_list = [(1, 0, 0)]
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Calibrate the encoder on a motor controller board.')
     parser.add_argument('serial', type=str, help='Serial port')
@@ -61,10 +60,10 @@ if __name__ == '__main__':
     for i in range(args.steps):
         set_phase_state(phase_state_list[i % len(phase_state_list)])
         time.sleep(args.delay)
-    
+
     # The number of values returned by the recorder (all floats)
-    num_recorder_elements = 11
-    
+    num_recorder_elements = 8
+
     if success:
         time.sleep(0.2)
         l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
@@ -80,8 +79,7 @@ if __name__ == '__main__':
                     arr += [a]
                     break
                 except:
-                    continue 
-    
+                    continue
     if args.file_name:
         with open(args.file_name, 'wb') as file:
             pickle.dump(arr, file)

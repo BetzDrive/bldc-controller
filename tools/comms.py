@@ -231,7 +231,7 @@ class BLDCControllerClient:
 
     def leaveBootloader(self, server_ids):
         self.jumpToAddress(server_ids, [COMM_FIRMWARE_OFFSET for sid in server_ids])
-        time.sleep(0.01)
+        time.sleep(0.1)
         self._ser.read_all()
 
     def enterBootloader(self, server_ids):
@@ -278,7 +278,7 @@ class BLDCControllerClient:
 
     def eraseFlashSector(self, server_id, sector_nums):
         responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_ERASE], [struct.pack('<I', sector_nums)])[0]
-        success, _ = responses        
+        success, _ = responses
         return success
 
     def programFlash(self, server_id, dest_addr, data):

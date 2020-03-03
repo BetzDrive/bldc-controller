@@ -60,7 +60,7 @@ if __name__ == '__main__':
     elif sen == 'temp':
         message = '{0}: {1[0]} degC'
     if sen == 'imu':
-        decode = '<iii'
+        decode = '<hhh'
         num_regs = 3
         message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
 
@@ -84,5 +84,4 @@ if __name__ == '__main__':
             print(err)
             pass
         time.sleep(0.1)
-
     print("Exiting.")

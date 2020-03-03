@@ -40,9 +40,9 @@ struct Results {
   float ib = 0;                             // current into phase B (amperes)
   float ic = 0;                             // current into phase C (amperes)
 
-  int32_t xl_x = 0;                         // X-acceleration in milli-g's
-  int32_t xl_y = 0;                         // Y-acceleration in milli-g's
-  int32_t xl_z = 0;                         // Z-acceleration in milli-g's
+  int16_t xl_x = 0;                         // X-acceleration in milli-g's
+  int16_t xl_y = 0;                         // Y-acceleration in milli-g's
+  int16_t xl_z = 0;                         // Z-acceleration in milli-g's
 
   float temperature = 0;                    // Temperature in degrees Celsius
 
