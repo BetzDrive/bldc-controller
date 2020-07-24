@@ -70,7 +70,7 @@ endif
 #
 
 # Define project name here
-PROJECT = mc_bootloader
+PROJECT = bootloader
 
 # Imported source files and paths
 CHIBIOS = ../chibios
@@ -82,8 +82,7 @@ include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
 
 # Define linker script file here
-LDSCRIPT = STM32F405xG.ld
-#LDSCRIPT= $(PORTLD)/STM32F407xG_CCM.ld
+LDSCRIPT = link.ld
 
 SRC = src
 INCLUDE = include
