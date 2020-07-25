@@ -1,5 +1,5 @@
 # Getting Started
-```
+```bash
 cd ~
 git clone https://github.com/BetzDrive/bldc-controller.git
 cd bldc-controller
@@ -8,14 +8,14 @@ sudo apt-get install gcc-arm-none-eabi
 ```
 
 ### Compiling
-```
+```bash
 cd ~/bldc_controller/<firmware or bootloader>
 make
 ```
 
 ### Debugging via ST-LINK
 To debug during execution, you can attach the debugger at any time using the following code. Keep in mind this is done with a direct connection to the hardware via an ST-Link.
-```
+```bash
 cd ~/bldc_controller/<firmware or bootloader>
 openocd
 ----
@@ -27,15 +27,15 @@ arm-none-eabi-gdb or gdb-multiarch <compiled file>.elf
 This functionality is also built into the make files as `make debug`.
 
 ### Uploading via ST-LINK
-```
+```bash
 cd ~/bldc_controller/<firmware or bootloader>
 make upload
 ```
 
 ### Upload firmware via RS485
-```
+```bash
 cd ~/bldc_controller/tools
-python upload_firmware.py <serial_port> <board_ids> ~/bldc_controller/firmware/build/motor_controller.bin
+python upload_firmware.py <serial_port> <board_ids> ~/bldc_controller/firmware/build/firmware.bin
 ```
 
 ### Upload bootloader via RS485
