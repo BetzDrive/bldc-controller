@@ -24,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
     parser.add_argument('sensor', type=str, help='Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)')
+    parser.add_argument('--init_boards', type=bool, store_true=True, help='Serial baud rate')
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
@@ -33,7 +34,8 @@ if __name__ == '__main__':
 
     client = BLDCControllerClient(ser)
 
-    initialized = initBoards(client, board_ids)
+    if args.init_boards:
+        initialized = initBoards(client, board_ids)
 
     for bid in board_ids:
         client.leaveBootloader([bid])
@@ -65,11 +67,15 @@ if __name__ == '__main__':
         message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
 
     num_boards = len(board_ids)
+
+    total_messages = 0
+    protocal_error = 0
+    struct_error = 0
     while initialized:
+        total_messages += 1
         crashed = client.checkWDGRST()
         if crashed:
             print('boards:', crashed, 'have crashed')
-
         try:
             address = ReadOnlyRegs[args.sensor]
             responses = client.readRegisters(board_ids, [address]*num_boards, [num_regs]*num_boards)
@@ -84,4 +90,9 @@ if __name__ == '__main__':
             print(err)
             pass
         time.sleep(0.1)
+        if total_messages % 100 == 0:
+            print("total_messages: ", total_messages)
+            print("protocal_errors: ", protocal_error)
+            print("struct_errors: ", struct_error)
+            print("total_error_percent: ", (protocal_error + struct_error) / total_messages)
     print("Exiting.")
