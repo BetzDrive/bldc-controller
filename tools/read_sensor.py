@@ -24,7 +24,8 @@ if __name__ == '__main__':
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
     parser.add_argument('sensor', type=str, help='Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)')
-    parser.add_argument('--init_boards', type=bool, store_true=True, help='Serial baud rate')
+    parser.add_argument('--init_boards', action="store_true", help='Initalize board ID\'s')
+    parser.add_argument('--debug_only', action="store_true", help='Only print debug messages')
     parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
@@ -36,6 +37,8 @@ if __name__ == '__main__':
 
     if args.init_boards:
         initialized = initBoards(client, board_ids)
+    else:
+        initialized = True
 
     for bid in board_ids:
         client.leaveBootloader([bid])
@@ -82,17 +85,20 @@ if __name__ == '__main__':
             for i in range(len(responses)):
                 val = struct.unpack(decode, responses[i])
                 bid = board_ids[i]
-                print("Board:", bid, message.format(args.sensor , val))
+                if not args.debug_only:
+                    print("Board:", bid, message.format(args.sensor , val))
         except ProtocolError as err:
-            print(err)
-            pass
+            if not args.debug_only:
+                print(err)
+            protocal_error += 1
         except struct.error as err:
-            print(err)
-            pass
-        time.sleep(0.1)
-        if total_messages % 100 == 0:
+            if not args.debug_only:
+                print(err)
+            struct_error += 1
+        time.sleep(0.05)
+        if total_messages % 1000 == 0:
             print("total_messages: ", total_messages)
             print("protocal_errors: ", protocal_error)
             print("struct_errors: ", struct_error)
-            print("total_error_percent: ", (protocal_error + struct_error) / total_messages)
+            print("total_error_percent: ", float(protocal_error + struct_error) / total_messages * 100.0)
     print("Exiting.")
