@@ -19,15 +19,13 @@ ReadOnlyRegs["temp"] = COMM_ROR_TEMPERATURE
 ReadOnlyRegs["imu"] = COMM_ROR_ACC_X
 
 
-def count_errors(board_ids):
+def count_errors(board_ids, total_messages=1000):
     num_boards = len(board_ids)
 
-    total_messages = 1000
     protocal_error = 0
     struct_error = 0
 
     for _ in range(total_messages):
-        total_messages += 1
         crashed = client.checkWDGRST()
         if crashed:
             print("boards:", crashed, "have crashed")
@@ -39,8 +37,7 @@ def count_errors(board_ids):
             for i in range(len(responses)):
                 val = struct.unpack(decode, responses[i])
                 bid = board_ids[i]
-                if not args.debug_only:
-                    print("Board:", bid, message.format(args.sensor, val))
+                # print("Board:", bid, message.format(args.sensor, val))
         except ProtocolError as err:
             protocal_error += 1
         except struct.error as err:
@@ -109,5 +106,6 @@ if __name__ == "__main__":
         message = "{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}"
 
     count_errors(board_ids)
-    for i in range(8):
-        count_errors(i + 1)
+    for _ in range(2):
+        for i in range(8):
+            count_errors([i + 1])
