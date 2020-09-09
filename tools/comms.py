@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import struct
 import json
 import time
@@ -391,23 +389,23 @@ class BLDCControllerClient:
 
         sector_map = FlashSectorMap(sector_counts, sector_starts, sector_sizes)
 
-        return sector_map 
+        return sector_map
 
     def doTransaction(self, server_ids, func_code, data):
         if type(server_ids) != list:
             server_ids = [server_ids]
         # Send the request to the boards.
-        self.writeRequest(server_ids, func_code, data) 
+        self.writeRequest(server_ids, func_code, data)
 
         # Listen to the responses.
-        responses = ['']*len(server_ids)
+        responses = [b'']*len(server_ids)
         for i in range(len(responses)):
             responses[i] = self.readResponse(server_ids[i], func_code[i])
 
         return responses
 
     def writeRequest(self, server_ids, func_code, data=[]):
-        message = ''
+        message = b''
         flags = COMM_FLAG_SEND
         for i in range(len(server_ids)):
             sub_message = struct.pack('<BB', server_ids[i], func_code[i])
@@ -417,16 +415,20 @@ class BLDCControllerClient:
 
         prefixed_message = struct.pack('<BBBH', 0xFF, COMM_VERSION, flags, len(message)) + message
         crc = self._computeCRC(message)
-        datagram = prefixed_message + struct.pack('<H', crc) 
+        datagram = prefixed_message + struct.pack('<H', crc)
 
         if DEBUG:
             print("Transmitting packet of length:", len(datagram))
-            print("Packet:", ":".join("{:02x}".format(ord(c)) for c in datagram))
+            print("Packet:", ":".join("{:02x}".format(c) for c in datagram))
         self._ser.write(datagram)
 
     def readResponse(self, server_id, func_code):
-        sync = self._ser.read()
-        if len(sync) != 1 or sync != "\xff":
+        for attempt in range(5):
+            sync = self._ser.read()
+            if len(sync) == 1 and sync == b'\xff':
+                break
+
+        if len(sync) != 1 or sync != b'\xff':
             # Reached maximum number of tries
             # self._ser.flushInput()
             return False, None
@@ -435,7 +437,7 @@ class BLDCControllerClient:
             print("Found Packet")
 
         version = self._ser.read()
-        if len(version) != 1 or version != "\xfe":
+        if len(version) != 1 or version != b'\xfe':
             # self._ser.flushInput()
             return False, None
 
@@ -443,7 +445,7 @@ class BLDCControllerClient:
             print("Proper Protocol")
 
         flags, = struct.unpack('<B', self._ser.read())
-        
+
         length = self._ser.read(2)
         if length == None or len(length) == 0:
             return False, None
@@ -454,17 +456,17 @@ class BLDCControllerClient:
             print("Length is: ", message_len)
 
         message = self._ser.read(message_len)
-        
+
         if DEBUG:
             print("Received Message:")
-            print(":".join("{:02x}".format(ord(c)) for c in message))
+            print(":".join("{:02x}".format(c) for c in message))
 
         if len(message) < message_len:
             # self._ser.flushInput()
             return False, None
 
         crc_bytes = self._ser.read(2)
-        #print (":".join("{:02x}".format(ord(c)) for c in crc_bytes))
+        #print (":".join("{:02x}".format(c) for c in crc_bytes))
 
         if len(crc_bytes) < 2:
             # self._ser.flushInput()
@@ -506,7 +508,7 @@ class BLDCControllerClient:
 
         if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
             raise ProtocolError('buffer length mismatch')
-        
+
         # Raise an exception if another type of error occurred
         if (errors & ~COMM_ERRORS_OP_FAILED) != 0:
             raise ProtocolError('other error flags set', errors)

@@ -1,6 +1,4 @@
-#!/usr/bin/env python2
-from __future__ import print_function
-
+#!/usr/bin/env python3
 import serial
 import time
 import argparse
@@ -74,9 +72,14 @@ if __name__ == '__main__':
             address = ReadOnlyRegs[args.sensor]
             responses = client.readRegisters(board_ids, [address]*num_boards, [num_regs]*num_boards)
             for i in range(len(responses)):
+                if not responses[i]:
+                    print('Board {} could not be read.'.format(i))
+                    continue
+
                 val = struct.unpack(decode, responses[i])
                 bid = board_ids[i]
                 print("Board:", bid, message.format(args.sensor , val))
+
         except ProtocolError as err:
             print(err)
             pass
