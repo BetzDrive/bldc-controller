@@ -109,10 +109,10 @@ class BLDCControllerClient:
         self._ser.reset_input_buffer()
 
     def storeCalibration(self, server_ids):
-        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids], [1 for sid in server_ids], ['' for sid in server_ids])
+        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids], [1 for sid in server_ids], [b'' for sid in server_ids])
 
     def clearCalibration(self, server_ids):
-        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids], [1 for sid in server_ids], ['' for sid in server_ids])
+        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids], [1 for sid in server_ids], [b'' for sid in server_ids])
 
     def getRotorPosition(self, server_ids):
         angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids])]
@@ -260,7 +260,7 @@ class BLDCControllerClient:
         return True
 
     def getFlashSectorCount(self, server_id):
-        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_COUNT], [''])[0]
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_COUNT], [b''])[0]
         _, data = responses
         return struct.unpack('<I', data)[0]
 
@@ -292,7 +292,7 @@ class BLDCControllerClient:
         return success
 
     def readFlash(self, server_id, src_addr, length):
-        data = '' 
+        data = b''
         for i in range(0, length, COMM_SINGLE_READ_LENGTH):
             read_len = min(length - i, COMM_SINGLE_READ_LENGTH)
             data_chunk = self._readFlashLimitedLength(server_id, src_addr + i, read_len)
