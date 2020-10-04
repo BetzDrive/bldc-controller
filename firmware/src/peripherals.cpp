@@ -79,12 +79,9 @@ AS5047D encoder(
 
 BinarySemaphore ivsense_adc_samples_bsem;
 
-volatile adcsample_t *curra_adc_samples_ptr = nullptr;
-volatile adcsample_t *currb_adc_samples_ptr = nullptr;
-volatile adcsample_t *currc_adc_samples_ptr = nullptr;
-volatile adcsample_t *vsense_adc_samples_ptr = nullptr;
+volatile adcsample_t *ivsense_adc_samples_ptr = nullptr;
 
-//volatile size_t ivsense_adc_samples_count;
+volatile size_t ivsense_adc_samples_count;
 
 adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
 
@@ -92,12 +89,9 @@ static void ivsenseADCEndCallback(ADCDriver *adcp, adcsample_t *buffer, size_t n
   (void)adcp;
 
   chSysLockFromIsr();
-  bool is_odd_sample = (buffer - ivsense_sample_buf) >> 1;
-  curra_adc_samples_ptr = buffer;
-  vsense_adc_samples_ptr = buffer + 1;
-  currb_adc_samples_ptr = ivsense_sample_buf + 4 + is_odd_sample;
-  currc_adc_samples_ptr = ivsense_sample_buf + 6 + is_odd_sample;
-  //ivsense_adc_samples_count = n;
+
+  ivsense_adc_samples_ptr = buffer;
+  ivsense_adc_samples_count = n;
   chBSemSignalI(&ivsense_adc_samples_bsem); // Signal that new ADC samples are available
 
   chSysUnlockFromIsr();
@@ -110,51 +104,23 @@ static void ivsenseADCErrorCallback(ADCDriver *adcp, adcerror_t err) {
   // TODO: display error
 }
 
-static const ADCConversionGroup currc_adc_group = {
-  true,                                     // Use circular buffer
-  1,
-  NULL,
-  NULL,
-  0,                                        // CR1
-  ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15), // SMPR1
-  0,         // SMPR2
-  ADC_SQR1_NUM_CH(1),   // SQR1
-  0,             // SQR2
-  ADC_SQR3_SQ1_N(CURR_C_CHANNEL)// SQR3
-};
-
-static const ADCConversionGroup currb_adc_group = {
-  true,                                     // Use circular buffer
-  1,                                        // Channels
-  NULL,
-  NULL,
-  0,                                        // CR1
-  ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15),// SMPR1
-  0,         // SMPR2
-  ADC_SQR1_NUM_CH(1),   // SQR1
-  0,             // SQR2
-  ADC_SQR3_SQ1_N(CURR_B_CHANNEL)      // SQR3
-};
-
 static const ADCConversionGroup ivsense_adc_group = {
   true,                                     // Use circular buffer
-  2,                                        // Channels
+  consts::ivsense_channel_count,
   ivsenseADCEndCallback,
   ivsenseADCErrorCallback,
   0,                                        // CR1
   ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
-  ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15),// SMPR1
+  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15),// SMPR1
   0,         // SMPR2
-  ADC_SQR1_NUM_CH(2),   // SQR1
+  ADC_SQR1_NUM_CH(consts::ivsense_channel_count),   // SQR1
   0,             // SQR2
-  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)  | ADC_SQR3_SQ2_N(VBUS_CHANNEL)      // SQR3
+  ADC_SQR3_SQ1_N(CURR_A_CHANNEL)   | ADC_SQR3_SQ2_N(CURR_B_CHANNEL)   | ADC_SQR3_SQ3_N(CURR_C_CHANNEL) | ADC_SQR3_SQ4_N(VBUS_CHANNEL) // SQR3
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
   consts::adc_pwm_cycle_freq, 
-  5,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
+  10,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
   NULL,               // Callback                                  
   {
     {PWM_OUTPUT_DISABLED, NULL},
@@ -205,12 +171,7 @@ void startPeripherals() {
 
   // Start ADC
   adcStart(&ADCD1, NULL);
-  adcStart(&ADCD2, NULL);
-  adcStart(&ADCD3, NULL);
- 
   adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, consts::ivsense_sample_buf_depth);
-  adcStartConversion(&ADCD2, &currb_adc_group, ivsense_sample_buf + (2 * consts::ivsense_sample_buf_depth), consts::ivsense_sample_buf_depth);
-  adcStartConversion(&ADCD3, &currc_adc_group, ivsense_sample_buf + (3 * consts::ivsense_sample_buf_depth), consts::ivsense_sample_buf_depth);
   // Configure ADC trigger timer and pause it
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
