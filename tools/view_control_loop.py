@@ -10,7 +10,7 @@ import ast
 
 from comms import *
 from boards import *
-from livegraph import livegraph
+from livegraph import LiveGraph
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Drive motor module(s) with a given control mode and plot current measurements.')
@@ -43,12 +43,11 @@ if __name__ == '__main__':
     initialized = initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
-    
     client.resetInputBuffer()
 
     initMotor(client, board_ids)
 
-    def updateCurrent(i): 
+    def updateCurrent(i):
         data = []
         for board_id in board_ids:
             try:
@@ -70,6 +69,6 @@ if __name__ == '__main__':
     labels = []
     labels.extend([[str(bid) + '\'s iq Reading', str(bid) + '\'s iq PID output'] for bid in board_ids])
     labels = flatten(labels)
-    graph = livegraph(updateCurrent, labels, sample_interval=1, window_size = 2000)
+    graph = LiveGraph(updateCurrent, labels, sample_interval=1, window_size = 2000)
 
     graph.start()
