@@ -135,8 +135,9 @@ class LiveGraph():
             count = 0
             while self.data.running:
                 x, y = self.update_func(count)
-                self.data.xs.append(x)
-                self.data.ys.append(y)
+                if x is not  None and y is not None:
+                    self.data.xs.append(x)
+                    self.data.ys.append(y)
                 self.nextCall = self.nextCall + self.interval
                 time.sleep(max(0, self.nextCall - time.time()))
                 count += 1

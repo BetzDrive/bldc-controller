@@ -47,7 +47,13 @@ if __name__ == '__main__':
     def set_phase_state(phase_state):
         a, b, c = phase_state
         targets = [ a*args.duty_cycle, b*args.duty_cycle, c*args.duty_cycle ]
-        driveMotor(client, board_ids, targets, 'phase')
+
+        while True:
+            try:
+                driveMotor(client, board_ids, targets, 'phase')
+                break
+            except (MalformedPacketError, ProtocolError):
+                print("Phase state set failed. Retrying.")
 
     # Clear currently loaded current offsets
     offset_data = struct.pack('<fff', 0, 0, 0)
@@ -68,9 +74,13 @@ if __name__ == '__main__':
     print("started: %u" % success)
 
     data = []
-    l = struct.unpack('<H', client.readRegisters(board_ids, [0x300a], [1])[0])[0]
+    l = 0
     while l == 0:
-        l = struct.unpack('<H', client.readRegisters(board_ids, [0x300a], [1])[0])[0]
+        try:
+            l = struct.unpack('<H', client.readRegisters(board_ids, [0x300a], [1])[0])[0]
+        except MalformedPacketError as e:
+            print(e)
+            continue
         time.sleep(0.1)
     arr = []
     for i in range(0, l, num_recorder_elements):
@@ -78,7 +88,7 @@ if __name__ == '__main__':
         try:
             a = (struct.unpack("<" + str(num_recorder_elements) + "f", client.readRegisters(board_ids, [0x8000 + i], [num_recorder_elements])[0]))
             data += [a]
-        except (ProtocolError, struct.error, TypeError):
+        except (MalformedPacketError, ProtocolError):
             print("Missed packet")
 
     f, axarr = plt.subplots(1, sharex=True)
@@ -105,7 +115,12 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = client.getRawRotorPosition(board_ids)[0]
+        while True:
+            try:
+                raw_angle = client.getRawRotorPosition(board_ids)[0]
+                break
+            except (MalformedPacketError, ProtocolError):
+                print("Missed packet")
 
         if i > 4 and abs(forward_raw_angles[0] - raw_angle) < abs(forward_raw_angles[1] - forward_raw_angles[0]) / 3.0:
             break
@@ -124,7 +139,12 @@ if __name__ == '__main__':
         set_phase_state(phase_state_list[i % 6])
         time.sleep(args.delay)
 
-        raw_angle = client.getRawRotorPosition(board_ids)[0]
+        while True:
+            try:
+                raw_angle = client.getRawRotorPosition(board_ids)[0]
+                break
+            except (MalformedPacketError, ProtocolError):
+                print("Missed packet")
 
         backward_raw_angles.append(raw_angle)
 
@@ -181,7 +201,7 @@ if __name__ == '__main__':
     print('erevs_per_mrev: {:5d}'.format(abs(erevs_per_mrev)))
     print('   flip_phases: {:5d}'.format(int(erevs_per_mrev > 0)))
 
-    size = str(raw_input("What size is the motor? (S/L)\n"))
+    size = str(input("What size is the motor? (S/L)\n"))
     upload_data = {
         "inv":int(erevs_per_mrev>0),
         "epm":abs(erevs_per_mrev),
@@ -196,7 +216,7 @@ if __name__ == '__main__':
     print("Calibration")
     print(upload_data)
 
-    with open('calibrations.json', 'w') as outfile:  
+    with open('calibrations.json', 'w') as outfile:
         json.dump([upload_data], outfile)
 
     #mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)

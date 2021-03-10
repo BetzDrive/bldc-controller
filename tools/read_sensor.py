@@ -80,10 +80,7 @@ if __name__ == '__main__':
                 bid = board_ids[i]
                 print("Board:", bid, message.format(args.sensor , val))
 
-        except ProtocolError as err:
-            print(err)
-            pass
-        except struct.error as err:
+        except (MalformedPacketError, ProtocolError) as err:
             print(err)
             pass
         time.sleep(0.1)

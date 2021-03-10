@@ -53,16 +53,12 @@ if __name__ == '__main__':
             try:
                 driveMotor(client, board_ids, actuations, mode)
                 # Read the iq calulated
-                read = struct.unpack('<f', client.readRegisters([board_id], [0x3003], [1])[0])
-                data.append(read)
+                data.append(struct.unpack('<f', client.readRegisters([board_id], [0x3003], [1])[0]))
                 # Read the iq command
-                read = struct.unpack('<f', client.readRegisters([board_id], [0x3020], [1])[0])
-                data.append(read)
-            except (ProtocolError, struct.error):
-                #print("Failed to communicate with board: ", board_id)
-                data.append([0.0])
-                data.append([0.0])
-        return time.time(), data
+                data.append(struct.unpack('<f', client.readRegisters([board_id], [0x3020], [1])[0]))
+            except (MalformedPacketError, ProtocolError):
+                print("Failed to communicate with board: ", board_id)
+        return time.time(), None if len(data) != 2 else data
 
     flatten = lambda l: [item for sublist in l for item in sublist]
 

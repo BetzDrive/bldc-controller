@@ -50,10 +50,10 @@ if __name__ == '__main__':
     print("reset: %u" % reset)
     success = struct.unpack('<B', client.readRegisters([args.board_id], [0x3009], [1])[0])[0]
     print("success: %u" % success)
-   
+
     # The number of values returned by the recorder (all floats)
-    num_recorder_elements = 11
-    
+    num_recorder_elements = 8
+
     if success:
         time.sleep(0.2)
         l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
@@ -69,8 +69,8 @@ if __name__ == '__main__':
                     arr += [a]
                     break
                 except:
-                    continue 
-    
+                    continue
+
     if args.file_name:
         with open(args.file_name, 'wb') as file:
             pickle.dump(arr, file)
