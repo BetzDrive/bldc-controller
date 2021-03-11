@@ -56,17 +56,14 @@ if __name__ == '__main__':
         if crashed != []:
             try:
                 client.clearWDGRST(crashed)
-            except (ProtocolError, struct.error):
+            except (ProtocolError, MalformedPacketError):
                 pass
 
-        for board_id in board_ids:
-            try:
-                driveMotor(client, board_ids, actuations, mode)
-            except (ProtocolError, struct.error):
-                print("Failed to communicate with board: ", board_id)
-                time.sleep(0.1)
-                pass
-    
+        try:
+            driveMotor(client, board_ids, actuations, mode)
+        except (ProtocolError, MalformedPacketError) as e:
+            print(e)
+
         count += 1
         if count % rollover == 0:
             now = time.time()

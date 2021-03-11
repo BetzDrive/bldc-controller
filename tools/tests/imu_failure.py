@@ -62,7 +62,7 @@ if __name__ == '__main__':
         if crashed != []:
             try:
                 client.clearWDGRST(crashed)
-            except (ProtocolError, struct.error):
+            except (MalformedPacketError, ProtocolError):
                 pass
 
         try:
@@ -75,7 +75,5 @@ if __name__ == '__main__':
                 bid = board_ids[i]
                 message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
                 print("Board:", bid, message.format('imu' , np_val), np.linalg.norm(np_val))
-
-        except (ProtocolError, struct.error):
+        except (MalformedPacketError, ProtocolError):
             time.sleep(0.1)
-            pass

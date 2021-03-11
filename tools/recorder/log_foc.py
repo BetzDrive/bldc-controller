@@ -53,9 +53,9 @@ if __name__ == '__main__':
     while time.time()-start < run_time-1:
         try:
             driveMotor(client, [args.board_id], [args.duty_cycle], 'torque')
-        except (ProtocolError, struct.error):
+        except (MalformedPacketError, ProtocolError):
             print("Failed to communicate with board: ", board_id)
-            pass
+
         time.sleep(0.1)
     time.sleep(1.2)
 

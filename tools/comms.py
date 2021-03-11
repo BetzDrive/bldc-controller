@@ -1,15 +1,8 @@
-from __future__ import print_function
-
 import struct
 import json
 import time
 import crcmod
 
-class ProtocolError(Exception):
-    def __init__(self, message, errors=None):
-        super(ProtocolError, self).__init__(message)
-
-        self.errors = errors
 
 DEBUG = False
 
@@ -40,7 +33,7 @@ COMM_FC_FLASH_VERIFY_ERASED = 0x89
 COMM_FC_CONFIRM_ID = 0xFE
 COMM_FC_ENUMERATE = 0xFF
 
-COMM_FLAG_SEND = 0x00 
+COMM_FLAG_SEND = 0x00
 COMM_FLAG_CRASH = 0x02
 
 COMM_BOOTLOADER_OFFSET = 0x08000000
@@ -52,6 +45,21 @@ COMM_DEFAULT_BAUD_RATE = 1000000
 COMM_SINGLE_PROGRAM_LENGTH = 64
 COMM_SINGLE_READ_LENGTH    = 64
 COMM_SINGLE_VERIFY_LENGTH  = 64
+
+
+class ProtocolError(Exception):
+    def __init__(self, message, errors=None):
+        super(ProtocolError, self).__init__(message)
+
+        self.errors = errors
+
+
+class MalformedPacketError(Exception):
+    def __init__(self, message, errors=None):
+        super(MalformedPacketError, self).__init__(message)
+
+        self.errors = errors
+
 
 class FlashSectorMap:
     def __init__(self, sector_count, sector_starts, sector_sizes):
@@ -111,10 +119,10 @@ class BLDCControllerClient:
         self._ser.reset_input_buffer()
 
     def storeCalibration(self, server_ids):
-        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids], [1 for sid in server_ids], ['' for sid in server_ids])
+        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids], [1 for sid in server_ids], [b'' for sid in server_ids])
 
     def clearCalibration(self, server_ids):
-        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids], [1 for sid in server_ids], ['' for sid in server_ids])
+        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids], [1 for sid in server_ids], [b'' for sid in server_ids])
 
     def getRotorPosition(self, server_ids):
         angles = [struct.unpack('<f', data)[0] for data in self.readRegisters(server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids])]
@@ -206,10 +214,10 @@ class BLDCControllerClient:
         return states
 
     def checkWDGRST(self):
-        return self._crash.keys()
+        return list(self._crash.keys())
 
     def clearWDGRST(self, server_ids):
-        response = self.doTransaction([server_id], [COMM_FC_CLEAR_IWDGRST], [])
+        response = self.doTransaction(server_ids, [COMM_FC_CLEAR_IWDGRST for sid in server_ids], [])
         success = response[0][0]
         return success
 
@@ -262,7 +270,7 @@ class BLDCControllerClient:
         return True
 
     def getFlashSectorCount(self, server_id):
-        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_COUNT], [''])[0]
+        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_COUNT], [b''])[0]
         _, data = responses
         return struct.unpack('<I', data)[0]
 
@@ -283,9 +291,12 @@ class BLDCControllerClient:
 
     def programFlash(self, server_id, dest_addr, data):
         for i in range(0, len(data), COMM_SINGLE_PROGRAM_LENGTH):
-            success = self._programFlashLimitedLength(server_id, dest_addr + i, data[i:i+COMM_SINGLE_PROGRAM_LENGTH])
-            if not success:
-                return False
+            success = False
+            while not success:
+                try:
+                    success = self._programFlashLimitedLength(server_id, dest_addr + i, data[i:i+COMM_SINGLE_PROGRAM_LENGTH])
+                except (MalformedPacketError, ProtocolError) as e:
+                    print(f'Error: Retrying upload of segment {i} of {len(data)}')
         return True
 
     def _programFlashLimitedLength(self, server_id, dest_addr, data):
@@ -294,7 +305,7 @@ class BLDCControllerClient:
         return success
 
     def readFlash(self, server_id, src_addr, length):
-        data = '' 
+        data = b''
         for i in range(0, length, COMM_SINGLE_READ_LENGTH):
             read_len = min(length - i, COMM_SINGLE_READ_LENGTH)
             data_chunk = self._readFlashLimitedLength(server_id, src_addr + i, read_len)
@@ -316,9 +327,13 @@ class BLDCControllerClient:
 
     def verifyFlash(self, server_id, dest_addr, data):
         for i in range(0, len(data), COMM_SINGLE_VERIFY_LENGTH):
-            success = self._verifyFlashLimitedLength(server_id, dest_addr + i, data[i:i+COMM_SINGLE_VERIFY_LENGTH])
-            if not success:
-                return False
+
+            success = False
+            while not success:
+                try:
+                    success = self._verifyFlashLimitedLength(server_id, dest_addr + i, data[i:i+COMM_SINGLE_VERIFY_LENGTH])
+                except (MalformedPacketError, ProtocolError) as e:
+                    print(f'Error: Retrying verification of segment {i} of {len(data)}')
         return True
 
     def _verifyFlashLimitedLength(self, server_id, dest_addr, data):
@@ -391,23 +406,23 @@ class BLDCControllerClient:
 
         sector_map = FlashSectorMap(sector_counts, sector_starts, sector_sizes)
 
-        return sector_map 
+        return sector_map
 
     def doTransaction(self, server_ids, func_code, data):
         if type(server_ids) != list:
             server_ids = [server_ids]
         # Send the request to the boards.
-        self.writeRequest(server_ids, func_code, data) 
+        self.writeRequest(server_ids, func_code, data)
 
         # Listen to the responses.
-        responses = ['']*len(server_ids)
+        responses = [b'']*len(server_ids)
         for i in range(len(responses)):
             responses[i] = self.readResponse(server_ids[i], func_code[i])
 
         return responses
 
     def writeRequest(self, server_ids, func_code, data=[]):
-        message = ''
+        message = b''
         flags = COMM_FLAG_SEND
         for i in range(len(server_ids)):
             sub_message = struct.pack('<BB', server_ids[i], func_code[i])
@@ -417,36 +432,40 @@ class BLDCControllerClient:
 
         prefixed_message = struct.pack('<BBBH', 0xFF, COMM_VERSION, flags, len(message)) + message
         crc = self._computeCRC(message)
-        datagram = prefixed_message + struct.pack('<H', crc) 
+        datagram = prefixed_message + struct.pack('<H', crc)
 
         if DEBUG:
             print("Transmitting packet of length:", len(datagram))
-            print("Packet:", ":".join("{:02x}".format(ord(c)) for c in datagram))
+            print("Packet:", ":".join("{:02x}".format(c) for c in datagram))
         self._ser.write(datagram)
 
     def readResponse(self, server_id, func_code):
-        sync = self._ser.read()
-        if len(sync) != 1 or sync != "\xff":
+        for attempt in range(5):
+            sync = self._ser.read()
+            if len(sync) == 1 and sync == b'\xff':
+                break
+
+        if len(sync) != 1 or sync != b'\xff':
             # Reached maximum number of tries
             # self._ser.flushInput()
-            return False, None
+            raise MalformedPacketError(f'id: {server_id} - Unfound start byte.')
 
         if DEBUG:
             print("Found Packet")
 
         version = self._ser.read()
-        if len(version) != 1 or version != "\xfe":
+        if len(version) != 1 or version != b'\xfe':
             # self._ser.flushInput()
-            return False, None
+            raise MalformedPacketError(f'id: {server_id} - Incorrect version number.')
 
         if DEBUG:
             print("Proper Protocol")
 
         flags, = struct.unpack('<B', self._ser.read())
-        
+
         length = self._ser.read(2)
-        if length == None or len(length) == 0:
-            return False, None
+        if length == None or len(length) != 2:
+            raise MalformedPacketError(f'id: {server_id} - Packet length incorrect.')
 
         message_len, = struct.unpack('H', length)
 
@@ -454,21 +473,21 @@ class BLDCControllerClient:
             print("Length is: ", message_len)
 
         message = self._ser.read(message_len)
-        
+
         if DEBUG:
             print("Received Message:")
-            print(":".join("{:02x}".format(ord(c)) for c in message))
+            print(":".join("{:02x}".format(c) for c in message))
 
         if len(message) < message_len:
             # self._ser.flushInput()
-            return False, None
+            raise MalformedPacketError(f'id: {server_id} - Incomplete packet received.')
 
         crc_bytes = self._ser.read(2)
-        #print (":".join("{:02x}".format(ord(c)) for c in crc_bytes))
+        #print (":".join("{:02x}".format(c) for c in crc_bytes))
 
         if len(crc_bytes) < 2:
             # self._ser.flushInput()
-            return False, None
+            raise MalformedPacketError(f'id: {server_id} - CRC not found.')
 
         message_server_id, message_func_code, errors = struct.unpack('<BBH', message[2:6])
 
@@ -506,7 +525,7 @@ class BLDCControllerClient:
 
         if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
             raise ProtocolError('buffer length mismatch')
-        
+
         # Raise an exception if another type of error occurred
         if (errors & ~COMM_ERRORS_OP_FAILED) != 0:
             raise ProtocolError('other error flags set', errors)
