@@ -95,7 +95,7 @@ def initMotor(client, board_ids):
             client.setQuadratureCurrentKi(board_ids, [0.2]*len(board_ids))
 
             success = True
-        except (ProtocolError, struct.error, TypeError):
+        except (MalformedPacketError, ProtocolError):
             print("Failed to calibrate board, retrying...")
     print("Finished calibration of boards:", board_ids)
 
