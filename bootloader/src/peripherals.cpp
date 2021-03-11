@@ -5,8 +5,10 @@
 namespace motor_driver {
 namespace peripherals {
 
-constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
-constexpr unsigned int led_pwm_period = 52500; // clock cycles
+// Hz.
+constexpr unsigned int led_pwm_clock_freq = 84000000;
+// clock cycles.
+constexpr unsigned int led_pwm_period = 52500;
 
 const PWMConfig led_pwm_config = {
   led_pwm_clock_freq,
@@ -23,7 +25,7 @@ const PWMConfig led_pwm_config = {
 };
 
 void startPeripherals() {
-  // Start LED PWM
+  // Start LED PWM.
   pwmStart(&PWMD5, &led_pwm_config);
 }
 

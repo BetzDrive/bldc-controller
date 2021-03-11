@@ -5,38 +5,38 @@
 #include "constants.h"
 
 namespace motor_driver {
-namespace controller {
+  namespace controller {
 
-struct RolledADC {
-  uint16_t count = 0;
+    struct RolledADC {
+      uint16_t count = 0;
 
-  uint16_t ia [consts::ivsense_rolling_average_count] = {0};
-  uint16_t ib [consts::ivsense_rolling_average_count] = {0};
-  uint16_t ic [consts::ivsense_rolling_average_count] = {0};
-  uint16_t vin[consts::ivsense_rolling_average_count] = {0};
+      uint16_t ia [consts::ivsense_rolling_average_count] = {0};
+      uint16_t ib [consts::ivsense_rolling_average_count] = {0};
+      uint16_t ic [consts::ivsense_rolling_average_count] = {0};
+      uint16_t vin[consts::ivsense_rolling_average_count] = {0};
 
-  RolledADC(){}
-};
+      RolledADC(){}
+    };
 
-void initControl();
+    void initControl();
 
-void resumeInnerControlLoop();
+    void resumeInnerControlLoop();
 
-void runInnerControlLoop();
+    void runInnerControlLoop();
 
-void estimateState();
+    void estimateState();
 
-void runPositionControl();
+    void runPositionControl();
 
-void runVelocityControl();
+    void runVelocityControl();
 
-void runCurrentControl();
+    void runCurrentControl();
 
-void resetControlTimeout();
+    void resetControlTimeout();
 
-void brakeMotor();
+    void brakeMotor();
 
-} // namespace controller
+  } // namespace controller
 } // namespace motor_driver
 
 #endif /* _CONTROL_H_ */

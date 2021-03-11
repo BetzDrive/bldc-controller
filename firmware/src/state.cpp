@@ -6,48 +6,54 @@
 #include <cstring>
 
 namespace motor_driver {
-namespace state {
+  namespace state {
 
-Results results;
+    Results results;
 
-Calibration calibration;
+    Calibration calibration;
 
-Parameters parameters;
+    Parameters parameters;
 
-Recorder recorder;
+    Recorder recorder;
 
-volatile bool should_copy_results = false;
+    volatile bool should_copy_results = false;
 
-volatile bool should_copy_parameters = false;
+    volatile bool should_copy_parameters = false;
 
-void initState() {
-}
+    void initState() {
+    }
 
-void storeCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
+    void storeCalibration() {
+      uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
 
-  struct IWDG_Values save = pauseIWDG();
-  flashErase(addr, sizeof(state::Calibration));
-  resumeIWDG(save);
+      struct IWDG_Values save = pauseIWDG();
+      flashErase(addr, sizeof(state::Calibration));
+      resumeIWDG(save);
 
-  flashWrite(addr, (char *)&state::calibration, sizeof(state::Calibration));
-}
+      flashWrite(
+          addr, (char *)&state::calibration, sizeof(state::Calibration));
+    }
 
-void loadCalibration() {
-  uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
-  uint16_t start_sequence = 0;
-  // Retry loading flash until successful load. This is critical to read.
-  while (not (flashRead(addr, (char *)&start_sequence, sizeof(uint16_t)) == FLASH_RETURN_SUCCESS));
-  if (start_sequence == consts::calib_ss) {
-    while (not (flashRead(addr, (char *)&state::calibration, sizeof(state::Calibration)) == FLASH_RETURN_SUCCESS));
-  }
-}
+    void loadCalibration() {
+      uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
+      uint16_t start_sequence = 0;
+      // Retry loading flash until successful load. This is critical to read.
+      while (not (flashRead(
+              addr, (char *)&start_sequence,
+              sizeof(uint16_t)) == FLASH_RETURN_SUCCESS));
+      if (start_sequence == consts::calib_ss) {
+        while (not (flashRead(
+                addr, (char *)&state::calibration,
+                sizeof(state::Calibration)) == FLASH_RETURN_SUCCESS));
+      }
+    }
 
-void clearCalibration() {
-  // Copy default values into calibration.
-  state::Calibration temp_calib;
-  std::memcpy(&state::calibration, &temp_calib, sizeof(state::Calibration));
-}
+    void clearCalibration() {
+      // Copy default values into calibration.
+      state::Calibration temp_calib;
+      std::memcpy(
+          &state::calibration, &temp_calib, sizeof(state::Calibration));
+    }
 
-} // namespace state
+  } // namespace state
 } // namespace motor_driver

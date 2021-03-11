@@ -7,243 +7,275 @@
 #include "chmtx.h"
 
 namespace motor_driver {
-namespace peripherals {
-extern Mutex var_access_mutex;
-}
-namespace comms {
-
-class UARTEndpoint;
-
-struct UARTEndpointUARTConfig : UARTConfig {
-  UARTEndpoint *endpoint;
-};
-
-struct UARTEndpointGPTConfig : GPTConfig {
-  UARTEndpoint *endpoint;
-};
-
-class UARTEndpoint {
-public:
-  static constexpr size_t header_len = 5;
-  static constexpr size_t sub_msg_len = 2;
-  static constexpr size_t crc_len = 2;
-  static constexpr size_t max_dg_payload_len = 255;
-
-  UARTEndpoint(UARTDriver& uart_driver, GPTDriver& gpt_driver, IOPin dir, uint32_t baud)
-    : uart_driver_(&uart_driver),
-      gpt_driver_(&gpt_driver),
-      dir_(dir),
-      state_(State::STOPPED) {
-    uart_config_.txend2_cb = uartTransmitCompleteCallbackStatic;
-    uart_config_.rxend_cb = uartReceiveCompleteCallbackStatic;
-    uart_config_.rxchar_cb = uartCharReceivedCallbackStatic;
-    uart_config_.rxerr_cb = uartReceiveErrorCallbackStatic;
-    uart_config_.speed = baud;
-    uart_config_.endpoint = this;
-
-    gpt_config_.frequency = 1000000; // Timeouts are measured in microseconds
-    gpt_config_.callback = gptCallbackStatic;
-    gpt_config_.endpoint = this;
-
-    idle_time_ticks_ = 5000; // 5 ms
-
-    chBSemInit(&rx_bsem_, 0);
-    chBSemInit(&tx_bsem_, 0);
+  namespace peripherals {
+    extern Mutex var_access_mutex;
   }
+  namespace comms {
 
-  void start();
+    class UARTEndpoint;
 
-  void transmit();
+    struct UARTEndpointUARTConfig : UARTConfig {
+      UARTEndpoint *endpoint;
+    };
 
-  void receive();
+    struct UARTEndpointGPTConfig : GPTConfig {
+      UARTEndpoint *endpoint;
+    };
 
-  uint8_t getFlags();
+    class UARTEndpoint {
+      public:
+        static constexpr size_t header_len = 5;
+        static constexpr size_t sub_msg_len = 2;
+        static constexpr size_t crc_len = 2;
+        static constexpr size_t max_dg_payload_len = 255;
 
-  uint8_t *getReceiveBufferPtr();
+        UARTEndpoint(UARTDriver& uart_driver, GPTDriver& gpt_driver, IOPin dir,
+            uint32_t baud) :
+          uart_driver_(&uart_driver),
+          gpt_driver_(&gpt_driver),
+          dir_(dir),
+          state_(State::STOPPED) {
+            uart_config_.txend2_cb = uartTransmitCompleteCallbackStatic;
+            uart_config_.rxend_cb = uartReceiveCompleteCallbackStatic;
+            uart_config_.rxchar_cb = uartCharReceivedCallbackStatic;
+            uart_config_.rxerr_cb = uartReceiveErrorCallbackStatic;
+            uart_config_.speed = baud;
+            uart_config_.endpoint = this;
 
-  size_t getReceiveLength() const;
+            // Timeouts are measured in microseconds.
+            gpt_config_.frequency = 1000000;
+            gpt_config_.callback = gptCallbackStatic;
+            gpt_config_.endpoint = this;
 
-  bool hasReceiveError() const;
+            // 5 ms.
+            idle_time_ticks_ = 5000;
 
-  uint8_t *getTransmitBufferPtr();
+            chBSemInit(&rx_bsem_, 0);
+            chBSemInit(&tx_bsem_, 0);
+          }
 
-  void setTransmitLength(size_t len);
+        void start();
 
-  size_t getTransmitBufferSize() const;
+        void transmit();
 
-private:
-  enum class State {
-    STOPPED,                      // Inactive, not responding to any requests
-    INITIALIZING,                 // Waiting for bus to become idle
-    IDLE,                         // Waiting for sync flag
-    RECEIVING_PROTOCOL_VERSION,   // Waiting for protocol version byte
-    RECEIVING_FLAGS,              // Waiting for flags bits
-    RECEIVING_LENGTH_L,           // Waiting for lower byte of length word
-    RECEIVING_LENGTH_H,           // Waiting for upper byte of length word
-    RECEIVING,                    // Receiving data
-    TRANSMITTING                  // Transmitting data
-  };
+        void receive();
 
-  UARTDriver * const uart_driver_;
-  GPTDriver * const gpt_driver_;
-  const IOPin dir_;
-  UARTEndpointUARTConfig uart_config_;
-  UARTEndpointGPTConfig gpt_config_;
-  State state_;
-  gptcnt_t idle_time_ticks_;
-  BinarySemaphore rx_bsem_;
-  BinarySemaphore tx_bsem_;
+        uint8_t getFlags();
 
-  /* Receive DMA buffer */
-  uint8_t rx_buf_[header_len + max_dg_payload_len + crc_len];
-  size_t rx_len_;
-  bool rx_error_;
-  comm_fg_t rx_flags_;
+        uint8_t *getReceiveBufferPtr();
 
-  /* Transmit DMA buffer */
-  uint8_t tx_buf_[header_len + max_dg_payload_len + crc_len];
-  size_t tx_len_;
+        size_t getReceiveLength() const;
 
-  static uint16_t computeCRC(const uint8_t *buf, size_t len);
+        bool hasReceiveError() const;
 
-  static void uartTransmitCompleteCallbackStatic(UARTDriver *uartp) {
-    ((UARTEndpointUARTConfig *)uartp->config)->endpoint->uartTransmitCompleteCallback();
-  }
+        uint8_t *getTransmitBufferPtr();
 
-  static void uartReceiveCompleteCallbackStatic(UARTDriver *uartp) {
-    ((UARTEndpointUARTConfig *)uartp->config)->endpoint->uartReceiveCompleteCallback();
-  }
+        void setTransmitLength(size_t len);
 
-  static void uartCharReceivedCallbackStatic(UARTDriver *uartp, uint16_t c) {
-    ((UARTEndpointUARTConfig *)uartp->config)->endpoint->uartCharReceivedCallback(c);
-  }
+        size_t getTransmitBufferSize() const;
 
-  static void uartReceiveErrorCallbackStatic(UARTDriver *uartp, uartflags_t e) {
-    ((UARTEndpointUARTConfig *)uartp->config)->endpoint->uartReceiveErrorCallback(e);
-  }
+      private:
+        enum class State {
+          // Inactive, not responding to any requests.
+          STOPPED,
+          // Waiting for bus to become idle.
+          INITIALIZING,
+          // Waiting for sync flag.
+          IDLE,
+          // Waiting for protocol version byte.
+          RECEIVING_PROTOCOL_VERSION,
+          // Waiting for flags bits.
+          RECEIVING_FLAGS,
+          // Waiting for lower byte of length word.
+          RECEIVING_LENGTH_L,
+          // Waiting for upper byte of length word.
+          RECEIVING_LENGTH_H,
+          // Receiving data.
+          RECEIVING,
+          // Transmitting data.
+          TRANSMITTING
+        };
 
-  static void gptCallbackStatic(GPTDriver *gptp) {
-    ((UARTEndpointGPTConfig *)gptp->config)->endpoint->gptCallback();
-  }
+        UARTDriver * const uart_driver_;
+        GPTDriver * const gpt_driver_;
+        const IOPin dir_;
+        UARTEndpointUARTConfig uart_config_;
+        UARTEndpointGPTConfig gpt_config_;
+        State state_;
+        gptcnt_t idle_time_ticks_;
+        BinarySemaphore rx_bsem_;
+        BinarySemaphore tx_bsem_;
 
-  void changeStateI(State new_state);
+        // Receive DMA buffer.
+        uint8_t rx_buf_[header_len + max_dg_payload_len + crc_len];
+        size_t rx_len_;
+        bool rx_error_;
+        comm_fg_t rx_flags_;
 
-  void uartTransmitCompleteCallback();
+        // Transmit DMA buffer.
+        uint8_t tx_buf_[header_len + max_dg_payload_len + crc_len];
+        size_t tx_len_;
 
-  void uartReceiveCompleteCallback();
+        static uint16_t computeCRC(const uint8_t *buf, size_t len);
 
-  void uartCharReceivedCallback(uint16_t c);
+        static void uartTransmitCompleteCallbackStatic(UARTDriver *uartp) {
+          ((UARTEndpointUARTConfig *)uartp->config)->
+            endpoint->uartTransmitCompleteCallback();
+        }
 
-  void uartReceiveErrorCallback(uartflags_t e);
+        static void uartReceiveCompleteCallbackStatic(UARTDriver *uartp) {
+          ((UARTEndpointUARTConfig *)uartp->config)->
+            endpoint->uartReceiveCompleteCallback();
+        }
 
-  void gptCallback();
-};
+        static void uartCharReceivedCallbackStatic(UARTDriver *uartp,
+            uint16_t c) {
+          ((UARTEndpointUARTConfig *)uartp->config)->
+            endpoint->uartCharReceivedCallback(c);
+        }
 
-enum class RegAccessType {
-  READ,
-  WRITE
-};
+        static void uartReceiveErrorCallbackStatic(UARTDriver *uartp,
+            uartflags_t e) {
+          ((UARTEndpointUARTConfig *)uartp->config)->
+            endpoint->uartReceiveErrorCallback(e);
+        }
 
-using RegAccessHandler = size_t (*)(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+        static void gptCallbackStatic(GPTDriver *gptp) {
+          ((UARTEndpointGPTConfig *)gptp->config)->endpoint->gptCallback();
+        }
 
-class Server {
-public:
-  Server(comm_id_t id, RegAccessHandler access_handler, IOPin disco_in, IOPin disco_out) : id_(id), access_handler_(access_handler), disco_in_(disco_in), disco_out_(disco_out) {}
+        void changeStateI(State new_state);
 
-  comm_id_t getID() const {
-    return id_;
-  }
+        void uartTransmitCompleteCallback();
 
-  void setID(comm_id_t id) {
-    id_ = id;
-  }
+        void uartReceiveCompleteCallback();
 
-  // Initialize the disco bus according to spec
-  void initDisco();
-  // Set up following board to receive id
-  void setDisco();
-  // Check the state of our disco input
-  bool getDisco();
+        void uartCharReceivedCallback(uint16_t c);
 
-  size_t readRegisters(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, comm_errors_t& errors) {
-    return access_handler_(start_addr, reg_count, buf, buf_size, RegAccessType::READ, errors);
-  }
+        void uartReceiveErrorCallback(uartflags_t e);
 
-  size_t writeRegisters(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, comm_errors_t& errors) {
-    return access_handler_(start_addr, reg_count, buf, buf_size, RegAccessType::WRITE, errors);
-  }
+        void gptCallback();
+    };
 
-private:
-  comm_id_t id_;
-  RegAccessHandler access_handler_;
-  // Disco Bus Pins
-  const IOPin disco_in_, disco_out_;
-};
+    enum class RegAccessType {
+      READ,
+      WRITE
+    };
 
-class ProtocolFSM {
-public:
-  static constexpr size_t sub_msg_header_len_ = 4;
+    using RegAccessHandler = size_t (*)(
+        comm_addr_t start_addr, size_t reg_count, uint8_t *buf,
+        size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
-  ProtocolFSM(Server& server) : server_(&server) {
-    state_ = State::IDLE;
-    resp_count_ = 1;
-  }
+    class Server {
+      public:
+        Server(comm_id_t id, RegAccessHandler access_handler,
+            IOPin disco_in, IOPin disco_out) :
+          id_(id), access_handler_(access_handler),
+          disco_in_(disco_in), disco_out_(disco_out) {}
 
-  void handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_t flags, comm_errors_t& errors);
+        comm_id_t getID() const {
+          return id_;
+        }
 
-  void composeResponse(uint8_t *datagram, size_t& datagram_len, size_t max_datagram_len, comm_errors_t errors);
+        void setID(comm_id_t id) {
+          id_ = id;
+        }
 
-  void setActivityCallback(void (*activity_callback)()) {
-    activity_callback_ = activity_callback;
-  }
+        // Initialize the disco bus according to spec
+        void initDisco();
+        // Set up following board to receive id
+        void setDisco();
+        // Check the state of our disco input
+        bool getDisco();
 
-  uint8_t getRespCount() const {return resp_count_;}
+        size_t readRegisters(comm_addr_t start_addr, size_t reg_count,
+            uint8_t *buf, size_t buf_size, comm_errors_t& errors) {
+          return access_handler_(start_addr, reg_count, buf, buf_size,
+              RegAccessType::READ, errors);
+        }
 
-private:
-  enum class State {
-    IDLE,
-    RESPONDING,
-    RESPONDING_READ,
-    RESPONDING_MEM,
-    RESPONDING_U32,
-    RESPONDING_U8
-  };
+        size_t writeRegisters(comm_addr_t start_addr, size_t reg_count,
+            uint8_t *buf, size_t buf_size, comm_errors_t& errors) {
+          return access_handler_(start_addr, reg_count, buf, buf_size,
+              RegAccessType::WRITE, errors);
+        }
 
-  Server * const server_;
-  State state_;
-  comm_fc_t function_code_;
-  comm_errors_t errors_;
-  comm_addr_t start_addr_;
-  size_t reg_count_;
-  uint32_t u32_value_;
-  uint8_t u8_value_;
-  uint32_t src_addr_;
-  size_t src_len_;
-  bool broadcast_;
-  void (*activity_callback_)() = nullptr;
-  uint8_t resp_count_;
-};
+      private:
+        comm_id_t id_;
+        RegAccessHandler access_handler_;
+        // Disco Bus Pins
+        const IOPin disco_in_, disco_out_;
+    };
 
-template<typename T>
-void handleVarAccess(T& var, uint8_t *buf, size_t& index, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+    class ProtocolFSM {
+      public:
+        static constexpr size_t sub_msg_header_len_ = 4;
 
-size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
+        ProtocolFSM(Server& server) : server_(&server) {
+          state_ = State::IDLE;
+          resp_count_ = 1;
+        }
 
-void startComms();
+        void handleRequest(uint8_t *datagram, size_t datagram_len,
+            comm_fg_t flags, comm_errors_t& errors);
 
-void runComms();
+        void composeResponse(uint8_t *datagram, size_t& datagram_len,
+            size_t max_datagram_len, comm_errors_t errors);
 
-void setWDGTimeout();
+        void setActivityCallback(void (*activity_callback)()) {
+          activity_callback_ = activity_callback;
+        }
 
-void clearWDGTimeout();
+        uint8_t getRespCount() const {return resp_count_;}
 
-extern UARTEndpoint comms_endpoint;
+      private:
+        enum class State {
+          IDLE,
+          RESPONDING,
+          RESPONDING_READ,
+          RESPONDING_MEM,
+          RESPONDING_U32,
+          RESPONDING_U8
+        };
 
-extern Server comms_server;
+        Server * const server_;
+        State state_;
+        comm_fc_t function_code_;
+        comm_errors_t errors_;
+        comm_addr_t start_addr_;
+        size_t reg_count_;
+        uint32_t u32_value_;
+        uint8_t u8_value_;
+        uint32_t src_addr_;
+        size_t src_len_;
+        bool broadcast_;
+        void (*activity_callback_)() = nullptr;
+        uint8_t resp_count_;
+    };
 
-extern ProtocolFSM comms_protocol_fsm;
+    template<typename T>
+      void handleVarAccess(T& var, uint8_t *buf, size_t& index,
+          size_t buf_size, RegAccessType access_type, comm_errors_t& errors);
 
-} // namespace comms
+    size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
+        uint8_t *buf, size_t buf_size, RegAccessType access_type,
+        comm_errors_t& errors);
+
+    void startComms();
+
+    void runComms();
+
+    void setWDGTimeout();
+
+    void clearWDGTimeout();
+
+    extern UARTEndpoint comms_endpoint;
+
+    extern Server comms_server;
+
+    extern ProtocolFSM comms_protocol_fsm;
+
+  } // namespace comms
 } // namespace motor_driver
 
-#endif /* _COMMS_H_ */
+#endif // _COMMS_H_.
