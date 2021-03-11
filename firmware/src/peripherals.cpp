@@ -153,9 +153,9 @@ static const ADCConversionGroup ivsense_adc_group = {
 };
 
 static const PWMConfig adc_trigger_pwm_config = {
-  consts::adc_pwm_cycle_freq, 
+  consts::adc_pwm_cycle_freq,
   5,                 // Period. This becomes the delay between the wrapping of the PWM clock and the start of the ADC sampling seq.
-  NULL,               // Callback                                  
+  NULL,               // Callback
   {
     {PWM_OUTPUT_DISABLED, NULL},
     {PWM_OUTPUT_DISABLED, NULL},
@@ -207,7 +207,7 @@ void startPeripherals() {
   adcStart(&ADCD1, NULL);
   adcStart(&ADCD2, NULL);
   adcStart(&ADCD3, NULL);
- 
+
   adcStartConversion(&ADCD1, &ivsense_adc_group, ivsense_sample_buf, consts::ivsense_sample_buf_depth);
   adcStartConversion(&ADCD2, &currb_adc_group, ivsense_sample_buf + (2 * consts::ivsense_sample_buf_depth), consts::ivsense_sample_buf_depth);
   adcStartConversion(&ADCD3, &currc_adc_group, ivsense_sample_buf + (3 * consts::ivsense_sample_buf_depth), consts::ivsense_sample_buf_depth);

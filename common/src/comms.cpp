@@ -321,7 +321,7 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len, comm_fg_
 
   /* Save for current watchdog state (workaround for missing STM32 Functionality) */
   struct IWDG_Values save;
-  
+
   /* For Enumeration */
   uint8_t target_id;
 #ifdef BOOTLOADER

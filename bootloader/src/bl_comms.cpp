@@ -18,7 +18,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
   for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
     switch (addr) {
       // No registers
-      
+
       default:
         errors |= COMM_ERRORS_INVALID_ARGS;
         return 0;

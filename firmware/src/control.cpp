@@ -95,7 +95,7 @@ void runInnerControlLoop() {
   peripherals::encoder.startPipelinedRegisterReadI(0x3fff);
 
   chSysUnlock();
-   
+
   unsigned int count = 0;
 
   while (true) {
@@ -120,10 +120,10 @@ void runInnerControlLoop() {
     }
 
     // Put motor into braking mode if the communication line times out
-    // Timeout flag notifies host of this. The flag is cleared when a motor 
+    // Timeout flag notifies host of this. The flag is cleared when a motor
     //   related command arrives (in fw_comms.cpp)
     // TODO: The flag clear is placed in a bad location... Figure out a cleaner solution.
-    if (state::calibration.control_timeout != 0 && 
+    if (state::calibration.control_timeout != 0 &&
         (chTimeNow() - last_control_timeout_reset) >= MS2ST(state::calibration.control_timeout)) {
       brakeMotor();
       state::parameters.timeout_flag = true;
@@ -193,7 +193,7 @@ void estimateState() {
   /*
    * Calculate average voltages and currents
    * This will have odd behavior if the following conditions are not met:
-   * 1) count starts at zero 
+   * 1) count starts at zero
    * 2) average arrays are not initialized to zero
    */
 
@@ -259,7 +259,7 @@ void estimateState() {
     //recorder_new_data[consts::recorder_channel_ia]        = raw_avg_ia / consts::ivsense_rolling_average_count;
     //recorder_new_data[consts::recorder_channel_ib]        = raw_avg_ib / consts::ivsense_rolling_average_count;
     //recorder_new_data[consts::recorder_channel_ic]        = raw_avg_ic / consts::ivsense_rolling_average_count;
- 
+
     recorder_new_data[consts::recorder_channel_vin]       = state::results.vin;
     recorder_new_data[consts::recorder_channel_rotor_pos] = state::results.rotor_pos;
     recorder_new_data[consts::recorder_channel_rotor_vel] = state::results.hf_rotor_vel;
@@ -268,11 +268,11 @@ void estimateState() {
 
     state::recorder.recordSample(recorder_new_data);
   }
-  
+
 }
 
 void runPositionControl() {
-  if (state::parameters.control_mode == consts::control_mode_position || 
+  if (state::parameters.control_mode == consts::control_mode_position ||
       state::parameters.control_mode == consts::control_mode_position_velocity ||
       state::parameters.control_mode == consts::control_mode_position_feed_forward
      ) {
@@ -285,7 +285,7 @@ void runPositionControl() {
 }
 
 void runVelocityControl() {
-  if (state::parameters.control_mode == consts::control_mode_velocity || 
+  if (state::parameters.control_mode == consts::control_mode_velocity ||
       state::parameters.control_mode == consts::control_mode_position_velocity
      ) {
     pid_velocity.setGains(state::calibration.velocity_kp, 0.0f, state::calibration.velocity_kp);
@@ -314,7 +314,7 @@ void runCurrentControl() {
      * Run field-oriented control
      */
     float ialpha, ibeta;
-    math::transformClarke(state::results.ia, state::results.ib, state::results.ic, 
+    math::transformClarke(state::results.ia, state::results.ib, state::results.ic,
                           ialpha, ibeta);
 
     if (state::calibration.flip_phases) {
@@ -350,7 +350,7 @@ void runCurrentControl() {
       id_sp = 0.0f;
       iq_sp = state::parameters.torque_sp / state::calibration.motor_torque_const;
     }
-    
+
     float vd = 0.0;
     float vq = 0.0;
     if (state::parameters.control_mode == consts::control_mode_pwm_drive) {
@@ -380,9 +380,9 @@ void runCurrentControl() {
       vbeta_norm = -vbeta_norm;
     }
 
-    modulator.computeDutyCycles(valpha_norm, vbeta_norm, 
-                                state::results.duty_a, 
-                                state::results.duty_b, 
+    modulator.computeDutyCycles(valpha_norm, vbeta_norm,
+                                state::results.duty_a,
+                                state::results.duty_b,
                                 state::results.duty_c);
 
     if (state::parameters.gate_active) {

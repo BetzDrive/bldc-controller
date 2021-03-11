@@ -163,7 +163,7 @@ public:
   // Set up following board to receive id
   void setDisco();
   // Check the state of our disco input
-  bool getDisco(); 
+  bool getDisco();
 
   size_t readRegisters(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, comm_errors_t& errors) {
     return access_handler_(start_addr, reg_count, buf, buf_size, RegAccessType::READ, errors);

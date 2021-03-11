@@ -63,10 +63,11 @@ static msg_t blinkerThreadRun(void *arg) {
 
     peripherals::setStatusLEDColor(r,g,b);
 
-    systime_t time_now = chTimeNow();
+    systime_t time_diff = chTimeNow() - last_comms_activity_time;
 
-    peripherals::setCommsActivityLED(time_now - last_comms_activity_time < MS2ST(consts::comms_activity_led_duration) &&
-                        last_comms_activity_time != 0);
+    peripherals::setCommsActivityLED(
+      time_diff < MS2ST(consts::comms_activity_led_duration) &&
+      last_comms_activity_time != 0);
 
     t = (t + 10) % 510;
     chThdSleepMilliseconds(10);
@@ -105,7 +106,7 @@ static msg_t commsThreadRun(void *arg) {
 static WORKING_AREA(sensor_thread_wa, 512);
 static msg_t sensorThreadRun(void *arg) {
   (void)arg;
-  
+
   chRegSetThreadName("sensor");
 
   int16_t xl[3];
@@ -151,7 +152,7 @@ static msg_t watchdogThreadRun(void *arg) {
   (void)arg;
 
  /*
-  * The CSR WDG RST flag is handled in the comms code which 
+  * The CSR WDG RST flag is handled in the comms code which
   *   notifies the host/enables them to clear the flag.
   */
 
