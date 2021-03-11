@@ -196,7 +196,7 @@ class LSM6DS3Sensor
 	LSM6DS3StatusTypeDef Get_Event_Status             (LSM6DS3_Event_Status_t *status);
     LSM6DS3StatusTypeDef ReadReg                      (uint8_t reg, uint8_t *data);
     LSM6DS3StatusTypeDef WriteReg                     (uint8_t reg, uint8_t data);
-	
+
     /**
      * @brief Utility function to read data.
      * @param  pBuffer: pointer to data to be read.
@@ -218,7 +218,7 @@ class LSM6DS3Sensor
         return status;
       }
     }
-    
+
     /**
      * @brief Utility function to write data.
      * @param  pBuffer: pointer to data to be written.
@@ -258,7 +258,7 @@ class LSM6DS3Sensor
     /* Configuration */
     uint8_t address;
     float acc_sensitivity;
-	
+
     uint8_t X_isEnabled;
     float X_Last_ODR;
     uint8_t G_isEnabled;

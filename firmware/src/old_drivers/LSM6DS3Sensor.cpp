@@ -84,7 +84,7 @@ void LSM6DS3Sensor::start() {
   {
     return;
   }
-  
+
   /* Full scale selection. */
   if ( Set_X_FS( 2.0f ) == LSM6DS3_STATUS_ERROR )
   {
@@ -137,7 +137,7 @@ void LSM6DS3Sensor::start() {
   X_Last_ODR = 104.0f;
 
   X_isEnabled = 0;
-  
+
   G_Last_ODR = 104.0f;
 
   G_isEnabled = 0;
@@ -148,21 +148,21 @@ void LSM6DS3Sensor::start() {
  * @retval LSM6DS3_STATUS_OK in case of success, an error code otherwise
  */
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_X(void)
-{ 
+{
   /* Check if the component is already enabled */
   if ( X_isEnabled == 1 )
   {
     return LSM6DS3_STATUS_OK;
   }
-  
+
   /* Output data rate selection. */
   if ( Set_X_ODR_When_Enabled( X_Last_ODR ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   X_isEnabled = 1;
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -171,21 +171,21 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_X(void)
  * @retval LSM6DS3_STATUS_OK in case of success, an error code otherwise
  */
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_G(void)
-{ 
+{
   /* Check if the component is already enabled */
   if ( G_isEnabled == 1 )
   {
     return LSM6DS3_STATUS_OK;
   }
-  
+
   /* Output data rate selection. */
   if ( Set_G_ODR_When_Enabled( G_Last_ODR ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   G_isEnabled = 1;
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -194,27 +194,27 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_G(void)
  * @retval LSM6DS3_STATUS_OK in case of success, an error code otherwise
  */
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_X(void)
-{ 
+{
   /* Check if the component is already disabled */
   if ( X_isEnabled == 0 )
   {
     return LSM6DS3_STATUS_OK;
   }
-  
+
   /* Store actual output data rate. */
   if ( Get_X_ODR( &X_Last_ODR ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Output data rate selection - power down. */
   if ( LSM6DS3_ACC_GYRO_W_ODR_XL( (void *)this, LSM6DS3_ACC_GYRO_ODR_XL_POWER_DOWN ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   X_isEnabled = 0;
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -223,27 +223,27 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_X(void)
  * @retval LSM6DS3_STATUS_OK in case of success, an error code otherwise
  */
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_G(void)
-{ 
+{
   /* Check if the component is already disabled */
   if ( G_isEnabled == 0 )
   {
     return LSM6DS3_STATUS_OK;
   }
-  
+
   /* Store actual output data rate. */
   if ( Get_G_ODR( &G_Last_ODR ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Output data rate selection - power down */
   if ( LSM6DS3_ACC_GYRO_W_ODR_G( (void *)this, LSM6DS3_ACC_GYRO_ODR_G_POWER_DOWN ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   G_isEnabled = 0;
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -255,16 +255,16 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_G(void)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::ReadID(uint8_t *p_id)
 {
   if(!p_id)
-  { 
+  {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Read WHO AM I register */
   if ( LSM6DS3_ACC_GYRO_R_WHO_AM_I( (void *)this, p_id ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -326,24 +326,24 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_Axes(int32_t *pData)
 {
   int16_t dataRaw[3];
   float sensitivity = 0;
-  
+
   /* Read raw data from LSM6DS3 output register. */
   if ( Get_X_AxesRaw( dataRaw ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Get LSM6DS3 actual sensitivity. */
   if ( Get_X_Sensitivity( &sensitivity ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Calculate the data. */
   pData[0] = ( int32_t )( dataRaw[0] * sensitivity );
   pData[1] = ( int32_t )( dataRaw[1] * sensitivity );
   pData[2] = ( int32_t )( dataRaw[2] * sensitivity );
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -356,24 +356,24 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_Axes(int32_t *pData)
 {
   int16_t dataRaw[3];
   float sensitivity = 0;
-  
+
   /* Read raw data from LSM6DS3 output register. */
   if ( Get_G_AxesRaw( dataRaw ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Get LSM6DS3 actual sensitivity. */
   if ( Get_G_Sensitivity( &sensitivity ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Calculate the data. */
   pData[0] = ( int32_t )( dataRaw[0] * sensitivity );
   pData[1] = ( int32_t )( dataRaw[1] * sensitivity );
   pData[2] = ( int32_t )( dataRaw[2] * sensitivity );
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -385,13 +385,13 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_Axes(int32_t *pData)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_Sensitivity(float *pfData)
 {
   LSM6DS3_ACC_GYRO_FS_XL_t fullScale;
-  
+
   /* Read actual full scale selection from sensor. */
   if ( LSM6DS3_ACC_GYRO_R_FS_XL( (void *)this, &fullScale ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Store the sensitivity based on actual full scale. */
   switch( fullScale )
   {
@@ -411,7 +411,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_Sensitivity(float *pfData)
       *pfData = -1.0f;
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -424,27 +424,27 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_Sensitivity(float *pfData)
 {
   LSM6DS3_ACC_GYRO_FS_125_t fullScale125;
   LSM6DS3_ACC_GYRO_FS_G_t   fullScale;
-  
+
   /* Read full scale 125 selection from sensor. */
   if ( LSM6DS3_ACC_GYRO_R_FS_125( (void *)this, &fullScale125 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   if ( fullScale125 == LSM6DS3_ACC_GYRO_FS_125_ENABLED )
   {
     *pfData = ( float )LSM6DS3_GYRO_SENSITIVITY_FOR_FS_125DPS;
   }
-  
+
   else
   {
-  
+
     /* Read actual full scale selection from sensor. */
     if ( LSM6DS3_ACC_GYRO_R_FS_G( (void *)this, &fullScale ) == MEMS_ERROR )
     {
       return LSM6DS3_STATUS_ERROR;
     }
-    
+
     /* Store the sensitivity based on actual full scale. */
     switch( fullScale )
     {
@@ -465,7 +465,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_Sensitivity(float *pfData)
         return LSM6DS3_STATUS_ERROR;
     }
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -477,18 +477,18 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_Sensitivity(float *pfData)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_AxesRaw(int16_t *pData)
 {
   uint8_t regValue[6] = {0, 0, 0, 0, 0, 0};
-  
+
   /* Read output registers from LSM6DS3_ACC_GYRO_OUTX_L_XL to LSM6DS3_ACC_GYRO_OUTZ_H_XL. */
   if ( LSM6DS3_ACC_GYRO_GetRawAccData( (void *)this, regValue ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Format the data. */
   pData[0] = ( ( ( ( int16_t )regValue[1] ) << 8 ) + ( int16_t )regValue[0] );
   pData[1] = ( ( ( ( int16_t )regValue[3] ) << 8 ) + ( int16_t )regValue[2] );
   pData[2] = ( ( ( ( int16_t )regValue[5] ) << 8 ) + ( int16_t )regValue[4] );
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -500,18 +500,18 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_AxesRaw(int16_t *pData)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_AxesRaw(int16_t *pData)
 {
   uint8_t regValue[6] = {0, 0, 0, 0, 0, 0};
-  
+
   /* Read output registers from LSM6DS3_ACC_GYRO_OUTX_L_G to LSM6DS3_ACC_GYRO_OUTZ_H_G. */
   if ( LSM6DS3_ACC_GYRO_GetRawGyroData( (void *)this, regValue ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Format the data. */
   pData[0] = ( ( ( ( int16_t )regValue[1] ) << 8 ) + ( int16_t )regValue[0] );
   pData[1] = ( ( ( ( int16_t )regValue[3] ) << 8 ) + ( int16_t )regValue[2] );
   pData[2] = ( ( ( ( int16_t )regValue[5] ) << 8 ) + ( int16_t )regValue[4] );
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -523,12 +523,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_AxesRaw(int16_t *pData)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_ODR(float* odr)
 {
   LSM6DS3_ACC_GYRO_ODR_XL_t odr_low_level;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_ODR_XL( (void *)this, &odr_low_level ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( odr_low_level )
   {
     case LSM6DS3_ACC_GYRO_ODR_XL_POWER_DOWN:
@@ -568,7 +568,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_ODR(float* odr)
       *odr = -1.0f;
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -580,12 +580,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_ODR(float* odr)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_ODR(float* odr)
 {
   LSM6DS3_ACC_GYRO_ODR_G_t odr_low_level;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_ODR_G( (void *)this, &odr_low_level ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( odr_low_level )
   {
     case LSM6DS3_ACC_GYRO_ODR_G_POWER_DOWN:
@@ -619,7 +619,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_ODR(float* odr)
       *odr = -1.0f;
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -644,7 +644,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_ODR(float odr)
       return LSM6DS3_STATUS_ERROR;
     }
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -656,7 +656,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_ODR(float odr)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_ODR_When_Enabled(float odr)
 {
   LSM6DS3_ACC_GYRO_ODR_XL_t new_odr;
-  
+
   new_odr = ( odr <=   13.0f ) ? LSM6DS3_ACC_GYRO_ODR_XL_13Hz
           : ( odr <=   26.0f ) ? LSM6DS3_ACC_GYRO_ODR_XL_26Hz
           : ( odr <=   52.0f ) ? LSM6DS3_ACC_GYRO_ODR_XL_52Hz
@@ -667,12 +667,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_ODR_When_Enabled(float odr)
           : ( odr <= 1660.0f ) ? LSM6DS3_ACC_GYRO_ODR_XL_1660Hz
           : ( odr <= 3330.0f ) ? LSM6DS3_ACC_GYRO_ODR_XL_3330Hz
           :                      LSM6DS3_ACC_GYRO_ODR_XL_6660Hz;
-            
+
   if ( LSM6DS3_ACC_GYRO_W_ODR_XL( (void *)this, new_odr ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -682,7 +682,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_ODR_When_Enabled(float odr)
  * @retval LSM6DS3_STATUS_OK in case of success, an error code otherwise
  */
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_ODR_When_Disabled(float odr)
-{ 
+{
   X_Last_ODR = ( odr <=   13.0f ) ? 13.0f
              : ( odr <=   26.0f ) ? 26.0f
              : ( odr <=   52.0f ) ? 52.0f
@@ -693,7 +693,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_ODR_When_Disabled(float odr)
              : ( odr <= 1660.0f ) ? 1660.0f
              : ( odr <= 3330.0f ) ? 3330.0f
              :                      6660.0f;
-                                 
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -718,7 +718,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_ODR(float odr)
       return LSM6DS3_STATUS_ERROR;
     }
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -730,7 +730,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_ODR(float odr)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_ODR_When_Enabled(float odr)
 {
   LSM6DS3_ACC_GYRO_ODR_G_t new_odr;
-  
+
   new_odr = ( odr <=  13.0f )  ? LSM6DS3_ACC_GYRO_ODR_G_13Hz
           : ( odr <=  26.0f )  ? LSM6DS3_ACC_GYRO_ODR_G_26Hz
           : ( odr <=  52.0f )  ? LSM6DS3_ACC_GYRO_ODR_G_52Hz
@@ -739,12 +739,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_ODR_When_Enabled(float odr)
           : ( odr <= 416.0f )  ? LSM6DS3_ACC_GYRO_ODR_G_416Hz
           : ( odr <= 833.0f )  ? LSM6DS3_ACC_GYRO_ODR_G_833Hz
           :                      LSM6DS3_ACC_GYRO_ODR_G_1660Hz;
-            
+
   if ( LSM6DS3_ACC_GYRO_W_ODR_G( (void *)this, new_odr ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -763,7 +763,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_ODR_When_Disabled(float odr)
              : ( odr <= 416.0f )  ? 416.0f
              : ( odr <= 833.0f )  ? 833.0f
              :                      1660.0f;
-                                 
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -775,12 +775,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_ODR_When_Disabled(float odr)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_FS(float* fullScale)
 {
   LSM6DS3_ACC_GYRO_FS_XL_t fs_low_level;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_FS_XL( (void *)this, &fs_low_level ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( fs_low_level )
   {
     case LSM6DS3_ACC_GYRO_FS_XL_2g:
@@ -799,7 +799,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_X_FS(float* fullScale)
       *fullScale = -1.0f;
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -812,7 +812,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_FS(float* fullScale)
 {
   LSM6DS3_ACC_GYRO_FS_G_t fs_low_level;
   LSM6DS3_ACC_GYRO_FS_125_t fs_125;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_FS_125( (void *)this, &fs_125 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
@@ -821,12 +821,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_FS(float* fullScale)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   if ( fs_125 == LSM6DS3_ACC_GYRO_FS_125_ENABLED )
   {
     *fullScale = 125.0f;
   }
-  
+
   else
   {
     switch( fs_low_level )
@@ -848,7 +848,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_FS(float* fullScale)
         return LSM6DS3_STATUS_ERROR;
     }
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -860,7 +860,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_G_FS(float* fullScale)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_FS(float fullScale)
 {
   LSM6DS3_ACC_GYRO_FS_XL_t new_fs;
-  
+
   new_fs = ( fullScale <= 2.0f ) ? LSM6DS3_ACC_GYRO_FS_XL_2g
          : ( fullScale <= 4.0f ) ? LSM6DS3_ACC_GYRO_FS_XL_4g
          : ( fullScale <= 8.0f ) ? LSM6DS3_ACC_GYRO_FS_XL_8g
@@ -870,12 +870,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_FS(float fullScale)
                   : (fullScale <= 4.0f) ? LSM6DS3_ACC_SENSITIVITY_FOR_FS_4G
                   : (fullScale <= 8.0f) ? LSM6DS3_ACC_SENSITIVITY_FOR_FS_8G
                   :                       LSM6DS3_ACC_SENSITIVITY_FOR_FS_16G;
-           
+
   if ( LSM6DS3_ACC_GYRO_W_FS_XL( (void *)this, new_fs ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -887,7 +887,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_X_FS(float fullScale)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_FS(float fullScale)
 {
   LSM6DS3_ACC_GYRO_FS_G_t new_fs;
-  
+
   if ( fullScale <= 125.0f )
   {
     if ( LSM6DS3_ACC_GYRO_W_FS_125( (void *)this, LSM6DS3_ACC_GYRO_FS_125_ENABLED ) == MEMS_ERROR )
@@ -901,7 +901,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_FS(float fullScale)
            : ( fullScale <=  500.0f ) ? LSM6DS3_ACC_GYRO_FS_G_500dps
            : ( fullScale <= 1000.0f ) ? LSM6DS3_ACC_GYRO_FS_G_1000dps
            :                            LSM6DS3_ACC_GYRO_FS_G_2000dps;
-             
+
     if ( LSM6DS3_ACC_GYRO_W_FS_125( (void *)this, LSM6DS3_ACC_GYRO_FS_125_DISABLED ) == MEMS_ERROR )
     {
       return LSM6DS3_STATUS_ERROR;
@@ -911,7 +911,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_FS(float fullScale)
       return LSM6DS3_STATUS_ERROR;
     }
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -921,7 +921,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_G_FS(float fullScale)
  * @retval LSM6DS3_STATUS_OK in case of success, an error code otherwise
 */
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Free_Fall_Detection(void)
-{ 
+{
   return Enable_Free_Fall_Detection(LSM6DS3_INT1_PIN);
 }
 
@@ -938,37 +938,37 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Free_Fall_Detection(LSM6DS3_Interrupt
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Full scale selection */
   if ( LSM6DS3_ACC_GYRO_W_FS_XL( (void *)this, LSM6DS3_ACC_GYRO_FS_XL_2g ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* FF_DUR setting */
   if ( LSM6DS3_ACC_GYRO_W_FF_Duration( (void *)this, 0x06 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* WAKE_DUR setting */
   if ( LSM6DS3_ACC_GYRO_W_WAKE_DUR( (void *)this, 0x00 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* TIMER_HR setting */
   if ( LSM6DS3_ACC_GYRO_W_TIMER_HR( (void *)this, LSM6DS3_ACC_GYRO_TIMER_HR_6_4ms ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* SLEEP_DUR setting */
   if ( LSM6DS3_ACC_GYRO_W_SLEEP_DUR( (void *)this, 0x00 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* FF_THS setting */
   if ( LSM6DS3_ACC_GYRO_W_FF_THS( (void *)this, LSM6DS3_ACC_GYRO_FF_THS_10 ) == MEMS_ERROR )
   {
@@ -1023,13 +1023,13 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_Free_Fall_Detection(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* FF_THS setting */
   if ( LSM6DS3_ACC_GYRO_W_FF_THS( (void *)this, LSM6DS3_ACC_GYRO_FF_THS_5 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1045,7 +1045,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_Free_Fall_Threshold(uint8_t thr)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1061,37 +1061,37 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Pedometer(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Full scale selection. */
   if( Set_X_FS(2.0f) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set pedometer threshold. */
   if ( Set_Pedometer_Threshold(LSM6DS3_PEDOMETER_THRESHOLD_MID_HIGH) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable embedded functionalities. */
   if ( LSM6DS3_ACC_GYRO_W_FUNC_EN( (void *)this, LSM6DS3_ACC_GYRO_FUNC_EN_ENABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable pedometer algorithm. */
   if ( LSM6DS3_ACC_GYRO_W_PEDO_EN( (void *)this, LSM6DS3_ACC_GYRO_PEDO_EN_ENABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable pedometer on INT1. */
   if ( LSM6DS3_ACC_GYRO_W_PEDO_STEP_on_INT1( (void *)this, LSM6DS3_ACC_GYRO_INT1_PEDO_ENABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1106,25 +1106,25 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_Pedometer(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Disable pedometer algorithm. */
   if ( LSM6DS3_ACC_GYRO_W_PEDO_EN( (void *)this, LSM6DS3_ACC_GYRO_PEDO_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Disable embedded functionalities. */
   if ( LSM6DS3_ACC_GYRO_W_FUNC_EN( (void *)this, LSM6DS3_ACC_GYRO_FUNC_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Reset pedometer threshold. */
   if ( Set_Pedometer_Threshold(0x0) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1139,7 +1139,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Step_Counter(uint16_t *step_count)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1153,14 +1153,14 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Reset_Step_Counter(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   chThdSleepMilliseconds(10);
-  
+
   if ( LSM6DS3_ACC_GYRO_W_PedoStepReset( (void *)this, LSM6DS3_ACC_GYRO_PEDO_RST_STEP_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1175,7 +1175,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_Pedometer_Threshold(uint8_t thr)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1202,19 +1202,19 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Tilt_Detection(LSM6DS3_Interrupt_Pin_
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Full scale selection. */
   if( Set_X_FS(2.0f) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable embedded functionalities */
   if ( LSM6DS3_ACC_GYRO_W_FUNC_EN( (void *)this, LSM6DS3_ACC_GYRO_FUNC_EN_ENABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable tilt calculation. */
   if ( LSM6DS3_ACC_GYRO_W_TILT_EN( (void *)this, LSM6DS3_ACC_GYRO_TILT_EN_ENABLED ) == MEMS_ERROR )
   {
@@ -1268,13 +1268,13 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_Tilt_Detection(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Disable embedded functionalities */
   if ( LSM6DS3_ACC_GYRO_W_FUNC_EN( (void *)this, LSM6DS3_ACC_GYRO_FUNC_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1301,19 +1301,19 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Wake_Up_Detection(LSM6DS3_Interrupt_P
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Full scale selection. */
   if( Set_X_FS(2.0f) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* WAKE_DUR setting */
   if ( LSM6DS3_ACC_GYRO_W_WAKE_DUR( (void *)this, 0x00 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set wake up threshold. */
   if ( LSM6DS3_ACC_GYRO_W_WK_THS( (void *)this, 0x02 ) == MEMS_ERROR )
   {
@@ -1361,19 +1361,19 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_Wake_Up_Detection(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* WU_DUR setting */
   if ( LSM6DS3_ACC_GYRO_W_WAKE_DUR( (void *)this, 0x00 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* WU_THS setting */
   if ( LSM6DS3_ACC_GYRO_W_WK_THS( (void *)this, 0x00 ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1388,7 +1388,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_Wake_Up_Threshold(uint8_t thr)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1415,7 +1415,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Single_Tap_Detection(LSM6DS3_Interrup
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Full scale selection. */
   if( Set_X_FS(2.0f) == LSM6DS3_STATUS_ERROR )
   {
@@ -1427,39 +1427,39 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Single_Tap_Detection(LSM6DS3_Interrup
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable Y direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_Y_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_Y_EN_ENABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable Z direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_Z_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_Z_EN_ENABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set tap threshold. */
   if ( Set_Tap_Threshold( LSM6DS3_TAP_THRESHOLD_MID_LOW ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set tap shock time window. */
   if ( Set_Tap_Shock_Time( LSM6DS3_TAP_SHOCK_TIME_MID_HIGH ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set tap quiet time window. */
   if ( Set_Tap_Quiet_Time( LSM6DS3_TAP_QUIET_TIME_MID_LOW ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* _NOTE_: Tap duration time window - don't care for single tap. */
-  
+
   /* _NOTE_: Single/Double Tap event - don't care of this flag for single tap. */
 
   /* Enable single tap on either INT1 or INT2 pin */
@@ -1509,41 +1509,41 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_Single_Tap_Detection(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Reset tap shock time window. */
   if ( Set_Tap_Shock_Time( 0x0 ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Reset tap quiet time window. */
   if ( Set_Tap_Quiet_Time( 0x0 ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* _NOTE_: Tap duration time window - don't care for single tap. */
-  
+
   /* _NOTE_: Single/Double Tap event - don't care of this flag for single tap. */
-  
+
   /* Disable Z direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_Z_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_Z_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Disable Y direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_Y_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_Y_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Disable X direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_X_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_X_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1570,7 +1570,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Double_Tap_Detection(LSM6DS3_Interrup
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Full scale selection. */
   if( Set_X_FS(2.0f) == LSM6DS3_STATUS_ERROR )
   {
@@ -1582,43 +1582,43 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_Double_Tap_Detection(LSM6DS3_Interrup
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable Y direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_Y_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_Y_EN_ENABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Enable Z direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_Z_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_Z_EN_ENABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set tap threshold. */
   if ( Set_Tap_Threshold( LSM6DS3_TAP_THRESHOLD_MID_LOW ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set tap shock time window. */
   if ( Set_Tap_Shock_Time( LSM6DS3_TAP_SHOCK_TIME_HIGH ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set tap quiet time window. */
   if ( Set_Tap_Quiet_Time( LSM6DS3_TAP_QUIET_TIME_HIGH ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Set tap duration time window. */
   if ( Set_Tap_Duration_Time( LSM6DS3_TAP_DURATION_TIME_MID ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Single and double tap enabled. */
   if ( LSM6DS3_ACC_GYRO_W_SINGLE_DOUBLE_TAP_EV( (void *)this, LSM6DS3_ACC_GYRO_SINGLE_DOUBLE_TAP_DOUBLE_TAP ) == MEMS_ERROR )
   {
@@ -1672,49 +1672,49 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_Double_Tap_Detection(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Reset tap shock time window. */
   if ( Set_Tap_Shock_Time( 0x0 ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Reset tap quiet time window. */
   if ( Set_Tap_Quiet_Time( 0x0 ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Reset tap duration time window. */
   if ( Set_Tap_Duration_Time( 0x0 ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Only single tap enabled. */
   if ( LSM6DS3_ACC_GYRO_W_SINGLE_DOUBLE_TAP_EV( (void *)this, LSM6DS3_ACC_GYRO_SINGLE_DOUBLE_TAP_SINGLE_TAP ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Disable Z direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_Z_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_Z_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Disable Y direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_Y_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_Y_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Disable X direction in tap recognition. */
   if ( LSM6DS3_ACC_GYRO_W_TAP_X_EN( (void *)this, LSM6DS3_ACC_GYRO_TAP_X_EN_DISABLED ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1729,7 +1729,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_Tap_Threshold(uint8_t thr)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1744,7 +1744,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_Tap_Shock_Time(uint8_t time)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1759,7 +1759,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_Tap_Quiet_Time(uint8_t time)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1774,7 +1774,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Set_Tap_Duration_Time(uint8_t time)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1801,7 +1801,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Enable_6D_Orientation(LSM6DS3_Interrupt_Pin_
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   /* Full scale selection. */
   if( Set_X_FS(2.0f) == LSM6DS3_STATUS_ERROR )
   {
@@ -1861,7 +1861,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_6D_Orientation(void)
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1873,12 +1873,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Disable_6D_Orientation(void)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_XL(uint8_t *xl)
 {
   LSM6DS3_ACC_GYRO_DSD_XL_t xl_raw;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_DSD_XL( (void *)this, &xl_raw ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( xl_raw )
   {
     case LSM6DS3_ACC_GYRO_DSD_XL_DETECTED:
@@ -1890,7 +1890,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_XL(uint8_t *xl)
     default:
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1902,12 +1902,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_XL(uint8_t *xl)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_XH(uint8_t *xh)
 {
   LSM6DS3_ACC_GYRO_DSD_XH_t xh_raw;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_DSD_XH( (void *)this, &xh_raw ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( xh_raw )
   {
     case LSM6DS3_ACC_GYRO_DSD_XH_DETECTED:
@@ -1919,7 +1919,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_XH(uint8_t *xh)
     default:
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1931,12 +1931,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_XH(uint8_t *xh)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_YL(uint8_t *yl)
 {
   LSM6DS3_ACC_GYRO_DSD_YL_t yl_raw;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_DSD_YL( (void *)this, &yl_raw ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( yl_raw )
   {
     case LSM6DS3_ACC_GYRO_DSD_YL_DETECTED:
@@ -1948,7 +1948,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_YL(uint8_t *yl)
     default:
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1960,12 +1960,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_YL(uint8_t *yl)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_YH(uint8_t *yh)
 {
   LSM6DS3_ACC_GYRO_DSD_YH_t yh_raw;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_DSD_YH( (void *)this, &yh_raw ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( yh_raw )
   {
     case LSM6DS3_ACC_GYRO_DSD_YH_DETECTED:
@@ -1977,7 +1977,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_YH(uint8_t *yh)
     default:
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -1989,12 +1989,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_YH(uint8_t *yh)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_ZL(uint8_t *zl)
 {
   LSM6DS3_ACC_GYRO_DSD_ZL_t zl_raw;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_DSD_ZL( (void *)this, &zl_raw ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( zl_raw )
   {
     case LSM6DS3_ACC_GYRO_DSD_ZL_DETECTED:
@@ -2006,7 +2006,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_ZL(uint8_t *zl)
     default:
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -2018,12 +2018,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_ZL(uint8_t *zl)
 LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_ZH(uint8_t *zh)
 {
   LSM6DS3_ACC_GYRO_DSD_ZH_t zh_raw;
-  
+
   if ( LSM6DS3_ACC_GYRO_R_DSD_ZH( (void *)this, &zh_raw ) == MEMS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   switch( zh_raw )
   {
     case LSM6DS3_ACC_GYRO_DSD_ZH_DETECTED:
@@ -2035,7 +2035,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_6D_Orientation_ZH(uint8_t *zh)
     default:
       return LSM6DS3_STATUS_ERROR;
   }
-  
+
   return LSM6DS3_STATUS_OK;
 }
 
@@ -2074,12 +2074,12 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Event_Status( LSM6DS3_Event_Status_t *st
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   if(ReadReg(LSM6DS3_ACC_GYRO_MD2_CFG, &Md2_Cfg ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
   }
-  
+
   if(ReadReg(LSM6DS3_ACC_GYRO_INT1_CTRL, &Int1_Ctrl ) == LSM6DS3_STATUS_ERROR )
   {
     return LSM6DS3_STATUS_ERROR;
@@ -2089,7 +2089,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Event_Status( LSM6DS3_Event_Status_t *st
   {
     if((Wake_Up_Src & LSM6DS3_ACC_GYRO_FF_EV_STATUS_MASK))
     {
-      status->FreeFallStatus = 1;  
+      status->FreeFallStatus = 1;
     }
   }
 
@@ -2097,7 +2097,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Event_Status( LSM6DS3_Event_Status_t *st
   {
     if((Wake_Up_Src & LSM6DS3_ACC_GYRO_WU_EV_STATUS_MASK))
     {
-      status->WakeUpStatus = 1;  
+      status->WakeUpStatus = 1;
     }
   }
 
@@ -2105,7 +2105,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Event_Status( LSM6DS3_Event_Status_t *st
   {
     if((Tap_Src & LSM6DS3_ACC_GYRO_SINGLE_TAP_EV_STATUS_MASK))
     {
-      status->TapStatus = 1;  
+      status->TapStatus = 1;
     }
   }
 
@@ -2113,7 +2113,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Event_Status( LSM6DS3_Event_Status_t *st
   {
     if((Tap_Src & LSM6DS3_ACC_GYRO_DOUBLE_TAP_EV_STATUS_MASK))
     {
-      status->DoubleTapStatus = 1;  
+      status->DoubleTapStatus = 1;
     }
   }
 
@@ -2121,7 +2121,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Event_Status( LSM6DS3_Event_Status_t *st
   {
     if((D6D_Src & LSM6DS3_ACC_GYRO_D6D_EV_STATUS_MASK))
     {
-      status->D6DOrientationStatus = 1;  
+      status->D6DOrientationStatus = 1;
     }
   }
 
@@ -2129,7 +2129,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Event_Status( LSM6DS3_Event_Status_t *st
   {
     if((Func_Src & LSM6DS3_ACC_GYRO_PEDO_EV_STATUS_MASK))
     {
-      status->StepStatus = 1;  
+      status->StepStatus = 1;
     }
   }
 
@@ -2137,7 +2137,7 @@ LSM6DS3StatusTypeDef LSM6DS3Sensor::Get_Event_Status( LSM6DS3_Event_Status_t *st
   {
     if((Func_Src & LSM6DS3_ACC_GYRO_TILT_EV_STATUS_MASK))
     {
-      status->TiltStatus = 1;  
+      status->TiltStatus = 1;
     }
   }
 
