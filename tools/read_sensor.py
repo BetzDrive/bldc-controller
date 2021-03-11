@@ -80,8 +80,9 @@ if __name__ == '__main__':
                 bid = board_ids[i]
                 print("Board:", bid, message.format(args.sensor , val))
 
-        except (MalformedPacketError, ProtocolError) as err:
-            print(err)
-            pass
+        except (MalformedPacketError, ProtocolError) as e:
+            print(e)
+
         time.sleep(0.1)
+
     print("Exiting.")
