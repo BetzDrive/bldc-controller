@@ -10,7 +10,6 @@ private:
   float min_, max_;
   float target_;
 
-  
   float interval_;
   float windup_;
 

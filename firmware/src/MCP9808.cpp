@@ -15,9 +15,9 @@ void MCP9808::start() {
 
   i2cAcquireBus(i2c_driver_);
 
-  i2cMasterTransmitTimeout(i2c_driver_, 
+  i2cMasterTransmitTimeout(i2c_driver_,
       MCP9808_DEFAULT_ADDRESS,          // Address
-      config, 3,                        // TX Buffer, Len 
+      config, 3,                        // TX Buffer, Len
       NULL, 0,                          // RX Buffer, Len
       tmo);                             // Timeout
 
@@ -32,14 +32,15 @@ bool MCP9808::receive(uint8_t reg, uint8_t* data, size_t size) {
   systime_t tmo = MS2ST(4); // 4 millisecond timeout
   i2cAcquireBus(i2c_driver_);
 
-  msg_t status = i2cMasterTransmitTimeout(i2c_driver_, MCP9808_DEFAULT_ADDRESS, &reg, 1, data, size, tmo);
+  msg_t status = i2cMasterTransmitTimeout(
+      i2c_driver_, MCP9808_DEFAULT_ADDRESS, &reg, 1, data, size, tmo);
 
   i2cReleaseBus(i2c_driver_);
   return status == RDY_OK;
 }
 
 /*                **** Temperature byte packet structure ****               *
- *     | MSB(7) |   (6) |   (5) |   (4) |   (3) |   (2) |   (1) |   (0) |   *     
+ *     | MSB(7) |   (6) |   (5) |   (4) |   (3) |   (2) |   (1) |   (0) |   *
  *  Up |Ta vs Tc|Ta v Tu|Ta v Tl|  Sign |  2^7C |  2^6C |  2^5C |  2^4C |   *
  *  Lo |  2^3C  |  2^2C |  2^1C |  2^0C | 2^-1C | 2^-2C | 2^-3C | 2^-4C |   */
 bool MCP9808::getTemperature(float* temp) {

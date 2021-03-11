@@ -117,13 +117,13 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
         case 0x1041: // LF Velocity Filter Parameter
           handleVarAccess(state::calibration.lf_velocity_filter_param, buf, index, buf_size, access_type, errors);
           break;
-        case 0x1050: // Current Phase A Offset 
+        case 0x1050: // Current Phase A Offset
           handleVarAccess(state::calibration.ia_offset, buf, index, buf_size, access_type, errors);
           break;
-        case 0x1051: // Current Phase B Offset 
+        case 0x1051: // Current Phase B Offset
           handleVarAccess(state::calibration.ib_offset, buf, index, buf_size, access_type, errors);
           break;
-        case 0x1052: // Current Phase C Offset 
+        case 0x1052: // Current Phase C Offset
           handleVarAccess(state::calibration.ic_offset, buf, index, buf_size, access_type, errors);
           break;
         case 0x1100: // Encoder Angle Correction Scale (rad)
@@ -213,20 +213,20 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           handleVarAccess(flag, buf, index, buf_size, access_type, errors);
           break;
         }
-        case 0x3010: // Rotor Position (raw) 
+        case 0x3010: // Rotor Position (raw)
           handleVarAccess(state::results.raw_enc_value, buf, index, buf_size, access_type, errors);
           break;
-        case 0x3011: // Rotor Revs (count) 
+        case 0x3011: // Rotor Revs (count)
           handleVarAccess(state::results.rotor_revs, buf, index, buf_size, access_type, errors);
           break;
- 
-        case 0x3020: // Quadrature Current Driven (A) 
+
+        case 0x3020: // Quadrature Current Driven (A)
           handleVarAccess(state::results.iq_output, buf, index, buf_size, access_type, errors);
           break;
-        case 0x3021: // Quadrature Current Driven (A) 
+        case 0x3021: // Quadrature Current Driven (A)
           handleVarAccess(state::results.id_output, buf, index, buf_size, access_type, errors);
           break;
- 
+
         default:
           errors |= COMM_ERRORS_INVALID_ARGS;
           return 0;
