@@ -1,13 +1,13 @@
-#ifndef _DRV8312_H_
-#define _DRV8312_H_
+#ifndef DRV8312_HPP_
+#define DRV8312_HPP_
+
+#include <algorithm>
+#include <cmath>
 
 #include "hal.h"
 
 #include "ch.h"
 #include "utils.h"
-
-#include <algorithm>
-#include <cmath>
 
 namespace motor_driver {
 namespace peripherals {
@@ -46,4 +46,4 @@ private:
 } // namespace peripherals
 } // namespace motor_driver
 
-#endif /* _DRV8312_H_ */
+#endif // DRV8312_HPP_

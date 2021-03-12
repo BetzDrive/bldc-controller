@@ -1,4 +1,4 @@
-#include "MCP9808.h"
+#include "MCP9808.hpp"
 
 namespace motor_driver {
 namespace peripherals {
@@ -54,7 +54,7 @@ bool MCP9808::getTemperature(float *temp) {
   if (success) {
     uint16_t bits = (((uint16_t)data[0] & 0x0F) << 8 | data[1]);
     // Mult by 2^-4.
-    *temp = (float)bits * 0.0625f;
+    *temp = static_cast<float>(bits) * 0.0625f;
   }
 
   return success;

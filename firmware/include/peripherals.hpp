@@ -1,15 +1,15 @@
-#ifndef _PERIPHERALS_H_
-#define _PERIPHERALS_H_
+#ifndef PERIPHERALS_HPP_
+#define PERIPHERALS_HPP_
+
+#include <stdint.h>
 
 #include "hal.h"
 
-#include "AS5047D.h"
-#include "DRV8312.h"
-#include "IIS328DQ.h"
-#include "MCP9808.h"
-#include "constants.h"
-
-#include <stdint.h>
+#include "AS5047D.hpp"
+#include "DRV8312.hpp"
+#include "IIS328DQ.hpp"
+#include "MCP9808.hpp"
+#include "constants.hpp"
 
 namespace motor_driver {
 namespace controller {
@@ -79,4 +79,4 @@ inline float adcValueToCurrent(uint16_t adc_value) {
 } // namespace peripherals
 } // namespace motor_driver
 
-#endif /* _PERIPHERALS_H_ */
+#endif // PERIPHERALS_HPP_

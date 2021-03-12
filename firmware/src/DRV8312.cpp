@@ -1,10 +1,9 @@
-#include "DRV8312.h"
+#include "DRV8312.hpp"
 
 namespace motor_driver {
 namespace peripherals {
 
 void DRV8312::start() {
-
   // Set control pins to default values
   pwmEnableChannel(pwm_driver_, ch_a_, 0);
   pwmEnableChannel(pwm_driver_, ch_b_, 0);

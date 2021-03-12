@@ -1,5 +1,5 @@
-#ifndef _SVM_H_
-#define _SVM_H_
+#ifndef SVM_HPP_
+#define SVM_HPP_
 
 namespace motor_driver {
 namespace controller {
@@ -8,7 +8,7 @@ enum class SVMStrategy { SINUSOIDAL, TOP_BOTTOM_CLAMP, MIDPOINT_CLAMP };
 
 class SVM {
 public:
-  SVM(SVMStrategy strategy) : strategy_(strategy) {}
+  explicit SVM(SVMStrategy strategy) : strategy_(strategy) {}
 
   void computeDutyCycles(float v_alpha, float v_beta, float &dc_a, float &dc_b,
                          float &dc_c);
@@ -24,4 +24,4 @@ private:
 } // namespace controller
 } // namespace motor_driver
 
-#endif /* _SVM_H_ */
+#endif // SVM_HPP_

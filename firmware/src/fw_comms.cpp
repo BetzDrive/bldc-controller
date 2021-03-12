@@ -1,12 +1,11 @@
-#include "comms.h"
+#include <cstring>
 
 #include "hal.h"
 
 #include "ch.h"
-#include "peripherals.h"
-#include "state.h"
-
-#include <cstring>
+#include "comms.hpp"
+#include "peripherals.hpp"
+#include "state.hpp"
 
 namespace motor_driver {
 namespace comms {
@@ -300,7 +299,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
     }
   }
 
-  // TODO: check if there is still data left
+  // TODO(gbalke): check if there is still data left
 
   return index; // Number of bytes read/written
 }

@@ -1,5 +1,5 @@
-#ifndef _LUT_FUNCTION_H_
-#define _LUT_FUNCTION_H_
+#ifndef LUTFUNCTION_HPP_
+#define LUTFUNCTION_HPP_
 
 #include <stdlib.h>
 
@@ -35,4 +35,4 @@ private:
 } // namespace math
 } // namespace motor_driver
 
-#endif /* _LUT_FUNCTION_H_ */
+#endif // LUTFUNCTION_HPP_

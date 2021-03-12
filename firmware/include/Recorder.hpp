@@ -1,9 +1,9 @@
-#ifndef _RECORDER_H_
-#define _RECORDER_H_
-
-#include "constants.h"
+#ifndef RECORDER_HPP_
+#define RECORDER_HPP_
 
 #include <stddef.h>
+
+#include "constants.hpp"
 
 namespace motor_driver {
 namespace state {
@@ -34,4 +34,4 @@ private:
 } // namespace state
 } // namespace motor_driver
 
-#endif /* _RECORDER_H_ */
+#endif // RECORDER_HPP_

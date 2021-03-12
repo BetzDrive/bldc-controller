@@ -1,9 +1,10 @@
-#include "SVM.h"
+#include "SVM.hpp"
 
-#include "constants.h"
+#include <math.h>
 
 #include <algorithm>
-#include <math.h>
+
+#include "constants.hpp"
 
 namespace motor_driver {
 namespace controller {

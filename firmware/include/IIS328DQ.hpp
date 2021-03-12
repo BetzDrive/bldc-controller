@@ -1,32 +1,32 @@
-#ifndef _IIS328DQ_H_
-#define _IIS328DQ_H_
+#ifndef IIS328DQ_HPP_
+#define IIS328DQ_HPP_
 
 #include "hal.h"
 
 namespace motor_driver {
 namespace peripherals {
 
-const static uint8_t IIS328DQ_DEFAULT_ADDRESS = 0b0011000;
+constexpr uint8_t IIS328DQ_DEFAULT_ADDRESS = 0b0011000;
 
-const static uint8_t IIS328DQ_WHO_AM_I_ADDRESS = 0x0F;
-const static uint8_t IIS328DQ_WHO_AM_I = 0b00110010;
+constexpr uint8_t IIS328DQ_WHO_AM_I_ADDRESS = 0x0F;
+constexpr uint8_t IIS328DQ_WHO_AM_I = 0b00110010;
 
-const static uint8_t IIS328DQ_CTRL_REG4 = 0x23;
+constexpr uint8_t IIS328DQ_CTRL_REG4 = 0x23;
 
-const static uint8_t IIS328DQ_OUT_X_L = 0x28;
-const static uint8_t IIS328DQ_OUT_X_H = 0x29;
+constexpr uint8_t IIS328DQ_OUT_X_L = 0x28;
+constexpr uint8_t IIS328DQ_OUT_X_H = 0x29;
 
-const static uint8_t IIS328DQ_OUT_Y_L = 0x2A;
-const static uint8_t IIS328DQ_OUT_Y_H = 0x2B;
+constexpr uint8_t IIS328DQ_OUT_Y_L = 0x2A;
+constexpr uint8_t IIS328DQ_OUT_Y_H = 0x2B;
 
-const static uint8_t IIS328DQ_OUT_Z_L = 0x2C;
-const static uint8_t IIS328DQ_OUT_Z_H = 0x2D;
+constexpr uint8_t IIS328DQ_OUT_Z_L = 0x2C;
+constexpr uint8_t IIS328DQ_OUT_Z_H = 0x2D;
 
-const static uint8_t IIS328DQ_MASK_SUB = 0x80;
+constexpr uint8_t IIS328DQ_MASK_SUB = 0x80;
 
 class IIS328DQ {
 public:
-  IIS328DQ(I2CDriver &i2c_driver) : i2c_driver_(&i2c_driver) {
+  explicit IIS328DQ(I2CDriver &i2c_driver) : i2c_driver_(&i2c_driver) {
     i2c_config_.op_mode = OPMODE_I2C;
     i2c_config_.clock_speed = 400000;
     i2c_config_.duty_cycle = FAST_DUTY_CYCLE_2;
@@ -44,4 +44,4 @@ private:
 } // namespace peripherals
 } // namespace motor_driver
 
-#endif /* _IIS328DQ_H_ */
+#endif // IIS328DQ_HPP_

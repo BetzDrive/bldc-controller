@@ -1,5 +1,5 @@
-#ifndef _TRANSFORMS_H_
-#define _TRANSFORMS_H_
+#ifndef TRANSFORMS_HPP_
+#define TRANSFORMS_HPP_
 
 namespace motor_driver {
 namespace math {
@@ -18,4 +18,4 @@ void transformInverseClarke(float alpha, float beta, float &a, float &b,
 } // namespace math
 } // namespace motor_driver
 
-#endif /* _TRANSFORMS_H_ */
+#endif // TRANSFORMS_HPP_

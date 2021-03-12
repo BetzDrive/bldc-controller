@@ -1,11 +1,11 @@
-#ifndef _STATE_H_
-#define _STATE_H_
-
-#include "Recorder.h"
-#include "ch.h"
-#include "constants.h"
+#ifndef STATE_HPP_
+#define STATE_HPP_
 
 #include <stdint.h>
+
+#include "Recorder.hpp"
+#include "ch.h"
+#include "constants.hpp"
 
 namespace motor_driver {
 namespace state {
@@ -226,4 +226,4 @@ void clearCalibration();
 } // namespace state
 } // namespace motor_driver
 
-#endif /* _STATE_H_ */
+#endif // STATE_HPP_

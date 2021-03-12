@@ -1,5 +1,5 @@
-#ifndef __PID_H__
-#define __PID_H__
+#ifndef PID_HPP_
+#define PID_HPP_
 
 namespace motor_driver {
 namespace controller {
@@ -34,4 +34,4 @@ public:
 } // namespace controller
 } // namespace motor_driver
 
-#endif //__PID_H__
+#endif // PID_HPP_

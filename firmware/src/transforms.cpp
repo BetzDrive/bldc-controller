@@ -1,9 +1,9 @@
-#include "transforms.h"
-
-#include "constants.h"
-#include "fast_math.h"
+#include "transforms.hpp"
 
 #include <math.h>
+
+#include "constants.hpp"
+#include "fast_math.hpp"
 
 namespace motor_driver {
 namespace math {
