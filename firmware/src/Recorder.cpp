@@ -18,7 +18,8 @@ void Recorder::recordSample(float *recorder_new_data) {
       record_buf_[index_ + j] = recorder_new_data[j];
     }
     index_ += consts::recorder_channel_count;
-    if (index_ >= consts::recorder_max_samples * consts::recorder_channel_count) {
+    if (index_ >=
+        consts::recorder_max_samples * consts::recorder_channel_count) {
       state_ = State::FINISHED;
     }
   }

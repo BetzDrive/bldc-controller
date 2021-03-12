@@ -25,9 +25,9 @@
 #include <string.h>
 
 #include "ch.h"
+#include "chprintf.h"
 #include "hal.h"
 #include "shell.h"
-#include "chprintf.h"
 
 /**
  * @brief   Shell termination event source.
@@ -112,10 +112,7 @@ static void cmd_systime(BaseSequentialStream *chp, int argc, char *argv[]) {
  * @brief   Array of the default commands.
  */
 static ShellCommand local_commands[] = {
-  {"info", cmd_info},
-  {"systime", cmd_systime},
-  {NULL, NULL}
-};
+    {"info", cmd_info}, {"systime", cmd_systime}, {NULL, NULL}};
 
 static bool_t cmdexec(const ShellCommand *scp, BaseSequentialStream *chp,
                       char *name, int argc, char *argv[]) {
@@ -153,12 +150,12 @@ static msg_t shell_thread(void *p) {
   chprintf(chp, "Stepper Motor Controller USB Shell\r\n");
   chprintf(chp, "Type \"help\" for a list of commands\r\n\r\n");
   while (TRUE) {
-    if(shellEchoEnabled) {
-        chprintf(chp, "$ ");
+    if (shellEchoEnabled) {
+      chprintf(chp, "$ ");
     }
     if (shellGetLine(chp, line, sizeof(line))) {
-      if(shellEchoEnabled) {
-          chprintf(chp, "\r\nexit\r\n");
+      if (shellEchoEnabled) {
+        chprintf(chp, "\r\nexit\r\n");
       }
       break;
     }
@@ -181,8 +178,7 @@ static msg_t shell_thread(void *p) {
           continue;
         }
         break;
-      }
-      else if (strcasecmp(cmd, "help") == 0) {
+      } else if (strcasecmp(cmd, "help") == 0) {
         if (n > 0) {
           usage(chp, "help");
           continue;
@@ -192,9 +188,8 @@ static msg_t shell_thread(void *p) {
         if (scp != NULL)
           list_commands(chp, scp);
         chprintf(chp, "\r\n");
-      }
-      else if (cmdexec(local_commands, chp, cmd, n, args) &&
-          ((scp == NULL) || cmdexec(scp, chp, cmd, n, args))) {
+      } else if (cmdexec(local_commands, chp, cmd, n, args) &&
+                 ((scp == NULL) || cmdexec(scp, chp, cmd, n, args))) {
         chprintf(chp, "%s: command not found\r\n", cmd);
       }
     }
@@ -209,10 +204,7 @@ static msg_t shell_thread(void *p) {
  *
  * @api
  */
-void shellInit(void) {
-
-  chEvtInit(&shell_terminated);
-}
+void shellInit(void) { chEvtInit(&shell_terminated); }
 
 /**
  * @brief   Terminates the shell.
@@ -255,15 +247,16 @@ Thread *shellCreate(const ShellConfig *scp, size_t size, tprio_t prio) {
  * @brief   Create statically allocated shell thread.
  *
  * @param[in] scp       pointer to a @p ShellConfig object
- * @param[in] wsp       pointer to a working area dedicated to the shell thread stack
+ * @param[in] wsp       pointer to a working area dedicated to the shell thread
+ * stack
  * @param[in] size      size of the shell working area
  * @param[in] prio      priority level for the new shell
  * @return              A pointer to the shell thread.
  *
  * @api
  */
-Thread *shellCreateStatic(const ShellConfig *scp, void *wsp,
-                          size_t size, tprio_t prio) {
+Thread *shellCreateStatic(const ShellConfig *scp, void *wsp, size_t size,
+                          tprio_t prio) {
 
   return chThdCreateStatic(wsp, size, prio, shell_thread, (void *)scp);
 }
@@ -289,25 +282,25 @@ bool_t shellGetLine(BaseSequentialStream *chp, char *line, unsigned size) {
     if (chSequentialStreamRead(chp, (uint8_t *)&c, 1) == 0)
       return TRUE;
     if (c == 4) {
-      if(shellEchoEnabled) {
-          chprintf(chp, "^D");
+      if (shellEchoEnabled) {
+        chprintf(chp, "^D");
       }
       return TRUE;
     }
     if ((c == 8) || (c == 127)) {
       if (p != line) {
-        if(shellEchoEnabled) {
-            chSequentialStreamPut(chp, '\b');
-            chSequentialStreamPut(chp, ' ');
-            chSequentialStreamPut(chp, '\b');
+        if (shellEchoEnabled) {
+          chSequentialStreamPut(chp, '\b');
+          chSequentialStreamPut(chp, ' ');
+          chSequentialStreamPut(chp, '\b');
         }
         p--;
       }
       continue;
     }
     if (c == '\r') {
-      if(shellEchoEnabled) {
-          chprintf(chp, "\r\n");
+      if (shellEchoEnabled) {
+        chprintf(chp, "\r\n");
       }
       *p = 0;
       return FALSE;
@@ -315,8 +308,8 @@ bool_t shellGetLine(BaseSequentialStream *chp, char *line, unsigned size) {
     if (c < 0x20)
       continue;
     if (p < line + size - 1) {
-      if(shellEchoEnabled) {
-          chSequentialStreamPut(chp, c);
+      if (shellEchoEnabled) {
+        chSequentialStreamPut(chp, c);
       }
       *p++ = (char)c;
     }

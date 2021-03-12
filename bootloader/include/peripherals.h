@@ -1,8 +1,9 @@
 #ifndef _PERIPHERALS_H_
 #define _PERIPHERALS_H_
 
-#include <stdint.h>
 #include "hal.h"
+
+#include <stdint.h>
 
 namespace motor_driver {
 namespace peripherals {

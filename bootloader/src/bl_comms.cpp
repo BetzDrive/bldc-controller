@@ -1,14 +1,18 @@
 #include "comms.h"
 
-#include "ch.h"
 #include "hal.h"
+
+#include "ch.h"
 #include "peripherals.h"
+
 #include <cstring>
 
 namespace motor_driver {
 namespace comms {
 
-size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *buf, size_t buf_size, RegAccessType access_type, comm_errors_t& errors) {
+size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
+                             uint8_t *buf, size_t buf_size,
+                             RegAccessType access_type, comm_errors_t &errors) {
   (void)buf;
   (void)buf_size;
   (void)access_type;
@@ -19,9 +23,9 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
     switch (addr) {
       // No registers
 
-      default:
-        errors |= COMM_ERRORS_INVALID_ARGS;
-        return 0;
+    default:
+      errors |= COMM_ERRORS_INVALID_ARGS;
+      return 0;
     }
 
     if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) {

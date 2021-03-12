@@ -1,8 +1,9 @@
 #ifndef _RECORDER_H_
 #define _RECORDER_H_
 
-#include <stddef.h>
 #include "constants.h"
+
+#include <stddef.h>
 
 namespace motor_driver {
 namespace state {
@@ -22,15 +23,12 @@ public:
   uint16_t size();
 
 private:
-  enum class State {
-    READY,
-    RECORDING,
-    FINISHED
-  };
+  enum class State { READY, RECORDING, FINISHED };
 
   State state_;
   size_t index_;
-  float record_buf_[consts::recorder_max_samples * consts::recorder_channel_count];
+  float record_buf_[(consts::recorder_max_samples *
+                     consts::recorder_channel_count)];
 };
 
 } // namespace state

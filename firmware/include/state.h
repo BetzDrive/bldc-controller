@@ -1,10 +1,11 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
-#include <stdint.h>
-#include <ch.h>
 #include "Recorder.h"
+#include "ch.h"
 #include "constants.h"
+
+#include <stdint.h>
 
 namespace motor_driver {
 namespace state {
@@ -123,7 +124,7 @@ struct Calibration {
   // Parameter for high frequency velocity estimate.
   float hf_velocity_filter_param = 0.01f;
   // Parameter for low frequency velocity estimate.
-  float lf_velocity_filter_param = (1.0-.9975);
+  float lf_velocity_filter_param = (1.0 - .9975);
   // Position offset.
   float position_offset = 0.0f;
   // Current Offset for Phase A.

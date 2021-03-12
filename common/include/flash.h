@@ -42,18 +42,18 @@ extern "C" {
  */
 // Warning, flashdata_t must be unsigned!!!
 #if defined(STM32F4XX) || defined(__DOXYGEN__)
-#define FLASH_CR_PSIZE_MASK         FLASH_CR_PSIZE_0 | FLASH_CR_PSIZE_1
+#define FLASH_CR_PSIZE_MASK FLASH_CR_PSIZE_0 | FLASH_CR_PSIZE_1
 #if ((STM32_VDD >= 270) && (STM32_VDD <= 360)) || defined(__DOXYGEN__)
-#define FLASH_CR_PSIZE_VALUE        FLASH_CR_PSIZE_1
+#define FLASH_CR_PSIZE_VALUE FLASH_CR_PSIZE_1
 typedef uint32_t flashdata_t;
 #elif (STM32_VDD >= 240) && (STM32_VDD < 270)
-#define FLASH_CR_PSIZE_VALUE        FLASH_CR_PSIZE_0
+#define FLASH_CR_PSIZE_VALUE FLASH_CR_PSIZE_0
 typedef uint16_t flashdata_t;
 #elif (STM32_VDD >= 210) && (STM32_VDD < 240)
-#define FLASH_CR_PSIZE_VALUE        FLASH_CR_PSIZE_0
+#define FLASH_CR_PSIZE_VALUE FLASH_CR_PSIZE_0
 typedef uint16_t flashdata_t;
 #elif (STM32_VDD >= 180) && (STM32_VDD < 210)
-#define FLASH_CR_PSIZE_VALUE        ((uint32_t)0x00000000)
+#define FLASH_CR_PSIZE_VALUE ((uint32_t)0x00000000)
 typedef uint8_t flashdata_t;
 #else
 #error "invalid VDD voltage specified"
@@ -82,7 +82,8 @@ flashaddr_t flashSectorBegin(flashsector_t sector);
 /**
  * @brief Get the end address of @p sector.
  * @param sector Sector to retrieve the end address of.
- * @return End address (exclusive) of @p sector (i.e. beginning address of the next sector).
+ * @return End address (exclusive) of @p sector (i.e. beginning address of the
+ * next sector).
  */
 flashaddr_t flashSectorEnd(flashsector_t sector);
 
@@ -107,7 +108,8 @@ flashsector_t flashSectorAt(flashaddr_t address);
 int flashSectorErase(flashsector_t sector);
 
 /**
- * @brief Erase the sectors containing the span of @p size bytes starting at @p address.
+ * @brief Erase the sectors containing the span of @p size bytes starting at @p
+ * address.
  *
  * @warning If @p address doesn't match the beginning of a sector, the
  * data contained between the beginning of the sector and @p address will
@@ -123,7 +125,8 @@ int flashSectorErase(flashsector_t sector);
 int flashErase(flashaddr_t address, size_t size);
 
 /**
- * @brief Check if the @p size bytes of flash memory starting at @p address are erased.
+ * @brief Check if the @p size bytes of flash memory starting at @p address are
+ * erased.
  * @note If the memory is erased, one can write data into it safely.
  * @param address First address in flash memory to be checked.
  * @param size Size of the memory space to be checked in bytes.
@@ -133,14 +136,16 @@ int flashErase(flashaddr_t address, size_t size);
 bool_t flashIsErased(flashaddr_t address, size_t size);
 
 /**
- * @brief Check if the data in @p buffer are identical to the one in flash memory.
+ * @brief Check if the data in @p buffer are identical to the one in flash
+ * memory.
  * @param address First address in flash memory to be checked.
  * @param buffer Buffer containing the data to compare.
  * @param size Size of @p buffer in bytes.
  * @return TRUE if the flash memory and the buffer contain identical data.
- * @return FALSE if the flash memory and the buffer don't contain identical data.
+ * @return FALSE if the flash memory and the buffer don't contain identical
+ * data.
  */
-bool_t flashCompare(flashaddr_t address, const char* buffer, size_t size);
+bool_t flashCompare(flashaddr_t address, const char *buffer, size_t size);
 
 /**
  * @brief Copy data from the flash memory to a @p buffer.
@@ -150,7 +155,7 @@ bool_t flashCompare(flashaddr_t address, const char* buffer, size_t size);
  * @param size Size of the data to be copied in bytes.
  * @return FLASH_RETURN_SUCCESS if successfully copied.
  */
-int flashRead(flashaddr_t address, char* buffer, size_t size);
+int flashRead(flashaddr_t address, char *buffer, size_t size);
 
 /**
  * @brief Copy data from a @p buffer to the flash memory.
@@ -162,7 +167,7 @@ int flashRead(flashaddr_t address, char* buffer, size_t size);
  * @return FLASH_RETURN_SUCCESS         No error.
  * @return FLASH_RETURN_NO_PERMISSION   Access denied.
  */
-int flashWrite(flashaddr_t address, const char* buffer, size_t size);
+int flashWrite(flashaddr_t address, const char *buffer, size_t size);
 
 #ifdef __cplusplus
 }

@@ -20,8 +20,7 @@ volatile bool should_copy_results = false;
 
 volatile bool should_copy_parameters = false;
 
-void initState() {
-}
+void initState() {}
 
 void storeCalibration() {
   uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
@@ -37,9 +36,13 @@ void loadCalibration() {
   uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
   uint16_t start_sequence = 0;
   // Retry loading flash until successful load. This is critical to read.
-  while (not (flashRead(addr, (char *)&start_sequence, sizeof(uint16_t)) == FLASH_RETURN_SUCCESS));
+  while (not(flashRead(addr, (char *)&start_sequence, sizeof(uint16_t)) ==
+             FLASH_RETURN_SUCCESS))
+    ;
   if (start_sequence == consts::calib_ss) {
-    while (not (flashRead(addr, (char *)&state::calibration, sizeof(state::Calibration)) == FLASH_RETURN_SUCCESS));
+    while (not(flashRead(addr, (char *)&state::calibration,
+                         sizeof(state::Calibration)) == FLASH_RETURN_SUCCESS))
+      ;
   }
 }
 

@@ -26,9 +26,7 @@ static uint16_t getResultFromRxbuf(uint8_t *rxbuf) {
 namespace motor_driver {
 namespace peripherals {
 
-void AS5047D::start() {
-  spiStart(spi_driver_, &spi_config_);
-}
+void AS5047D::start() { spiStart(spi_driver_, &spi_config_); }
 
 uint16_t AS5047D::readRegister(uint16_t addr) {
   uint8_t txbuf[2];
@@ -52,13 +50,9 @@ uint16_t AS5047D::readRegister(uint16_t addr) {
   return getResultFromRxbuf(rxbuf);
 }
 
-uint16_t AS5047D::getAngle() {
-  return readRegister(0x3fff);
-}
+uint16_t AS5047D::getAngle() { return readRegister(0x3fff); }
 
-uint16_t AS5047D::getDiagnostics() {
-  return readRegister(0x3ffc);
-}
+uint16_t AS5047D::getDiagnostics() { return readRegister(0x3ffc); }
 
 void AS5047D::startPipelinedRegisterReadI(uint16_t addr) {
   prepareTxbufForRead(pipeline_txbuf_, addr);

@@ -1,18 +1,19 @@
-#include "ch.h"
 #include "hal.h"
+
+#include "ch.h"
+#include "chprintf.h"
+#include "comms.h"
+#include "constants.h"
+#include "control.h"
+#include "fast_math.h"
+#include "helper.h"
+#include "peripherals.h"
+#include "state.h"
+#include "stdbool.h"
 #include "stdlib.h"
-#include "string.h"
 #include "stm32f4xx.h"
 #include "stm32f4xx_iwdg.h"
-#include "stdbool.h"
-#include "chprintf.h"
-#include "peripherals.h"
-#include "control.h"
-#include "comms.h"
-#include "fast_math.h"
-#include "state.h"
-#include "constants.h"
-#include "helper.h"
+#include "string.h"
 
 namespace motor_driver {
 
@@ -43,7 +44,7 @@ static msg_t blinkerThreadRun(void *arg) {
     uint8_t b = 0;
     bool fault = peripherals::gate_driver.hasFault();
     bool OCTW = peripherals::gate_driver.hasOCTW();
-    //bool valid_acc = peripherals::acc.checkID();
+    // bool valid_acc = peripherals::acc.checkID();
 
     chMtxLock(&peripherals::var_access_mutex);
     if (fault or not acc_success) {
@@ -56,24 +57,25 @@ static msg_t blinkerThreadRun(void *arg) {
       g = g > 200 ? 0 : g;
       state::parameters.gate_fault = true;
     }
-    if (not (fault or OCTW)) {
+    if (not(fault or OCTW)) {
       state::parameters.gate_fault = false;
     }
     chMtxUnlock();
 
-    peripherals::setStatusLEDColor(r,g,b);
+    peripherals::setStatusLEDColor(r, g, b);
 
     systime_t time_diff = chTimeNow() - last_comms_activity_time;
 
     peripherals::setCommsActivityLED(
-      time_diff < MS2ST(consts::comms_activity_led_duration) &&
-      last_comms_activity_time != 0);
+        time_diff < MS2ST(consts::comms_activity_led_duration) &&
+        last_comms_activity_time != 0);
 
     t = (t + 10) % 510;
     chThdSleepMilliseconds(10);
   }
 
-  return CH_SUCCESS; // Should never get here
+  // Should never get here.
+  return CH_SUCCESS;
 }
 
 /*
@@ -96,7 +98,8 @@ static msg_t commsThreadRun(void *arg) {
       comms::clearWDGTimeout();
   }
 
-  return CH_SUCCESS; // Should never get here
+  // Should never get here.
+  return CH_SUCCESS;
 }
 
 /*
@@ -140,7 +143,8 @@ static msg_t controlThreadRun(void *arg) {
 
   controller::runInnerControlLoop();
 
-  return CH_SUCCESS; // Should never get here
+  // Should never get here.
+  return CH_SUCCESS;
 }
 
 /*
@@ -151,17 +155,19 @@ static WORKING_AREA(watchdog_thread_wa, 512);
 static msg_t watchdogThreadRun(void *arg) {
   (void)arg;
 
- /*
-  * The CSR WDG RST flag is handled in the comms code which
-  *   notifies the host/enables them to clear the flag.
-  */
+  /*
+   * The CSR WDG RST flag is handled in the comms code which
+   *   notifies the host/enables them to clear the flag.
+   */
 
   chRegSetThreadName("watchdog");
 
   // Refer to table 107 in reference manual for configuration.
   IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-  IWDG_SetPrescaler(IWDG_Prescaler_4); // 0.125 ms per count
-  IWDG_SetReload(80);                  // 10 ms timeout
+  // 0.125 ms per count.
+  IWDG_SetPrescaler(IWDG_Prescaler_4);
+  // 10 ms timeout.
+  IWDG_SetReload(80);
   IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
 
   IWDG_ReloadCounter();
@@ -172,7 +178,8 @@ static msg_t watchdogThreadRun(void *arg) {
     chThdSleepMilliseconds(5);
   }
 
-  return CH_SUCCESS; // Should never get here
+  // Should never get here.
+  return CH_SUCCESS;
 }
 
 int main(void) {
@@ -181,7 +188,8 @@ int main(void) {
   chSysInit();
 
   // Start Watchdog Immediately.
-  chThdCreateStatic(watchdog_thread_wa, sizeof(watchdog_thread_wa), HIGHPRIO, watchdogThreadRun, NULL);
+  chThdCreateStatic(watchdog_thread_wa, sizeof(watchdog_thread_wa), HIGHPRIO,
+                    watchdogThreadRun, NULL);
 
   // Initialize state
   state::initState();
@@ -202,17 +210,22 @@ int main(void) {
   comms::comms_protocol_fsm.setActivityCallback(&comms_activity_callback);
 
   // Start threads
-  chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO, blinkerThreadRun, NULL);
-  chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO, sensorThreadRun, NULL);
-  chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO, commsThreadRun, NULL);
-  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), HIGHPRIO, controlThreadRun, NULL);
+  chThdCreateStatic(blinker_thread_wa, sizeof(blinker_thread_wa), LOWPRIO,
+                    blinkerThreadRun, NULL);
+  chThdCreateStatic(sensor_thread_wa, sizeof(sensor_thread_wa), LOWPRIO,
+                    sensorThreadRun, NULL);
+  chThdCreateStatic(comms_thread_wa, sizeof(comms_thread_wa), NORMALPRIO,
+                    commsThreadRun, NULL);
+  chThdCreateStatic(control_thread_wa, sizeof(control_thread_wa), HIGHPRIO,
+                    controlThreadRun, NULL);
 
   // Wait forever
   while (true) {
     chThdSleepMilliseconds(1000);
   }
 
-  return CH_SUCCESS; // Should never get here
+  // Should never get here.
+  return CH_SUCCESS;
 }
 
 } // namespace motor_driver
@@ -222,6 +235,4 @@ extern "C" void HardFault_Handler(void) {
 }
 
 // FIXME: hack
-int main(void) {
-  return motor_driver::main();
-}
+int main(void) { return motor_driver::main(); }

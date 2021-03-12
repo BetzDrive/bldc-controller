@@ -6,34 +6,26 @@
 namespace motor_driver {
 namespace math {
 
-enum class LFFlipType {
-  NONE,
-  HORIZONTAL,
-  VERTICAL,
-  BOTH
-};
+enum class LFFlipType { NONE, HORIZONTAL, VERTICAL, BOTH };
 
 struct LFPeriodicity {
   size_t repetition_count;
   const LFFlipType *repetition_flips;
 };
 
-template <typename T>
-class LUTFunction {
+template <typename T> class LUTFunction {
 public:
-  LUTFunction(float x_first, float x_last, const T *y, size_t y_len, LFPeriodicity periodicity)
-    : x_first_(x_first),
-      x_last_(x_last),
-      y_(y),
-      y_len_(y_len),
-      periodicity_(periodicity) {}
+  LUTFunction(float x_first, float x_last, const T *y, size_t y_len,
+              LFPeriodicity periodicity)
+      : x_first_(x_first), x_last_(x_last), y_(y), y_len_(y_len),
+        periodicity_(periodicity) {}
   float lookup(float arg) const;
   float operator()(float arg) const { return lookup(arg); }
 
 private:
   const float x_first_;
   const float x_last_;
-  const T * const y_;
+  const T *const y_;
   const size_t y_len_;
   const LFPeriodicity periodicity_;
 

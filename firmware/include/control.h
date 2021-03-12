@@ -1,8 +1,8 @@
 #ifndef _CONTROL_H_
 #define _CONTROL_H_
 
-#include "stdint.h"
 #include "constants.h"
+#include "stdint.h"
 
 namespace motor_driver {
 namespace controller {
@@ -10,12 +10,12 @@ namespace controller {
 struct RolledADC {
   uint16_t count = 0;
 
-  uint16_t ia [consts::ivsense_rolling_average_count] = {0};
-  uint16_t ib [consts::ivsense_rolling_average_count] = {0};
-  uint16_t ic [consts::ivsense_rolling_average_count] = {0};
+  uint16_t ia[consts::ivsense_rolling_average_count] = {0};
+  uint16_t ib[consts::ivsense_rolling_average_count] = {0};
+  uint16_t ic[consts::ivsense_rolling_average_count] = {0};
   uint16_t vin[consts::ivsense_rolling_average_count] = {0};
 
-  RolledADC(){}
+  RolledADC() {}
 };
 
 void initControl();

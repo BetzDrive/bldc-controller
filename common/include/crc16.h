@@ -13,7 +13,8 @@
  *  - ReflectOut    = True
  *  - Algorithm     = table-driven
  *
- * This file defines the functions crc16_init(), crc16_update() and crc16_finalize().
+ * This file defines the functions crc16_init(), crc16_update() and
+ * crc16_finalize().
  *
  * The crc16_init() function returns the inital \c crc value and must be called
  * before the first call to crc16_update().
@@ -40,13 +41,12 @@
 #ifndef _CRC16_H_
 #define _CRC16_H_
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /**
  * The definition of the used algorithm.
@@ -56,7 +56,6 @@ extern "C" {
  */
 #define CRC_ALGO_TABLE_DRIVEN 1
 
-
 /**
  * The type of the CRC values.
  *
@@ -64,17 +63,12 @@ extern "C" {
  */
 typedef uint_fast16_t crc16_t;
 
-
 /**
  * Calculate the initial crc value.
  *
  * \return     The initial crc value.
  */
-static inline crc16_t crc16_init(void)
-{
-    return 0x0000;
-}
-
+static inline crc16_t crc16_init(void) { return 0x0000; }
 
 /**
  * Update the crc value with new data.
@@ -86,21 +80,16 @@ static inline crc16_t crc16_init(void)
  */
 crc16_t crc16_update(crc16_t crc, const void *data, size_t data_len);
 
-
 /**
  * Calculate the final crc value.
  *
  * \param[in] crc  The current crc value.
  * \return     The final crc value.
  */
-static inline crc16_t crc16_finalize(crc16_t crc)
-{
-    return crc;
-}
-
+static inline crc16_t crc16_finalize(crc16_t crc) { return crc; }
 
 #ifdef __cplusplus
-}           /* closing brace for extern "C" */
+} /* closing brace for extern "C" */
 #endif
 
-#endif      /* _CRC16_H_ */
+#endif /* _CRC16_H_ */

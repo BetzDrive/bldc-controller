@@ -26,23 +26,22 @@ const static uint8_t IIS328DQ_MASK_SUB = 0x80;
 
 class IIS328DQ {
 public:
-  IIS328DQ(I2CDriver& i2c_driver): i2c_driver_(&i2c_driver) {
+  IIS328DQ(I2CDriver &i2c_driver) : i2c_driver_(&i2c_driver) {
     i2c_config_.op_mode = OPMODE_I2C;
     i2c_config_.clock_speed = 400000;
     i2c_config_.duty_cycle = FAST_DUTY_CYCLE_2;
   }
   void start();
-  bool receive(uint8_t reg, uint8_t* data, size_t size);
-  bool getAccel(int16_t* accel_arr);
+  bool receive(uint8_t reg, uint8_t *data, size_t size);
+  bool getAccel(int16_t *accel_arr);
   bool checkID();
 
 private:
-  I2CDriver * const i2c_driver_;
+  I2CDriver *const i2c_driver_;
   I2CConfig i2c_config_;
 };
 
 } // namespace peripherals
 } // namespace motor_driver
-
 
 #endif /* _IIS328DQ_H_ */
