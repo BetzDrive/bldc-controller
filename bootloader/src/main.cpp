@@ -1,10 +1,10 @@
 #include "hal.h"
 
 #include "ch.h"
-#include "comms.h"
-#include "constants.h"
+#include "comms.hpp"
+#include "constants.hpp"
 #include "helper.h"
-#include "peripherals.h"
+#include "peripherals.hpp"
 #include "stdbool.h"
 #include "stdlib.h"
 #include "stm32f4xx.h"
