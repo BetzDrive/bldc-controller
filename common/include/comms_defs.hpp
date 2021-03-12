@@ -1,5 +1,5 @@
-#ifndef _COMMS_DEFS_H_
-#define _COMMS_DEFS_H_
+#ifndef COMMS_DEFS_HPP_
+#define COMMS_DEFS_HPP_
 
 #include <stdint.h>
 
@@ -54,4 +54,4 @@ using comm_reg_count_t = uint8_t;
 } // namespace comms
 } // namespace motor_driver
 
-#endif /* _COMMS_DEFS_H_ */
+#endif // COMMS_DEFS_HPP_
