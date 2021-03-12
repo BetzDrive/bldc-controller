@@ -6,9 +6,7 @@ static uint16_t getResultFromRxbuf(uint8_t *rxbuf) {
 
 namespace motor_driver {
 
-void AEAT6600::start() {
-  spiStart(spi_driver_, &spi_config_);
-}
+void AEAT6600::start() { spiStart(spi_driver_, &spi_config_); }
 
 uint16_t AEAT6600::getAngle() {
   uint8_t rxbuf[2];

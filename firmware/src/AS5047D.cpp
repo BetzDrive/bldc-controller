@@ -24,65 +24,59 @@ static uint16_t getResultFromRxbuf(uint8_t *rxbuf) {
 }
 
 namespace motor_driver {
-  namespace peripherals {
+namespace peripherals {
 
-    void AS5047D::start() {
-      spiStart(spi_driver_, &spi_config_);
-    }
+void AS5047D::start() { spiStart(spi_driver_, &spi_config_); }
 
-    uint16_t AS5047D::readRegister(uint16_t addr) {
-      uint8_t txbuf[2];
-      uint8_t rxbuf[2];
+uint16_t AS5047D::readRegister(uint16_t addr) {
+  uint8_t txbuf[2];
+  uint8_t rxbuf[2];
 
-      prepareTxbufForRead(txbuf, addr);
+  prepareTxbufForRead(txbuf, addr);
 
-      spiSelect(spi_driver_);
-      spiSend(spi_driver_, 2, txbuf);
-      spiUnselect(spi_driver_);
+  spiSelect(spi_driver_);
+  spiSend(spi_driver_, 2, txbuf);
+  spiUnselect(spi_driver_);
 
-      halPolledDelay(NS2RTT(350));
+  halPolledDelay(NS2RTT(350));
 
-      // Do a dummy read
-      txbuf[0] = 0xc0;
-      txbuf[1] = 0x00;
-      spiSelect(spi_driver_);
-      spiExchange(spi_driver_, 2, txbuf, rxbuf);
-      spiUnselect(spi_driver_);
+  // Do a dummy read
+  txbuf[0] = 0xc0;
+  txbuf[1] = 0x00;
+  spiSelect(spi_driver_);
+  spiExchange(spi_driver_, 2, txbuf, rxbuf);
+  spiUnselect(spi_driver_);
 
-      return getResultFromRxbuf(rxbuf);
-    }
+  return getResultFromRxbuf(rxbuf);
+}
 
-    uint16_t AS5047D::getAngle() {
-      return readRegister(0x3fff);
-    }
+uint16_t AS5047D::getAngle() { return readRegister(0x3fff); }
 
-    uint16_t AS5047D::getDiagnostics() {
-      return readRegister(0x3ffc);
-    }
+uint16_t AS5047D::getDiagnostics() { return readRegister(0x3ffc); }
 
-    void AS5047D::startPipelinedRegisterReadI(uint16_t addr) {
-      prepareTxbufForRead(pipeline_txbuf_, addr);
+void AS5047D::startPipelinedRegisterReadI(uint16_t addr) {
+  prepareTxbufForRead(pipeline_txbuf_, addr);
 
-      spiSelectI(spi_driver_);
-      spiStartExchangeI(spi_driver_, 2, pipeline_txbuf_, pipeline_rxbuf_);
-    }
+  spiSelectI(spi_driver_);
+  spiStartExchangeI(spi_driver_, 2, pipeline_txbuf_, pipeline_rxbuf_);
+}
 
-    uint16_t AS5047D::getPipelinedRegisterReadResultI() {
-      return getResultFromRxbuf(pipeline_rxbuf_);
-    }
+uint16_t AS5047D::getPipelinedRegisterReadResultI() {
+  return getResultFromRxbuf(pipeline_rxbuf_);
+}
 
-    void AS5047D::spiEndCallbackStatic(SPIDriver *spi_driver) {
-      AS5047DSPIConfig *spi_config = (AS5047DSPIConfig *)spi_driver->config;
-      spi_config->as5047d->spiEndCallback(spi_driver);
-    }
+void AS5047D::spiEndCallbackStatic(SPIDriver *spi_driver) {
+  AS5047DSPIConfig *spi_config = (AS5047DSPIConfig *)spi_driver->config;
+  spi_config->as5047d->spiEndCallback(spi_driver);
+}
 
-    void AS5047D::spiEndCallback(SPIDriver *spi_driver) {
-      (void)spi_driver;
+void AS5047D::spiEndCallback(SPIDriver *spi_driver) {
+  (void)spi_driver;
 
-      chSysLockFromIsr();
-      spiUnselectI(spi_driver_);
-      chSysUnlockFromIsr();
-    }
+  chSysLockFromIsr();
+  spiUnselectI(spi_driver_);
+  chSysUnlockFromIsr();
+}
 
-  } // namespace peripherals
+} // namespace peripherals
 } // namespace motor_driver

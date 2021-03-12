@@ -10,19 +10,15 @@ constexpr unsigned int led_pwm_clock_freq = 84000000;
 // clock cycles.
 constexpr unsigned int led_pwm_period = 52500;
 
-const PWMConfig led_pwm_config = {
-  led_pwm_clock_freq,
-  led_pwm_period,
-  NULL,
-  {
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_DISABLED, NULL}
-  },
-  0,
-  0
-};
+const PWMConfig led_pwm_config = {led_pwm_clock_freq,
+                                  led_pwm_period,
+                                  NULL,
+                                  {{PWM_OUTPUT_ACTIVE_LOW, NULL},
+                                   {PWM_OUTPUT_ACTIVE_LOW, NULL},
+                                   {PWM_OUTPUT_ACTIVE_LOW, NULL},
+                                   {PWM_OUTPUT_DISABLED, NULL}},
+                                  0,
+                                  0};
 
 void startPeripherals() {
   // Start LED PWM.
@@ -43,9 +39,7 @@ void setStatusLEDColor(uint32_t color) {
   setStatusLEDColor(color >> 16, color >> 8, color);
 }
 
-void setCommsActivityLED(bool on) {
-  palWritePad(GPIOB, GPIOB_LED_Y, !on);
-}
+void setCommsActivityLED(bool on) { palWritePad(GPIOB, GPIOB_LED_Y, !on); }
 
 void setRS485TransmitMode(bool transmit) {
   palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);

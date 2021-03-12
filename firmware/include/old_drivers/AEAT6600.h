@@ -14,14 +14,13 @@ struct AEAT6600SPIConfig : SPIConfig {
 
 class AEAT6600 {
 public:
-  AEAT6600(SPIDriver& spi_driver, IOPin csn)
-    : spi_driver_(&spi_driver),
-      csn_(csn) {
+  AEAT6600(SPIDriver &spi_driver, IOPin csn)
+      : spi_driver_(&spi_driver), csn_(csn) {
     spi_config_.end_cb = spiEndCallbackStatic;
     spi_config_.ssport = csn.port;
     spi_config_.sspad = csn.pin;
-    spi_config_.cr1 = SPI_CR1_BR_1 | //SPI_CR1_BR_1 | //SPI_CR1_BR_0 | 
-                      SPI_CR1_MSTR | SPI_CR1_CPOL; 
+    spi_config_.cr1 = SPI_CR1_BR_1 | // SPI_CR1_BR_1 | //SPI_CR1_BR_0 |
+                      SPI_CR1_MSTR | SPI_CR1_CPOL;
     spi_config_.aeat6600 = this;
   }
   void start();
@@ -30,7 +29,7 @@ public:
   uint16_t getPipelinedResultI();
 
 private:
-  SPIDriver * const spi_driver_;
+  SPIDriver *const spi_driver_;
   AEAT6600SPIConfig spi_config_;
   const IOPin csn_;
   uint8_t pipeline_rxbuf_[2];

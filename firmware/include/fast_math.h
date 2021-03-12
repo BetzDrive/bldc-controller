@@ -4,12 +4,12 @@
 #include "LUTFunction.h"
 
 namespace motor_driver {
-  namespace math {
+namespace math {
 
-    extern const LUTFunction<float> fast_sin;
-    extern const LUTFunction<float> fast_cos;
+extern const LUTFunction<float> fast_sin;
+extern const LUTFunction<float> fast_cos;
 
-  } // namespace math
+} // namespace math
 } // namespace motor_driver
 
 #endif /* _FAST_MATH_H_ */

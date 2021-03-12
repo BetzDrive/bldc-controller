@@ -27,9 +27,8 @@ constexpr mlx90363_opcode_t MLX90363_OPCODE_READY = 44;
 
 class MLX90363 {
 public:
-  MLX90363(SPIDriver& spi_driver, IOPin csn)
-    : spi_driver_(&spi_driver),
-      csn_(csn) {
+  MLX90363(SPIDriver &spi_driver, IOPin csn)
+      : spi_driver_(&spi_driver), csn_(csn) {
     spi_config_.ssport = csn.port;
     spi_config_.sspad = csn.pin;
     spi_config_.cr1 = SPI_CR1_BR_2 | SPI_CR1_MSTR | SPI_CR1_CPHA; // f_PCLK/32
@@ -46,13 +45,18 @@ public:
   void createGet1AlphaMessage(uint8_t *txbuf, uint16_t timeout);
   void createDiagnosticDetailsMessage(uint8_t *txbuf);
   mlx90363_status_t parseEchoMessage(const uint8_t *rxbuf, uint16_t *key_echo);
-  mlx90363_status_t parseReadyMessage(const uint8_t *rxbuf, uint8_t *fw_version, uint8_t *hw_version);
-  mlx90363_status_t parseAlphaMessage(const uint8_t *rxbuf, uint16_t *alpha, uint8_t *vg);
-  mlx90363_status_t parseDiagnosticsAnswerMessage(const uint8_t *rxbuf, uint32_t *diag_bits, uint8_t *fsmerc, uint8_t *anadiagcnt);
+  mlx90363_status_t parseReadyMessage(const uint8_t *rxbuf, uint8_t *fw_version,
+                                      uint8_t *hw_version);
+  mlx90363_status_t parseAlphaMessage(const uint8_t *rxbuf, uint16_t *alpha,
+                                      uint8_t *vg);
+  mlx90363_status_t parseDiagnosticsAnswerMessage(const uint8_t *rxbuf,
+                                                  uint32_t *diag_bits,
+                                                  uint8_t *fsmerc,
+                                                  uint8_t *anadiagcnt);
   uint8_t computeMessageCRC(const uint8_t *buf);
 
 private:
-  SPIDriver * const spi_driver_;
+  SPIDriver *const spi_driver_;
   MLX90363SPIConfig spi_config_;
   const IOPin csn_;
   uint8_t async_txbuf_[8];

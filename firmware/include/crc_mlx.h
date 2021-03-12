@@ -13,16 +13,16 @@
  *  - ReflectOut    = False
  *  - Algorithm     = table-driven
  *
- * This file defines the functions crc_mlx_init(), crc_mlx_update() and crc_mlx_finalize().
+ * This file defines the functions crc_mlx_init(), crc_mlx_update() and
+ * crc_mlx_finalize().
  *
- * The crc_mlx_init() function returns the inital \c crc value and must be called
- * before the first call to crc_mlx_update().
- * Similarly, the crc_mlx_finalize() function must be called after the last call
- * to crc_mlx_update(), before the \c crc is being used.
- * is being used.
+ * The crc_mlx_init() function returns the inital \c crc value and must be
+ * called before the first call to crc_mlx_update(). Similarly, the
+ * crc_mlx_finalize() function must be called after the last call to
+ * crc_mlx_update(), before the \c crc is being used. is being used.
  *
- * The crc_mlx_update() function can be called any number of times (including zero
- * times) in between the crc_mlx_init() and crc_mlx_finalize() calls.
+ * The crc_mlx_update() function can be called any number of times (including
+ * zero times) in between the crc_mlx_init() and crc_mlx_finalize() calls.
  *
  * This pseudo-code shows an example usage of the API:
  * \code{.c}
@@ -40,13 +40,12 @@
 #ifndef _CRC_MLX_H_
 #define _CRC_MLX_H_
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /**
  * The definition of the used algorithm.
@@ -56,7 +55,6 @@ extern "C" {
  */
 #define CRC_ALGO_TABLE_DRIVEN 1
 
-
 /**
  * The type of the CRC values.
  *
@@ -64,17 +62,12 @@ extern "C" {
  */
 typedef uint_fast8_t crc_mlx_t;
 
-
 /**
  * Calculate the initial crc value.
  *
  * \return     The initial crc value.
  */
-static inline crc_mlx_t crc_mlx_init(void)
-{
-    return 0xff;
-}
-
+static inline crc_mlx_t crc_mlx_init(void) { return 0xff; }
 
 /**
  * Update the crc value with new data.
@@ -86,21 +79,16 @@ static inline crc_mlx_t crc_mlx_init(void)
  */
 crc_mlx_t crc_mlx_update(crc_mlx_t crc, const void *data, size_t data_len);
 
-
 /**
  * Calculate the final crc value.
  *
  * \param[in] crc  The current crc value.
  * \return     The final crc value.
  */
-static inline crc_mlx_t crc_mlx_finalize(crc_mlx_t crc)
-{
-    return crc ^ 0xff;
-}
-
+static inline crc_mlx_t crc_mlx_finalize(crc_mlx_t crc) { return crc ^ 0xff; }
 
 #ifdef __cplusplus
-}           /* closing brace for extern "C" */
+} /* closing brace for extern "C" */
 #endif
 
-#endif      /* _CRC_MLX_H_ */
+#endif /* _CRC_MLX_H_ */

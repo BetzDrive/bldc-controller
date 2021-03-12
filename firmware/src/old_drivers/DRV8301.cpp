@@ -19,10 +19,7 @@ void DRV8301::start() {
 }
 
 uint16_t DRV8301::readRegister(uint8_t addr) {
-  uint8_t txbuf[2] = {
-    (uint8_t)(0x80 | ((addr << 3) & 0x78)),
-    0
-  };
+  uint8_t txbuf[2] = {(uint8_t)(0x80 | ((addr << 3) & 0x78)), 0};
   uint8_t rxbuf[2];
 
   palClearPad(nscs_.port, nscs_.pin);
@@ -32,39 +29,33 @@ uint16_t DRV8301::readRegister(uint8_t addr) {
 }
 
 void DRV8301::writeRegister(uint8_t addr, uint16_t value) {
-  uint8_t buf[2] = {
-    (uint8_t)(((addr << 3) & 0x78) | ((value >> 8) & 0x07)),
-    (uint8_t)(value & 0xff)
-  };
+  uint8_t buf[2] = {(uint8_t)(((addr << 3) & 0x78) | ((value >> 8) & 0x07)),
+                    (uint8_t)(value & 0xff)};
 
   palClearPad(nscs_.port, nscs_.pin);
   spiSend(spi_driver_, 2, buf);
   palSetPad(nscs_.port, nscs_.pin);
 }
 
-bool DRV8301::hasFault() {
-  return !palReadPad(nfault_.port, nfault_.pin);
-}
+bool DRV8301::hasFault() { return !palReadPad(nfault_.port, nfault_.pin); }
 
-bool DRV8301::hasOCTW() {
-  return !palReadPad(noctw_.port, noctw_.pin);
-}
+bool DRV8301::hasOCTW() { return !palReadPad(noctw_.port, noctw_.pin); }
 
 void DRV8301::setPWMPulseWidth(int phase, int32_t pulse_width) {
   pwmchannel_t ch;
 
-  switch(phase) {
-    case 0:
-      ch = ch_a_;
-      break;
-    case 1:
-      ch = ch_b_;
-      break;
-    case 2:
-      ch = ch_c_;
-      break;
-    default:
-      return;
+  switch (phase) {
+  case 0:
+    ch = ch_a_;
+    break;
+  case 1:
+    ch = ch_b_;
+    break;
+  case 2:
+    ch = ch_c_;
+    break;
+  default:
+    return;
   }
 
   pwmEnableChannel(pwm_driver_, ch, pulse_width);
@@ -72,7 +63,8 @@ void DRV8301::setPWMPulseWidth(int phase, int32_t pulse_width) {
 
 void DRV8301::setPWMDutyCycle(int phase, float duty_cycle) {
   int32_t pulse_width = ::lround(duty_cycle * pwm_driver_->config->period);
-  pulse_width = std::max((int32_t)0, std::min((int32_t)pwm_driver_->config->period, pulse_width));
+  pulse_width = std::max(
+      (int32_t)0, std::min((int32_t)pwm_driver_->config->period, pulse_width));
   setPWMPulseWidth(phase, pulse_width);
 }
 
