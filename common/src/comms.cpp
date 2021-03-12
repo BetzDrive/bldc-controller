@@ -9,7 +9,7 @@
 #include "crc16.h"
 #include "flash.h"
 #include "helper.h"
-#include "peripherals.h"
+#include "peripherals.hpp"
 
 namespace motor_driver {
 namespace comms {
