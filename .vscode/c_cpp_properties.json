@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/bldc-controller/firmware/include",
+                "${workspaceFolder}/bldc-controller/common",
+                "${workspaceFolder}/bldc-controller/common/include",
+                "${workspaceFolder}/bldc-controller/chibios/ext/stm32lib/inc",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/include",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32F4xx",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32/GPIOv2",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32/I2Cv1",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32/OTGv1",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32/RTCv2",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32/SPIv1",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32/TIMv1",
+                "${workspaceFolder}/bldc-controller/chibios/os/hal/platforms/STM32/USARTv1",
+                "${workspaceFolder}/bldc-controller/chibios/os/kernel/include",
+                "${workspaceFolder}/bldc-controller/chibios/os/ports/common/ARMCMx/CMSIS/include",
+                "${workspaceFolder}/bldc-controller/chibios/os/ports/common/ARMCMx",
+                "${workspaceFolder}/bldc-controller/chibios/os/ports/GCC/ARMCMx",
+                "${workspaceFolder}/bldc-controller/chibios/os/ports/GCC/ARMCMx/STM32F4xx",
+                "${workspaceFolder}/bldc-controller/chibios/test"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
