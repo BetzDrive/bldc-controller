@@ -1,10 +1,11 @@
-#include "Recorder.h"
+#include "Recorder.hpp"
 
 namespace motor_driver {
 namespace state {
 
 bool Recorder::startRecording() {
-  // TODO: start another record as soon as it is over, if already recording
+  // TODO(gbalke): start another record as soon as it is over, if already
+  // recording.
   if (state_ == State::READY) {
     state_ = State::RECORDING;
     return true;

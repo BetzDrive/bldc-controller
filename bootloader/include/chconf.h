@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef _CHCONF_H_
-#define _CHCONF_H_
+#ifndef CHCONF_H_
+#define CHCONF_H_
 
 /*===========================================================================*/
 /**
@@ -532,6 +532,6 @@
 
 #define CHPRINTF_USE_FLOAT              TRUE
 
-#endif  /* _CHCONF_H_ */
+#endif  /* CHCONF_H_ */
 
 /** @} */

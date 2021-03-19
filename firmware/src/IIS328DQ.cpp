@@ -1,6 +1,6 @@
-/* Datasheet: https://www.st.com/resource/en/datasheet/iis328dq.pdf */
+// Datasheet: https://www.st.com/resource/en/datasheet/iis328dq.pdf
 
-#include "IIS328DQ.h"
+#include "IIS328DQ.hpp"
 
 namespace motor_driver {
 namespace peripherals {
@@ -57,7 +57,7 @@ bool IIS328DQ::receive(uint8_t reg, uint8_t *data, size_t size) {
 bool IIS328DQ::getAccel(int16_t *accel_arr) {
   // Set the register address msb (SUB) to autoincrement register address
   return IIS328DQ::receive(IIS328DQ_OUT_X_L | IIS328DQ_MASK_SUB,
-                           (uint8_t *)accel_arr, 6);
+                           reinterpret_cast<uint8_t *>(accel_arr), 6);
 }
 
 } // namespace peripherals

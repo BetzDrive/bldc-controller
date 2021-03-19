@@ -1,15 +1,15 @@
-#include "comms.h"
+#include "comms.hpp"
+
+#include <cstring>
 
 #include "hal.h"
 
 #include "ch.h"
-#include "constants.h"
+#include "constants.hpp"
 #include "crc16.h"
 #include "flash.h"
 #include "helper.h"
-#include "peripherals.h"
-
-#include <cstring>
+#include "peripherals.hpp"
 
 namespace motor_driver {
 namespace comms {
@@ -59,15 +59,15 @@ void UARTEndpoint::transmit() {
     tx_buf_[2] = tx_buf_[2] | COMM_FG_TIMEOUT;
   }
 
-  uint16_t crc = computeCRC(header_len + tx_buf_, tx_len_ + sub_msg_len);
-  tx_buf_[header_len + sub_msg_len + tx_len_] = crc & 0xff;
-  tx_buf_[header_len + sub_msg_len + tx_len_ + 1] = (crc >> 8) & 0xff;
+  uint16_t crc = computeCRC(kHeaderLen + tx_buf_, tx_len_ + kSubMsgLen);
+  tx_buf_[kHeaderLen + kSubMsgLen + tx_len_] = crc & 0xff;
+  tx_buf_[kHeaderLen + kSubMsgLen + tx_len_ + 1] = (crc >> 8) & 0xff;
 
   chSysLock();
 
   uartStopReceiveI(uart_driver_);
   palSetPad(dir_.port, dir_.pin);
-  uartStartSendI(uart_driver_, header_len + sub_msg_len + tx_len_ + crc_len,
+  uartStartSendI(uart_driver_, kHeaderLen + kSubMsgLen + tx_len_ + kCrcLen,
                  tx_buf_);
   changeStateI(State::TRANSMITTING);
 
@@ -79,9 +79,9 @@ void UARTEndpoint::transmit() {
 void UARTEndpoint::receive() {
   chBSemWait(&rx_bsem_);
 
-  uint16_t computed_crc = computeCRC(rx_buf_ + header_len, rx_len_);
-  uint16_t expected_crc = (((uint16_t)rx_buf_[header_len + rx_len_ + 1] << 8) |
-                           (uint16_t)rx_buf_[header_len + rx_len_]);
+  uint16_t computed_crc = computeCRC(rx_buf_ + kHeaderLen, rx_len_);
+  uint16_t expected_crc = (((uint16_t)rx_buf_[kHeaderLen + rx_len_ + 1] << 8) |
+                           (uint16_t)rx_buf_[kHeaderLen + rx_len_]);
   if (computed_crc != expected_crc) {
     rx_error_ = true;
   }
@@ -89,20 +89,20 @@ void UARTEndpoint::receive() {
 
 uint8_t UARTEndpoint::getFlags() { return rx_flags_; }
 
-uint8_t *UARTEndpoint::getReceiveBufferPtr() { return rx_buf_ + header_len; }
+uint8_t *UARTEndpoint::getReceiveBufferPtr() { return rx_buf_ + kHeaderLen; }
 
 size_t UARTEndpoint::getReceiveLength() const { return rx_len_; }
 
 bool UARTEndpoint::hasReceiveError() const { return rx_error_; }
 
 uint8_t *UARTEndpoint::getTransmitBufferPtr() {
-  return tx_buf_ + header_len + sub_msg_len;
+  return tx_buf_ + kHeaderLen + kSubMsgLen;
 }
 
 void UARTEndpoint::setTransmitLength(size_t len) { tx_len_ = len; }
 
 size_t UARTEndpoint::getTransmitBufferSize() const {
-  return max_dg_payload_len;
+  return kMaxDgPayloadLen;
 }
 
 void UARTEndpoint::changeStateI(State new_state) {
@@ -192,8 +192,8 @@ void UARTEndpoint::uartCharReceivedCallback(uint16_t c) {
     // Store upper byte of packet length and start receiving data.
     rx_buf_[4] = (uint8_t)c;
     rx_len_ = ((size_t)rx_buf_[4] << 8) | rx_buf_[3];
-    if (rx_len_ <= max_dg_payload_len) {
-      uartStartReceiveI(uart_driver_, rx_len_ + crc_len, rx_buf_ + header_len);
+    if (rx_len_ <= kMaxDgPayloadLen) {
+      uartStartReceiveI(uart_driver_, rx_len_ + kCrcLen, rx_buf_ + kHeaderLen);
       changeStateI(State::RECEIVING);
     } else {
       changeStateI(State::INITIALIZING);
@@ -273,13 +273,13 @@ void ProtocolFSM::handleRequest(uint8_t *datagram, size_t datagram_len,
 
   // Loop through full packet for the message intended for this board
   while (((datagram_len - index) >= sub_msg_header_len_) && !found_board) {
-    uint16_t sub_msg_len =
+    uint16_t kSubMsgLen =
         ((uint16_t)datagram[index] | ((uint16_t)datagram[index + 1] << 8));
-    if (sub_msg_len == 0) {
+    if (kSubMsgLen == 0) {
       break;
     }
-    index += sizeof(sub_msg_len);
-    next_msg += sub_msg_len + sizeof(sub_msg_len);
+    index += sizeof(kSubMsgLen);
+    next_msg += kSubMsgLen + sizeof(kSubMsgLen);
 
     id = datagram[index++];
 

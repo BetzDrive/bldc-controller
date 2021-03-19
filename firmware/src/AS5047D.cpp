@@ -1,4 +1,4 @@
-#include "AS5047D.h"
+#include "AS5047D.hpp"
 
 static int hasEvenParity(uint8_t *buf, size_t len) {
   uint8_t acc = 0;
@@ -66,7 +66,9 @@ uint16_t AS5047D::getPipelinedRegisterReadResultI() {
 }
 
 void AS5047D::spiEndCallbackStatic(SPIDriver *spi_driver) {
-  AS5047DSPIConfig *spi_config = (AS5047DSPIConfig *)spi_driver->config;
+  // TODO(gbalke): This is a hack around not being able to use `this`
+  AS5047DSPIConfig *spi_config = const_cast<AS5047DSPIConfig *>(
+      reinterpret_cast<const AS5047DSPIConfig *>(spi_driver->config));
   spi_config->as5047d->spiEndCallback(spi_driver);
 }
 

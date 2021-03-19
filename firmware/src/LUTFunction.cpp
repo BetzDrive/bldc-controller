@@ -1,7 +1,8 @@
-#include "LUTFunction.h"
+#include "LUTFunction.hpp"
+
+#include <stdint.h>
 
 #include <cmath>
-#include <stdint.h>
 
 namespace motor_driver {
 namespace math {
@@ -10,9 +11,10 @@ template <typename T> float LUTFunction<T>::lookup(float arg) const {
   float norm_arg = (arg - x_first_) / (x_last_ - x_first_);
   float norm_arg_integral = std::floor(norm_arg);
   float norm_arg_fraction = norm_arg - norm_arg_integral;
-  size_t flip_index = (((int)norm_arg_integral % periodicity_.repetition_count +
-                        periodicity_.repetition_count) %
-                       periodicity_.repetition_count);
+  size_t flip_index =
+      (static_cast<int>(norm_arg_integral) % periodicity_.repetition_count +
+       periodicity_.repetition_count) %
+      periodicity_.repetition_count;
 
   switch (periodicity_.repetition_flips[flip_index]) {
   case LFFlipType::NONE:

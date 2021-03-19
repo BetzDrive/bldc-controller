@@ -1,5 +1,5 @@
-#ifndef __STM32F4xx_CONF_H
-#define __STM32F4xx_CONF_H
+#ifndef STM32F4XX_CONF_H_
+#define STM32F4XX_CONF_H_
 
 #define USE_RTOS 0
 
@@ -22,4 +22,4 @@ void assert_failed(uint8_t *file, uint32_t line);
 #define assert_param(expr) ((void)0)
 #endif
 
-#endif
+#endif // STM32F4XX_CONF_H_

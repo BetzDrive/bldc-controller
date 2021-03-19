@@ -1,19 +1,20 @@
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "hal.h"
 
 #include "ch.h"
 #include "chprintf.h"
-#include "comms.h"
-#include "constants.h"
-#include "control.h"
-#include "fast_math.h"
+#include "comms.hpp"
+#include "constants.hpp"
+#include "control.hpp"
+#include "fast_math.hpp"
 #include "helper.h"
-#include "peripherals.h"
-#include "state.h"
-#include "stdbool.h"
-#include "stdlib.h"
+#include "peripherals.hpp"
+#include "state.hpp"
 #include "stm32f4xx.h"
 #include "stm32f4xx_iwdg.h"
-#include "string.h"
 
 namespace motor_driver {
 
@@ -47,7 +48,7 @@ static msg_t blinkerThreadRun(void *arg) {
     // bool valid_acc = peripherals::acc.checkID();
 
     chMtxLock(&peripherals::var_access_mutex);
-    if (fault or not acc_success) {
+    if (fault || !acc_success) {
       r = g < 50 ? 255 : r;
       g = g < 50 ? 0 : g;
       state::parameters.gate_fault = true;
@@ -57,7 +58,7 @@ static msg_t blinkerThreadRun(void *arg) {
       g = g > 200 ? 0 : g;
       state::parameters.gate_fault = true;
     }
-    if (not(fault or OCTW)) {
+    if (!(fault || OCTW)) {
       state::parameters.gate_fault = false;
     }
     chMtxUnlock();

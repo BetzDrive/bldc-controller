@@ -1,8 +1,8 @@
-#include "peripherals.h"
+#include "peripherals.hpp"
 
-#include "constants.h"
+#include "constants.hpp"
 #include "hw_conf.h"
-#include "state.h"
+#include "state.hpp"
 #include "stm32f4xx_flash.h"
 
 namespace motor_driver {
@@ -106,7 +106,7 @@ static void ivsenseADCErrorCallback(ADCDriver *adcp, adcerror_t err) {
   (void)adcp;
   (void)err;
 
-  // TODO: display error
+  // TODO(gbalke): display error
 }
 
 static const ADCConversionGroup currc_adc_group = {

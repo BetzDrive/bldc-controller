@@ -1,17 +1,18 @@
-#include "hal.h"
-
-#include "control.h"
-#include "SVM.h"
-#include "ch.h"
-#include "chprintf.h"
-#include "constants.h"
-#include "fast_math.h"
-#include "peripherals.h"
-#include "pid.h"
-#include "state.h"
-#include "transforms.h"
+#include "control.hpp"
 
 #include <cmath>
+
+#include "hal.h"
+
+#include "SVM.hpp"
+#include "ch.h"
+#include "chprintf.h"
+#include "constants.hpp"
+#include "fast_math.hpp"
+#include "peripherals.hpp"
+#include "pid.hpp"
+#include "state.hpp"
+#include "transforms.hpp"
 
 namespace motor_driver {
 namespace controller {
@@ -127,7 +128,7 @@ void runInnerControlLoop() {
     // Put motor into braking mode if the communication line times out
     // Timeout flag notifies host of this. The flag is cleared when a motor
     //   related command arrives (in fw_comms.cpp)
-    // TODO: The flag clear is placed in a bad location... Figure out a
+    // TODO(gbalke): The flag clear is placed in a bad location... Figure out a
     // cleaner solution.
     if (state::calibration.control_timeout != 0 &&
         ((chTimeNow() - last_control_timeout_reset) >=

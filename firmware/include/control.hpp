@@ -1,8 +1,9 @@
-#ifndef _CONTROL_H_
-#define _CONTROL_H_
+#ifndef CONTROL_HPP_
+#define CONTROL_HPP_
 
-#include "constants.h"
-#include "stdint.h"
+#include <stdint.h>
+
+#include "constants.hpp"
 
 namespace motor_driver {
 namespace controller {
@@ -39,4 +40,4 @@ void brakeMotor();
 } // namespace controller
 } // namespace motor_driver
 
-#endif /* _CONTROL_H_ */
+#endif // CONTROL_HPP_

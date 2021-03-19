@@ -1,8 +1,8 @@
-#include "fast_math.h"
-
-#include "constants.h"
+#include "fast_math.hpp"
 
 #include <cmath>
+
+#include "constants.hpp"
 
 namespace motor_driver {
 namespace math {

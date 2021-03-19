@@ -1,10 +1,10 @@
-#ifndef _COMMS_H_
-#define _COMMS_H_
+#ifndef COMMS_HPP_
+#define COMMS_HPP_
 
 #include "hal.h"
 
 #include "chmtx.h"
-#include "comms_defs.h"
+#include "comms_defs.hpp"
 #include "utils.h"
 
 namespace motor_driver {
@@ -25,10 +25,10 @@ struct UARTEndpointGPTConfig : GPTConfig {
 
 class UARTEndpoint {
 public:
-  static constexpr size_t header_len = 5;
-  static constexpr size_t sub_msg_len = 2;
-  static constexpr size_t crc_len = 2;
-  static constexpr size_t max_dg_payload_len = 255;
+  static constexpr size_t kHeaderLen = 5;
+  static constexpr size_t kSubMsgLen = 2;
+  static constexpr size_t kCrcLen = 2;
+  static constexpr size_t kMaxDgPayloadLen = 255;
 
   UARTEndpoint(UARTDriver &uart_driver, GPTDriver &gpt_driver, IOPin dir,
                uint32_t baud)
@@ -106,13 +106,13 @@ private:
   BinarySemaphore tx_bsem_;
 
   // Receive DMA buffer.
-  uint8_t rx_buf_[header_len + max_dg_payload_len + crc_len];
+  uint8_t rx_buf_[kHeaderLen + kMaxDgPayloadLen + kCrcLen];
   size_t rx_len_;
   bool rx_error_;
   comm_fg_t rx_flags_;
 
   // Transmit DMA buffer.
-  uint8_t tx_buf_[header_len + max_dg_payload_len + crc_len];
+  uint8_t tx_buf_[kHeaderLen + kMaxDgPayloadLen + kCrcLen];
   size_t tx_len_;
 
   static uint16_t computeCRC(const uint8_t *buf, size_t len);
@@ -202,7 +202,7 @@ class ProtocolFSM {
 public:
   static constexpr size_t sub_msg_header_len_ = 4;
 
-  ProtocolFSM(Server &server) : server_(&server) {
+  explicit ProtocolFSM(Server &server) : server_(&server) {
     state_ = State::IDLE;
     resp_count_ = 1;
   }
@@ -269,4 +269,4 @@ extern ProtocolFSM comms_protocol_fsm;
 } // namespace comms
 } // namespace motor_driver
 
-#endif // _COMMS_H_.
+#endif // COMMS_HPP_

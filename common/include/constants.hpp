@@ -1,5 +1,5 @@
-#ifndef _CONSTANTS_H_
-#define _CONSTANTS_H_
+#ifndef CONSTANTS_HPP_
+#define CONSTANTS_HPP_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -177,4 +177,4 @@ constexpr uint16_t calib_ss = 0x5454;
 } // namespace consts
 } // namespace motor_driver
 
-#endif // _CONSTANTS_H_.
+#endif // CONSTANTS_HPP_.

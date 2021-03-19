@@ -1,6 +1,6 @@
-#include "peripherals.h"
+#include "peripherals.hpp"
 
-#include "constants.h"
+#include "constants.hpp"
 
 namespace motor_driver {
 namespace peripherals {
