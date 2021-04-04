@@ -1,7 +1,8 @@
-#ifndef _PERIPHERALS_H_
-#define _PERIPHERALS_H_
+#ifndef PERIPHERALS_HPP_
+#define PERIPHERALS_HPP_
 
 #include <stdint.h>
+
 #include "hal.h"
 
 namespace motor_driver {
@@ -24,4 +25,4 @@ void setRS485TransmitMode(bool transmit);
 } // namespace peripherals
 } // namespace motor_driver
 
-#endif /* _PERIPHERALS_H_ */
+#endif // PERIPHERALS_HPP_

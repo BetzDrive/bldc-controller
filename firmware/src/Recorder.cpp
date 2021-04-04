@@ -1,10 +1,11 @@
-#include "Recorder.h"
+#include "Recorder.hpp"
 
 namespace motor_driver {
 namespace state {
 
 bool Recorder::startRecording() {
-  // TODO: start another record as soon as it is over, if already recording
+  // TODO(gbalke): start another record as soon as it is over, if already
+  // recording.
   if (state_ == State::READY) {
     state_ = State::RECORDING;
     return true;
@@ -18,7 +19,8 @@ void Recorder::recordSample(float *recorder_new_data) {
       record_buf_[index_ + j] = recorder_new_data[j];
     }
     index_ += consts::recorder_channel_count;
-    if (index_ >= consts::recorder_max_samples * consts::recorder_channel_count) {
+    if (index_ >=
+        consts::recorder_max_samples * consts::recorder_channel_count) {
       state_ = State::FINISHED;
     }
   }

@@ -10,24 +10,33 @@ import ast
 
 from comms import *
 from boards import *
-from livegraph import livegraph
+from livegraph import LiveGraph
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Drive motor module(s) with a given control mode and plot current measurements.')
+    parser = argparse.ArgumentParser(
+        description='Drive motor module(s) with a given control mode and plot '
+                    'current measurements.')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
-    parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
-    parser.add_argument('mode', type=str, help='Control mode: \
-                                                current (Id[A], Iq[A]), \
-                                                phase (dc,dc,dc), \
-                                                torque (N*m), \
-                                                velocity (rad/s), \
-                                                position (rad), \
-                                                pos_vel (rad,rad/s), \
-                                                pos_ff (rad,ff[A]), \
-                                                pwm (dc)')
-    parser.add_argument('actuations', type=str, help='Actuation amount in the units of the selected mode (if requires multiple args, separate by comma)')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
+    parser.add_argument('board_ids', type=str,
+                        help='Board ID (separate with comma)')
+    parser.add_argument('mode', type=str,
+                        help='Control mode: current (Id[A], Iq[A]), '
+                                           'phase (dc,dc,dc), '
+                                           'torque (N*m), '
+                                           'velocity (rad/s), '
+                                           'position (rad), '
+                                           'pos_vel (rad,rad/s), '
+                                           'pos_ff (rad,ff[A]), '
+                                           'pwm (dc)')
+    parser.add_argument(
+        'actuations', type=str,
+        help='Actuation amount in the units of the selected mode (if requires '
+             'multiple args, separate by comma)'
+    )
+    parser.set_defaults(
+        baud_rate=COMM_DEFAULT_BAUD_RATE,
+        offset=COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
     make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
@@ -43,33 +52,30 @@ if __name__ == '__main__':
     initialized = initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
-    
     client.resetInputBuffer()
 
     initMotor(client, board_ids)
 
-    def updateCurrent(i): 
+    def updateCurrent(i):
         data = []
         for board_id in board_ids:
             try:
                 driveMotor(client, board_ids, actuations, mode)
                 # Read the iq calulated
-                read = struct.unpack('<f', client.readRegisters([board_id], [0x3003], [1])[0])
-                data.append(read)
+                data.append(struct.unpack(
+                    '<f', client.readRegisters([board_id], [0x3003], [1])[0]))
                 # Read the iq command
-                read = struct.unpack('<f', client.readRegisters([board_id], [0x3020], [1])[0])
-                data.append(read)
-            except (ProtocolError, struct.error):
-                #print("Failed to communicate with board: ", board_id)
-                data.append([0.0])
-                data.append([0.0])
-        return time.time(), data
+                data.append(struct.unpack(
+                    '<f', client.readRegisters([board_id], [0x3020], [1])[0]))
+            except (MalformedPacketError, ProtocolError):
+                print("Failed to communicate with board: ", board_id)
+        return time.time(), None if len(data) != (2 * len(board_ids)) else data
 
     flatten = lambda l: [item for sublist in l for item in sublist]
 
     labels = []
     labels.extend([[str(bid) + '\'s iq Reading', str(bid) + '\'s iq PID output'] for bid in board_ids])
     labels = flatten(labels)
-    graph = livegraph(updateCurrent, labels, sample_interval=1, window_size = 2000)
+    graph = LiveGraph(updateCurrent, labels, sample_interval=1, window_size = 2000)
 
     graph.start()

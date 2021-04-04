@@ -1,7 +1,7 @@
 #include "MLX90363.h"
 
-#include <algorithm>
 #include "crc_mlx.h"
+#include <algorithm>
 
 namespace motor_driver {
 
@@ -81,7 +81,8 @@ void MLX90363::createDiagnosticDetailsMessage(uint8_t *txbuf) {
   txbuf[7] = computeMessageCRC(txbuf);
 }
 
-mlx90363_status_t MLX90363::parseEchoMessage(const uint8_t *rxbuf, uint16_t *key_echo) {
+mlx90363_status_t MLX90363::parseEchoMessage(const uint8_t *rxbuf,
+                                             uint16_t *key_echo) {
   mlx90363_status_t status = MLX90363_STATUS_OK;
 
   if (rxbuf[7] != computeMessageCRC(rxbuf)) {
@@ -101,7 +102,9 @@ mlx90363_status_t MLX90363::parseEchoMessage(const uint8_t *rxbuf, uint16_t *key
   return status;
 }
 
-mlx90363_status_t MLX90363::parseReadyMessage(const uint8_t *rxbuf, uint8_t *fw_version, uint8_t *hw_version) {
+mlx90363_status_t MLX90363::parseReadyMessage(const uint8_t *rxbuf,
+                                              uint8_t *fw_version,
+                                              uint8_t *hw_version) {
   mlx90363_status_t status = MLX90363_STATUS_OK;
 
   if (rxbuf[7] != computeMessageCRC(rxbuf)) {
@@ -125,7 +128,8 @@ mlx90363_status_t MLX90363::parseReadyMessage(const uint8_t *rxbuf, uint8_t *fw_
   return status;
 }
 
-mlx90363_status_t MLX90363::parseAlphaMessage(const uint8_t *rxbuf, uint16_t *alpha, uint8_t *vg) {
+mlx90363_status_t MLX90363::parseAlphaMessage(const uint8_t *rxbuf,
+                                              uint16_t *alpha, uint8_t *vg) {
   mlx90363_status_t status = MLX90363_STATUS_OK;
 
   if (rxbuf[7] != computeMessageCRC(rxbuf)) {
@@ -144,7 +148,10 @@ mlx90363_status_t MLX90363::parseAlphaMessage(const uint8_t *rxbuf, uint16_t *al
   return status;
 }
 
-mlx90363_status_t MLX90363::parseDiagnosticsAnswerMessage(const uint8_t *rxbuf, uint32_t *diag_bits, uint8_t *fsmerc, uint8_t *anadiagcnt) {
+mlx90363_status_t MLX90363::parseDiagnosticsAnswerMessage(const uint8_t *rxbuf,
+                                                          uint32_t *diag_bits,
+                                                          uint8_t *fsmerc,
+                                                          uint8_t *anadiagcnt) {
   mlx90363_status_t status = MLX90363_STATUS_OK;
 
   if (rxbuf[7] != computeMessageCRC(rxbuf)) {
@@ -158,7 +165,8 @@ mlx90363_status_t MLX90363::parseDiagnosticsAnswerMessage(const uint8_t *rxbuf, 
   }
 
   if (diag_bits != nullptr) {
-    *diag_bits = ((uint32_t)rxbuf[2] << 16) | ((uint32_t)rxbuf[1] << 8) | (uint32_t)rxbuf[0];
+    *diag_bits = ((uint32_t)rxbuf[2] << 16) | ((uint32_t)rxbuf[1] << 8) |
+                 (uint32_t)rxbuf[0];
   }
 
   if (fsmerc != nullptr) {

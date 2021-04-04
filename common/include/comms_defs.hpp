@@ -1,5 +1,5 @@
-#ifndef _COMMS_DEFS_H_
-#define _COMMS_DEFS_H_
+#ifndef COMMS_DEFS_HPP_
+#define COMMS_DEFS_HPP_
 
 #include <stdint.h>
 
@@ -21,11 +21,11 @@ constexpr comm_id_t COMM_ID_BROADCAST = 0;
 constexpr comm_id_t COMM_ID_MIN = 1;
 constexpr comm_id_t COMM_ID_MAX = UINT8_MAX;
 
-// Flag Bits (These are toggle bits so each flag should only change one bit)
+// Flag Bits (These are toggle bits so each flag changes one bit).
 using comm_fg_t = uint8_t;
-constexpr comm_fg_t COMM_FG_COMP    = 0b00000000;
-constexpr comm_fg_t COMM_FG_BOARD   = 0b00000001;
-constexpr comm_fg_t COMM_FG_RESET   = 0b00000010;
+constexpr comm_fg_t COMM_FG_COMP = 0b00000000;
+constexpr comm_fg_t COMM_FG_BOARD = 0b00000001;
+constexpr comm_fg_t COMM_FG_RESET = 0b00000010;
 constexpr comm_fg_t COMM_FG_TIMEOUT = 0b00000100;
 
 using comm_fc_t = uint8_t;
@@ -54,4 +54,4 @@ using comm_reg_count_t = uint8_t;
 } // namespace comms
 } // namespace motor_driver
 
-#endif /* _COMMS_DEFS_H_ */
+#endif // COMMS_DEFS_HPP_

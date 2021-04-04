@@ -28,6 +28,9 @@
  * 0...3        Lowest...Highest.
  */
 
+#ifndef MCUCONF_H_
+#define MCUCONF_H_
+
 #define STM32F4xx_MCUCONF
 
 /*
@@ -286,3 +289,5 @@
 #define STM32_USB_OTG_THREAD_PRIO           LOWPRIO
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
+
+#endif // MCUCONF_H_

@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef _HALCONF_H_
-#define _HALCONF_H_
+#ifndef HALCONF_H_
+#define HALCONF_H_
 
 #include "mcuconf.h"
 
@@ -307,6 +307,6 @@
 #define SPI_USE_MUTUAL_EXCLUSION    TRUE
 #endif
 
-#endif /* _HALCONF_H_ */
+#endif // HALCONF_H_
 
 /** @} */

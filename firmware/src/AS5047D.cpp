@@ -1,4 +1,4 @@
-#include "AS5047D.h"
+#include "AS5047D.hpp"
 
 static int hasEvenParity(uint8_t *buf, size_t len) {
   uint8_t acc = 0;
@@ -26,9 +26,7 @@ static uint16_t getResultFromRxbuf(uint8_t *rxbuf) {
 namespace motor_driver {
 namespace peripherals {
 
-void AS5047D::start() {
-  spiStart(spi_driver_, &spi_config_);
-}
+void AS5047D::start() { spiStart(spi_driver_, &spi_config_); }
 
 uint16_t AS5047D::readRegister(uint16_t addr) {
   uint8_t txbuf[2];
@@ -52,13 +50,9 @@ uint16_t AS5047D::readRegister(uint16_t addr) {
   return getResultFromRxbuf(rxbuf);
 }
 
-uint16_t AS5047D::getAngle() {
-  return readRegister(0x3fff);
-}
+uint16_t AS5047D::getAngle() { return readRegister(0x3fff); }
 
-uint16_t AS5047D::getDiagnostics() {
-  return readRegister(0x3ffc);
-}
+uint16_t AS5047D::getDiagnostics() { return readRegister(0x3ffc); }
 
 void AS5047D::startPipelinedRegisterReadI(uint16_t addr) {
   prepareTxbufForRead(pipeline_txbuf_, addr);
@@ -72,7 +66,9 @@ uint16_t AS5047D::getPipelinedRegisterReadResultI() {
 }
 
 void AS5047D::spiEndCallbackStatic(SPIDriver *spi_driver) {
-  AS5047DSPIConfig *spi_config = (AS5047DSPIConfig *)spi_driver->config;
+  // TODO(gbalke): This is a hack around not being able to use `this`
+  AS5047DSPIConfig *spi_config = const_cast<AS5047DSPIConfig *>(
+      reinterpret_cast<const AS5047DSPIConfig *>(spi_driver->config));
   spi_config->as5047d->spiEndCallback(spi_driver);
 }
 

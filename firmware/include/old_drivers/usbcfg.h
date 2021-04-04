@@ -20,6 +20,6 @@
 extern const USBConfig usb_config;
 extern SerialUSBConfig serial_usb_config;
 
-#endif  /* _USBCFG_H_ */
+#endif /* _USBCFG_H_ */
 
 /** @} */

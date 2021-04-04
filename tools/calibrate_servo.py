@@ -198,7 +198,5 @@ if __name__ == '__main__':
 
     print(json.dumps(calibration_dict))
 
-    with open('calibrations.json', 'w') as outfile:  
+    with open('calibrations.json', 'w') as outfile:
         json.dump(calibration_dict, outfile)
-
-

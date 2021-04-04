@@ -1,8 +1,8 @@
-#include "peripherals.h"
+#include "peripherals.hpp"
 
-#include "constants.h"
-#include "state.h"
+#include "constants.hpp"
 #include "hw_conf.h"
+#include "state.hpp"
 #include "stm32f4xx_flash.h"
 
 namespace motor_driver {
@@ -28,54 +28,50 @@ static void motorPWMPeriodicCallback(PWMDriver *pwmp) {
 }
 
 PWMConfig motor_pwm_config = {
-  consts::motor_pwm_clock_freq,                                 // PWM clock frequency
-  consts::motor_pwm_clock_freq / consts::motor_pwm_cycle_freq, 	// PWM period (ticks)
-  motorPWMPeriodicCallback,                		                // PWM callback
-  {
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_DISABLED, NULL}
-  },
-  0,     // CR2
-  0,     // BDTR
-  0,     // DIER
+    // PWM clock frequency.
+    consts::motor_pwm_clock_freq,
+    // PWM period (ticks).
+    consts::motor_pwm_clock_freq / consts::motor_pwm_cycle_freq,
+    // PWM callback.
+    motorPWMPeriodicCallback,
+    {{PWM_OUTPUT_ACTIVE_LOW, NULL},
+     {PWM_OUTPUT_ACTIVE_LOW, NULL},
+     {PWM_OUTPUT_ACTIVE_LOW, NULL},
+     {PWM_OUTPUT_DISABLED, NULL}},
+    // CR2.
+    0,
+    // BDTR.
+    0,
+    // DIER.
+    0,
 };
 
-DRV8312 gate_driver(
-  PWMD1,
-  2,
-  1,
-  0,
-  {GPIOC, GPIOC_MDRV_RST_A},
-  {GPIOC, GPIOC_MDRV_RST_B},
-  {GPIOC, GPIOC_MDRV_RST_C},
-  {GPIOC, GPIOC_MDRV_NFAULT},
-  {GPIOB, GPIOB_MDRV_NOCTW}
-);
+DRV8312 gate_driver(PWMD1, 2, 1, 0, {GPIOC, GPIOC_MDRV_RST_A},
+                    {GPIOC, GPIOC_MDRV_RST_B}, {GPIOC, GPIOC_MDRV_RST_C},
+                    {GPIOC, GPIOC_MDRV_NFAULT}, {GPIOB, GPIOB_MDRV_NOCTW});
 
-static constexpr unsigned int led_pwm_clock_freq = 84000000; // Hz
-static constexpr unsigned int led_pwm_period = 52500; // clock cycles
+static // Hz.
+    constexpr unsigned int led_pwm_clock_freq = 84000000;
+static // clock cycles.
+    constexpr unsigned int led_pwm_period = 52500;
 
 const PWMConfig led_pwm_config = {
-  led_pwm_clock_freq,
-  led_pwm_period,
-  NULL,
-  {
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_DISABLED, NULL}
-  },
-  0,    // CR2
-  0,    // BDTR
-  0,    // DIER
+    led_pwm_clock_freq,
+    led_pwm_period,
+    NULL,
+    {{PWM_OUTPUT_ACTIVE_LOW, NULL},
+     {PWM_OUTPUT_ACTIVE_LOW, NULL},
+     {PWM_OUTPUT_ACTIVE_LOW, NULL},
+     {PWM_OUTPUT_DISABLED, NULL}},
+    // CR2.
+    0,
+    // BDTR.
+    0,
+    // DIER.
+    0,
 };
 
-AS5047D encoder(
-  SPID3,
-  {GPIOB, GPIOB_ENC_CSN}
-);
+AS5047D encoder(SPID3, {GPIOB, GPIOB_ENC_CSN});
 
 BinarySemaphore ivsense_adc_samples_bsem;
 
@@ -83,13 +79,14 @@ volatile adcsample_t *ivsense_adc_samples_ptr = nullptr;
 
 volatile size_t ivsense_adc_samples_count;
 
-adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
+adcsample_t ivsense_sample_buf[consts::ivsense_channel_count *
+                               consts::ivsense_sample_buf_depth];
 
-static void ivsenseADCEndCallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
+static void ivsenseADCEndCallback(ADCDriver *adcp, adcsample_t *buffer,
+                                  size_t n) {
   (void)adcp;
 
   chSysLockFromIsr();
-
   ivsense_adc_samples_ptr = buffer;
   ivsense_adc_samples_count = n;
   chBSemSignalI(&ivsense_adc_samples_bsem); // Signal that new ADC samples are available
@@ -101,7 +98,7 @@ static void ivsenseADCErrorCallback(ADCDriver *adcp, adcerror_t err) {
   (void)adcp;
   (void)err;
 
-  // TODO: display error
+  // TODO(gbalke): display error
 }
 
 static const ADCConversionGroup ivsense_adc_group = {
@@ -137,9 +134,7 @@ MCP9808 temp_sensor(I2CD2);
 
 IIS328DQ acc(I2CD2);
 
-void initPeripherals() {
-  chBSemInit(&ivsense_adc_samples_bsem, true);
-}
+void initPeripherals() { chBSemInit(&ivsense_adc_samples_bsem, true); }
 
 void startPeripherals() {
   // Set Brownout Threshold to 2.7V
@@ -176,24 +171,29 @@ void startPeripherals() {
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
 
-  // Turn off TIM3
+  // Turn off TIM3.
   PWMD3.tim->CR1 &= ~TIM_CR1_CEN;
-  // Set TIM3 One Pulse Mode
+  // Set TIM3 One Pulse Mode.
   PWMD3.tim->CR1 |= TIM_CR1_OPM;
 
-  // From section 18.3.15 of the STM32f405 reference manual
-  // Set up Timer 1 (Motor PWM Output) as a master for Timer 3 (ADC Sampler)
-  PWMD1.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM1_MMS = 010) Set Timer 1 to send trigger on count
-  PWMD3.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM3_MMS = 010) Set Update signal as TRGO Output
-  PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS)     // (TIM3_TS = 000) Enable counter on TIM1 (motor PWM) TRGO rising edge
-                    | TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1                    // (TIM3_SMS = 110) Trigger mode: update event from TIM1 restarts the timer
-                    ;
+  // From section 18.3.15 of the STM32f405 reference manual.
+  // Set up Timer 1 (Motor PWM Output) as a master for
+  // Timer 3 (ADC Sampler).
+  // (TIM1_MMS = 010) Set Timer 1 to send trigger on count.
+  PWMD1.tim->CR2 = TIM_CR2_MMS_1;
+  // (TIM3_MMS = 010) Set Update signal as TRGO Output.
+  PWMD3.tim->CR2 = TIM_CR2_MMS_1;
+  // (TIM3_TS = 000) Enable counter on TIM1 (motor PWM) TRGO rising edge.
+  // (TIM3_SMS = 110) Trigger mode: update event from TIM1 restarts the
+  //  timer.
+  PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS) |
+                    TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1;
 
-  // Reset timer counters
+  // Reset timer counters.
   PWMD1.tim->CNT = 0;
   PWMD3.tim->CNT = 0;
 
-  // Start motor PWM timer, which also starts the ADC trigger timer
+  // Start motor PWM timer, which also starts the ADC trigger timer.
   PWMD3.tim->CR1 |= TIM_CR1_CEN;
   PWMD1.tim->CR1 |= TIM_CR1_CEN;
 }
@@ -212,9 +212,7 @@ void setStatusLEDColor(uint32_t color) {
   setStatusLEDColor(color >> 16, color >> 8, color);
 }
 
-void setCommsActivityLED(bool on) {
-  palWritePad(GPIOB, GPIOB_LED_Y, !on);
-}
+void setCommsActivityLED(bool on) { palWritePad(GPIOB, GPIOB_LED_Y, !on); }
 
 void setRS485TransmitMode(bool transmit) {
   palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);

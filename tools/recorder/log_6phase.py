@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 sys.path.append("..")
 
 from comms import *
+from boards import *
 import serial
 import time
 import pickle
@@ -33,13 +34,7 @@ if __name__ == '__main__':
 
     client = BLDCControllerClient(ser)
 
-    client.enterBootloader([args.board_id])
-    time.sleep(0.2)
-    try:
-        print (client.enumerateBoards([args.board_id]))
-    except:
-        print("Failed to receive enumerate response")
-    time.sleep(0.2)
+    initialized = initBoards(client, [args.board_id])
 
     client.leaveBootloader([args.board_id])
     time.sleep(0.2) # Wait for the controller to reset
@@ -65,10 +60,10 @@ if __name__ == '__main__':
     for i in range(args.steps):
         set_phase_state(phase_state_list[i % 6]) # Commute motor through the 6 phases
         time.sleep(args.delay)
-    
+
     # The number of values returned by the recorder (all floats)
-    num_recorder_elements = 11
-    
+    num_recorder_elements = 8
+
     if success:
         time.sleep(0.2)
         l = struct.unpack('<H', client.readRegisters([args.board_id], [0x300a], [1])[0])[0]
@@ -84,8 +79,8 @@ if __name__ == '__main__':
                     arr += [a]
                     break
                 except:
-                    continue 
-    
+                    continue
+
     if args.file_name:
         with open(args.file_name, 'wb') as file:
             pickle.dump(arr, file)

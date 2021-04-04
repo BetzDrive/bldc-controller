@@ -1,7 +1,8 @@
-#ifndef _AS5047D_H_
-#define _AS5047D_H_
+#ifndef AS5047D_HPP_
+#define AS5047D_HPP_
 
 #include "hal.h"
+
 #include "utils.h"
 
 namespace motor_driver {
@@ -15,13 +16,13 @@ struct AS5047DSPIConfig : SPIConfig {
 
 class AS5047D {
 public:
-  AS5047D(SPIDriver& spi_driver, IOPin csn)
-    : spi_driver_(&spi_driver),
-      csn_(csn) {
+  AS5047D(SPIDriver &spi_driver, IOPin csn)
+      : spi_driver_(&spi_driver), csn_(csn) {
     spi_config_.end_cb = spiEndCallbackStatic;
     spi_config_.ssport = csn.port;
     spi_config_.sspad = csn.pin;
-    spi_config_.cr1 = SPI_CR1_BR_1 | SPI_CR1_MSTR | SPI_CR1_CPHA; // f_PCLK/8
+    // f_PCLK/8.
+    spi_config_.cr1 = SPI_CR1_BR_1 | SPI_CR1_MSTR | SPI_CR1_CPHA;
     spi_config_.as5047d = this;
   }
   void start();
@@ -33,7 +34,7 @@ public:
   uint16_t getPipelinedRegisterReadResultI();
 
 private:
-  SPIDriver * const spi_driver_;
+  SPIDriver *const spi_driver_;
   AS5047DSPIConfig spi_config_;
   const IOPin csn_;
   uint8_t pipeline_txbuf_[2];
@@ -46,4 +47,4 @@ private:
 } // namespace peripherals
 } // namespace motor_driver
 
-#endif /* _AS5047D_H_ */
+#endif // AS5047D_HPP_

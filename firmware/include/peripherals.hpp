@@ -1,13 +1,15 @@
-#ifndef _PERIPHERALS_H_
-#define _PERIPHERALS_H_
+#ifndef PERIPHERALS_HPP_
+#define PERIPHERALS_HPP_
 
 #include <stdint.h>
+
 #include "hal.h"
-#include "DRV8312.h"
-#include "AS5047D.h"
-#include "MCP9808.h"
-#include "IIS328DQ.h"
-#include "constants.h"
+
+#include "AS5047D.hpp"
+#include "DRV8312.hpp"
+#include "IIS328DQ.hpp"
+#include "MCP9808.hpp"
+#include "constants.hpp"
 
 namespace motor_driver {
 namespace controller {
@@ -35,7 +37,8 @@ extern volatile adcsample_t *ivsense_adc_samples_ptr;
 
 extern volatile size_t ivsense_adc_samples_count;
 
-extern adcsample_t ivsense_sample_buf[consts::ivsense_channel_count * consts::ivsense_sample_buf_depth];
+extern adcsample_t ivsense_sample_buf[(consts::ivsense_channel_count *
+                                       consts::ivsense_sample_buf_depth)];
 
 extern Mutex var_access_mutex;
 
@@ -66,10 +69,11 @@ inline float adcValueToVoltage(uint16_t adc_value) {
  * Converts an ADC value to current (in amperes)
  */
 inline float adcValueToCurrent(uint16_t adc_value) {
-  return (static_cast<float>(adc_value) - consts::isense_count_zero_current) * consts::isense_current_per_count;
+  return ((static_cast<float>(adc_value) - consts::isense_count_zero_current) *
+          consts::isense_current_per_count);
 }
 
 } // namespace peripherals
 } // namespace motor_driver
 
-#endif /* _PERIPHERALS_H_ */
+#endif // PERIPHERALS_HPP_

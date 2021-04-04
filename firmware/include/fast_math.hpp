@@ -1,7 +1,7 @@
-#ifndef _FAST_MATH_H_
-#define _FAST_MATH_H_
+#ifndef FAST_MATH_HPP_
+#define FAST_MATH_HPP_
 
-#include "LUTFunction.h"
+#include "LUTFunction.hpp"
 
 namespace motor_driver {
 namespace math {
@@ -12,4 +12,4 @@ extern const LUTFunction<float> fast_cos;
 } // namespace math
 } // namespace motor_driver
 
-#endif /* _FAST_MATH_H_ */
+#endif // FAST_MATH_HPP_

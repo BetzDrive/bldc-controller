@@ -43,7 +43,15 @@ if __name__ == '__main__':
                 with open(args.bin_file, 'rb') as bin_file:
                     firmware_image = bin_file.read()
 
-                success = client.writeFlash([board_id], args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
+                success = False
+                while not success:
+                    try:
+                        success = client.writeFlash([board_id], args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
+                    except (MalformedPacketError, ProtocolError) as e:
+                        print(f'Upload to board {board_id} failed with error:')
+                        print(e)
+                        print('Retrying...')
+                        continue
 
                 if success:
                     print("Upload to Board", board_id, "Succeeded")
