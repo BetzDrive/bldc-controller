@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 
 import sys
@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.001)
 
     client = BLDCControllerClient(ser)
     initialized = initBoards(client, board_ids)
@@ -50,6 +50,7 @@ if __name__ == '__main__':
     start_time = time.time()
     count = 0
     rollover = 1000
+    errors = 0
     while True:
         # If there's a watchdog reset, clear the reset and perform any configuration again
         crashed = client.checkWDGRST()
@@ -62,14 +63,16 @@ if __name__ == '__main__':
         try:
             driveMotor(client, board_ids, actuations, mode)
         except (ProtocolError, MalformedPacketError) as e:
-            print(e)
+            errors += 1
 
         count += 1
         if count % rollover == 0:
             now = time.time()
             diff = (now - start_time)
-            print(diff)
             freq = rollover / diff
-            print("Comm Frequency:{}".format(freq))
+            error_rate = errors / rollover * 100
+            print(f'Communication frequency is {round(freq, 2)}hz at '
+                  f'{round(error_rate, 2)}% error rate.')
+            errors = 0
             start_time = now
             sys.stdout.flush()
