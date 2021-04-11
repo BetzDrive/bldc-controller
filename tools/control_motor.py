@@ -10,6 +10,7 @@ import ast
 
 from comms import *
 from boards import *
+import utils
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Drive motor module(s) with a given control mode.')
@@ -47,32 +48,22 @@ if __name__ == '__main__':
 
     initMotor(client, board_ids)
 
-    start_time = time.time()
-    count = 0
-    rollover = 1000
-    errors = 0
-    while True:
+    def callback() -> bool:
         # If there's a watchdog reset, clear the reset and perform any configuration again
         crashed = client.checkWDGRST()
         if crashed != []:
             try:
                 client.clearWDGRST(crashed)
             except (ProtocolError, MalformedPacketError):
-                pass
+                return False
 
         try:
             driveMotor(client, board_ids, actuations, mode)
         except (ProtocolError, MalformedPacketError) as e:
-            errors += 1
+            return False
 
-        count += 1
-        if count % rollover == 0:
-            now = time.time()
-            diff = (now - start_time)
-            freq = rollover / diff
-            error_rate = errors / rollover * 100
-            print(f'Communication frequency is {round(freq, 2)}hz at '
-                  f'{round(error_rate, 2)}% error rate.')
-            errors = 0
-            start_time = now
-            sys.stdout.flush()
+        return True
+
+    loop = utils.DebugLoop(callback, iters_per_print=1000)
+
+    loop.loop()
