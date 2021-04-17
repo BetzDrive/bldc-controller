@@ -3,8 +3,8 @@ import serial
 import time
 import argparse
 
-from comms import *
-from boards import *
+from comms
+from boards
 
 ReadOnlyRegs = {}
 ReadOnlyRegs['encoder'] = COMM_ROR_ROTOR_POS
@@ -20,18 +20,28 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Read a sensor from boards.')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
-    parser.add_argument('board_ids', type=str, help='Board ID (separate with comma)')
-    parser.add_argument('sensor', type=str, help='Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
+    parser.add_argument('board_ids',
+                        type=str,
+                        help='Board ID (separate with comma)')
+    parser.add_argument(
+        'sensor',
+        type=str,
+        help=
+        'Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)'
+    )
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE,
+                        offset=COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.004)
+    ser = serial.Serial(port=args.serial,
+                        baudrate=args.baud_rate,
+                        timeout=0.004)
 
     board_ids = [int(bid) for bid in args.board_ids.split(',')]
 
-    client = BLDCControllerClient(ser)
+    client = comms.BLDCControllerClient(ser)
 
-    initialized = initBoards(client, board_ids)
+    initialized = boards.initBoards(client, board_ids)
 
     for bid in board_ids:
         client.leaveBootloader([bid])
@@ -63,14 +73,14 @@ if __name__ == '__main__':
         message = '{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}'
 
     num_boards = len(board_ids)
-    while initialized:
-        crashed = client.checkWDGRST()
-        if crashed:
-            print('boards:', crashed, 'have crashed')
+
+    def callback() -> bool:
+        boards.clearWDGRST(client)
 
         try:
             address = ReadOnlyRegs[args.sensor]
-            responses = client.readRegisters(board_ids, [address]*num_boards, [num_regs]*num_boards)
+            responses = client.readRegisters(board_ids, [address] * num_boards,
+                                             [num_regs] * num_boards)
             for i in range(len(responses)):
                 if not responses[i]:
                     print('Board {} could not be read.'.format(i))
@@ -78,11 +88,12 @@ if __name__ == '__main__':
 
                 val = struct.unpack(decode, responses[i])
                 bid = board_ids[i]
-                print("Board:", bid, message.format(args.sensor , val))
+                print("Board:", bid, message.format(args.sensor, val))
 
-        except (MalformedPacketError, ProtocolError) as e:
+        except (comms.MalformedPacketError, comms.ProtocolError) as e:
             print(e)
+            return False
 
-        time.sleep(0.1)
+    loop = utils.DebugLoop(callback, iters_per_print=1000)
 
-    print("Exiting.")
+    loop.loop()
