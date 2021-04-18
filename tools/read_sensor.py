@@ -2,19 +2,21 @@
 import serial
 import time
 import argparse
+import struct
 
-from comms
-from boards
+import comms
+import boards
+import utils
 
 ReadOnlyRegs = {}
-ReadOnlyRegs['encoder'] = COMM_ROR_ROTOR_POS
-ReadOnlyRegs['encoder_raw'] = COMM_ROR_ROTOR_POS_RAW
-ReadOnlyRegs['velocity'] = COMM_ROR_ROTOR_VEL
-ReadOnlyRegs['id'] = COMM_ROR_CURRENT_DIRECT
-ReadOnlyRegs['iq'] = COMM_ROR_CURRENT_QUADRATURE
-ReadOnlyRegs['supply'] = COMM_ROR_SUPPLY_V
-ReadOnlyRegs['temp'] = COMM_ROR_TEMPERATURE
-ReadOnlyRegs['imu'] = COMM_ROR_ACC_X
+ReadOnlyRegs['encoder'] = boards.COMM_ROR_ROTOR_POS
+ReadOnlyRegs['encoder_raw'] = boards.COMM_ROR_ROTOR_POS_RAW
+ReadOnlyRegs['velocity'] = boards.COMM_ROR_ROTOR_VEL
+ReadOnlyRegs['id'] = boards.COMM_ROR_CURRENT_DIRECT
+ReadOnlyRegs['iq'] = boards.COMM_ROR_CURRENT_QUADRATURE
+ReadOnlyRegs['supply'] = boards.COMM_ROR_SUPPLY_V
+ReadOnlyRegs['temp'] = boards.COMM_ROR_TEMPERATURE
+ReadOnlyRegs['imu'] = boards.COMM_ROR_ACC_X
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Read a sensor from boards.')
@@ -29,8 +31,8 @@ if __name__ == '__main__':
         help=
         'Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)'
     )
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE,
-                        offset=COMM_BOOTLOADER_OFFSET)
+    parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+                        offset=comms.COMM_BOOTLOADER_OFFSET)
     args = parser.parse_args()
 
     ser = serial.Serial(port=args.serial,

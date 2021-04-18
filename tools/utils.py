@@ -28,12 +28,12 @@ class DebugLoop:
         self._errors += 0 if self._callback() else 1
         self._iters += 1
 
-        if iters % self._iters_per_print == 0:
+        if self._iters % self._iters_per_print == 0:
             self._print_func()
 
     def _print_func(self):
         now = time.time()
-        diff = (now - self._start_time)
+        diff = (now - self._iter_start_time)
 
         freq = self._iters_per_print / diff
         error_rate = self._errors / self._iters_per_print * 100
@@ -52,5 +52,5 @@ class DebugLoop:
                 self._loop_func()
         except KeyboardInterrupt:
             print()  # Clear line immediately after the ctrl-c
-            print(f"Interrupted. Loop exiting. Completed {iters} iterations.")
+            print(f"Interrupted. Loop exiting. Completed {sel._iters} iterations.")
             pass

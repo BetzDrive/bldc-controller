@@ -52,21 +52,21 @@ if __name__ == '__main__':
                         baudrate=args.baud_rate,
                         timeout=0.001)
 
-    client = BLDCControllerClient(ser)
-    initialized = initBoards(client, board_ids)
+    client = comms.BLDCControllerClient(ser)
+    initialized = boards.initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
 
     client.resetInputBuffer()
 
-    initMotor(client, board_ids)
+    boards.initMotor(client, board_ids)
 
     def callback() -> bool:
         boards.clearWDGRST(client)
 
         try:
             boards.driveMotor(client, board_ids, actuations, mode)
-        except (ProtocolError, MalformedPacketError) as e:
+        except (comms.ProtocolError, comms.MalformedPacketError) as e:
             return False
 
         return True
