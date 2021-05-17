@@ -1,41 +1,51 @@
-#!/usr/bin/env python
-from comms import *
-from boards import *
-
+#!/usr/bin/env python3
 import argparse
 import serial
 import time
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Upload bootloader to a motor controller board.')
+from tools import boards, comms
+
+
+def parser_args():
+    parser = argparse.ArgumentParser(
+        description='Upload bootloader to a motor controller board.')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board IDs')
-    parser.add_argument('bin_file', type=str, help='.bin file containing bootloader image')
-    parser.add_argument('--offset', type=int, help='Offset address for bootloader image')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
-    args = parser.parse_args()
+    parser.add_argument('bin_file',
+                        type=str,
+                        help='.bin file containing bootloader image')
+    parser.add_argument('--offset',
+                        type=int,
+                        help='Offset address for bootloader image')
+    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE,
+                        offset=COMM_BOOTLOADER_OFFSET)
+    return parser.parse_args()
 
+
+def action(args):
     board_ids = [int(bid) for bid in args.board_ids.split(',')]
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
     time.sleep(0.1)
 
-    client = BLDCControllerClient(ser)
+    client = comms.BLDCControllerClient(ser)
 
-    initialized = initBoards(client, board_ids)
+    initialized = boards.initBoards(client, board_ids)
 
     ser.reset_input_buffer()
 
     if initialized:
         crashed = client.checkWDGRST()
         if crashed:
-            print("Some boards have crashed, please power cycle before upload:", crashed)
+            print(
+                "Some boards have crashed, please power cycle before upload:",
+                crashed)
 
         if not crashed:
             for board_id in board_ids:
                 client.leaveBootloader([board_id])
-                time.sleep(0.2) # Wait for the controller to reset
+                time.sleep(0.2)  # Wait for the controller to reset
                 ser.reset_input_buffer()
 
                 flash_sector_maps = client.getFlashSectorMap([board_id])
@@ -46,8 +56,14 @@ if __name__ == '__main__':
                 success = False
                 while not success:
                     try:
-                        success = client.writeFlash([board_id], args.offset, firmware_image, sector_map=flash_sector_maps, print_progress=True)
-                    except (MalformedPacketError, ProtocolError) as e:
+                        success = client.writeFlash(
+                            [board_id],
+                            args.offset,
+                            firmware_image,
+                            sector_map=flash_sector_maps,
+                            print_progress=True)
+                    except (comms.MalformedPacketError,
+                            comms.ProtocolError) as e:
                         print(f'Upload to board {board_id} failed with error:')
                         print(e)
                         print('Retrying...')
@@ -60,3 +76,7 @@ if __name__ == '__main__':
                     break
 
     ser.close()
+
+
+if __name__ == '__main__':
+    action(parser_args())

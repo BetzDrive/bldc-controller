@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import sys
 import serial
@@ -8,11 +7,9 @@ from math import sin, cos, pi
 import argparse
 import ast
 
-from comms import *
-from boards import *
-from livegraph import LiveGraph
+from tools import boards, comms, livegraph
 
-if __name__ == '__main__':
+def parser_args():
     parser = argparse.ArgumentParser(
         description='Drive motor module(s) with a given control mode and plot '
                     'current measurements.')
@@ -37,8 +34,9 @@ if __name__ == '__main__':
     parser.set_defaults(
         baud_rate=COMM_DEFAULT_BAUD_RATE,
         offset=COMM_BOOTLOADER_OFFSET)
-    args = parser.parse_args()
+    return parser.parse_args()
 
+def action(args):
     make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
     make_int = lambda x: [int(y) for y in x]
     board_ids  = make_int(make_list(ast.literal_eval(args.board_ids)))
@@ -48,19 +46,19 @@ if __name__ == '__main__':
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.05)
 
-    client = BLDCControllerClient(ser)
-    initialized = initBoards(client, board_ids)
+    client = comms.BLDCControllerClient(ser)
+    initialized = boards.initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
     client.resetInputBuffer()
 
-    initMotor(client, board_ids)
+    boards.initMotor(client, board_ids)
 
     def updateCurrent(i):
         data = []
         for board_id in board_ids:
             try:
-                driveMotor(client, board_ids, actuations, mode)
+                boards.driveMotor(client, board_ids, actuations, mode)
                 # Read the iq calulated
                 data.append(struct.unpack(
                     '<f', client.readRegisters([board_id], [0x3003], [1])[0]))
@@ -76,6 +74,9 @@ if __name__ == '__main__':
     labels = []
     labels.extend([[str(bid) + '\'s iq Reading', str(bid) + '\'s iq PID output'] for bid in board_ids])
     labels = flatten(labels)
-    graph = LiveGraph(updateCurrent, labels, sample_interval=1, window_size = 2000)
+    graph = livegraph.LiveGraph(updateCurrent, labels, sample_interval=1, window_size = 2000)
 
     graph.start()
+
+if __name__ == '__main__':
+    action(parser_args())

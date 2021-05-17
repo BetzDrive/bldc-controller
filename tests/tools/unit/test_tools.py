@@ -3,7 +3,8 @@ import dataclasses
 import pytest
 
 from tools import (calibrate_encoder, comms, control_motor, read_sensor,
-                   update_calibration)
+                   update_calibration, upload_bootloader, upload_firmware,
+                   view_control_loop)
 
 
 @dataclasses.dataclass
@@ -94,7 +95,7 @@ def test_control_motor(mocker):
 
 
 def test_read_sensor(mocker):
-    """Ensures read sensor runs when given valid arguments."""
+    """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
         """Args for this tool."""
@@ -109,7 +110,7 @@ def test_read_sensor(mocker):
 
 
 def test_update_calibration(mocker):
-    """Ensures read sensor runs when given valid arguments."""
+    """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
         """Args for this tool."""
@@ -134,3 +135,57 @@ def test_update_calibration(mocker):
     mocker.patch('tools.comms.BLDCControllerClient.storeCalibration')
 
     update_calibration.action(Args())
+
+
+def test_upload_bootloader(mocker):
+    """Ensures script runs when given valid arguments."""
+    @dataclasses.dataclass
+    class Args(BaseArgs):
+        """Args for this tool."""
+        bin_file: str = 'file.bin'
+        offset: int = 0x08000000
+
+    _default_mock_comms(mocker)
+
+    mocker.patch('tools.upload_bootloader.serial')
+    mocker.patch('tools.upload_bootloader.open')
+    mocker.patch('tools.comms.BLDCControllerClient.getFlashSectorMap')
+    mocker.patch('tools.comms.BLDCControllerClient.writeFlash')
+
+    upload_bootloader.action(Args())
+
+
+def test_upload_firmware(mocker):
+    """Ensures script runs when given valid arguments."""
+    @dataclasses.dataclass
+    class Args(BaseArgs):
+        """Args for this tool."""
+        bin_file: str = 'file.bin'
+        offset: int = 0x08000000
+
+    _default_mock_comms(mocker)
+
+    mocker.patch('tools.upload_firmware.serial')
+    mocker.patch('tools.upload_firmware.open')
+    mocker.patch('tools.comms.BLDCControllerClient.getFlashSectorMap')
+    mocker.patch('tools.comms.BLDCControllerClient.writeFlash')
+
+    upload_firmware.action(Args())
+
+
+def test_view_control_loop(mocker):
+    """Ensures script runs when given valid arguments."""
+    @dataclasses.dataclass
+    class Args(BaseArgs):
+        """Args for this tool."""
+        mode: str = 'torque'
+        actuations: str = '0.1'
+
+    _default_mock_comms(mocker)
+
+    mocker.patch('tools.view_control_loop.serial')
+    mocker.patch('tools.boards.initMotor')
+    mocker.patch('tools.boards.driveMotor')
+    mocker.patch('tools.livegraph.LiveGraph.start')
+
+    view_control_loop.action(Args())
