@@ -1,6 +1,6 @@
-test: unit lint
+test: pytest lint
 
-unit:
+pytest:
 	python3 -m pytest --pyargs tools tests/
 
 lint:
