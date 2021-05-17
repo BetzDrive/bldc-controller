@@ -1,5 +1,6 @@
 # Tool requirements.
 crcmod
+matplotlib
 numpy
 scipy
 pyserial
