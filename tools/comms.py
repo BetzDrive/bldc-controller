@@ -46,6 +46,9 @@ COMM_SINGLE_PROGRAM_LENGTH = 64
 COMM_SINGLE_READ_LENGTH    = 64
 COMM_SINGLE_VERIFY_LENGTH  = 64
 
+    # The number of values returned by the recorder (all floats)
+COMM_NUM_RECORDER_ELEMENTS = 8
+
 
 class ProtocolError(Exception):
     def __init__(self, message, errors=None):
@@ -212,6 +215,23 @@ class BLDCControllerClient:
         ret = self.readWriteRegisters(server_ids, [0x3000 for sid in server_ids], [9 for sid in server_ids], [0x2002 for sid in server_ids], [1 for sid in server_ids], [struct.pack('<f', val) for val in value])
         states = [struct.unpack('<ffffffiii', data) for data in ret]
         return states
+
+    def resetRecorderBuffer(self, server_ids):
+        ret = self.readRegisters(server_ids, [0x300b for sid in server_ids], [1 for sid in server_ids])
+        return [struct.unpack('<B', data)[0] for data in ret]
+
+    def startRecorder(self, server_ids):
+        ret = self.readRegisters(server_ids, [0x3009 for sid in server_ids], [1 for sid in server_ids])
+        return [struct.unpack('<B', data)[0] for data in ret]
+
+    def getRecorderLength(self, server_ids):
+        ret = self.readRegisters(server_ids, [0x300a for sid in server_ids], [1 for sid in server_ids])
+        return [struct.unpack('<H', data)[0] for data in ret]
+
+    def getRecorderElement(self, server_ids, indexes):
+        assert len(indexes) == len(server_ids)
+        ret = self.readRegisters(server_ids, [0x8000 + i for i in indexes], [COMM_NUM_RECORDER_ELEMENTS for sid in server_ids])
+        return [struct.unpack('<' + str(COMM_NUM_RECORDER_ELEMENTS) + 'f', data)[0] for data in ret]
 
     def checkWDGRST(self):
         return list(self._crash.keys())
