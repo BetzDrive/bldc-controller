@@ -1,6 +1,7 @@
 # Tool requirements.
-pyserial
 crcmod
+numpy
+pyserial
 
 # Testing requirements.
 pytest
