@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import struct
 import time
 
 from tools import comms
@@ -113,7 +114,7 @@ def initMotor(client, board_ids):
             client.setQuadratureCurrentKi(board_ids, [0.2] * len(board_ids))
 
             success = True
-        except (MalformedPacketError, ProtocolError):
+        except (comms.MalformedPacketError, comms.ProtocolError):
             print("Failed to calibrate board, retrying...")
     print("Finished calibration of boards:", board_ids)
 
@@ -175,7 +176,7 @@ def clearWDGRST(client):
     if crashed != []:
         try:
             client.clearWDGRST(crashed)
-        except (ProtocolError, MalformedPacketError):
+        except (comms.ProtocolError, comms.MalformedPacketError):
             return False
 
     return True

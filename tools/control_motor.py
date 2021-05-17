@@ -8,15 +8,15 @@ from math import sin, cos, pi
 import argparse
 import ast
 
-import comms
-import boards
-import utils
+from tools import comms, boards, utils
 
-if __name__ == '__main__':
+def parser_args():
     parser = argparse.ArgumentParser(
         description='Drive motor module(s) with a given control mode.')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
+    parser.add_argument('--num_iters', type=int,
+                        help='Number of iterations to loop (default to infinity)')
     parser.add_argument('board_ids',
                         type=str,
                         help='Board ID (separate with comma)')
@@ -37,9 +37,11 @@ if __name__ == '__main__':
         help='Actuation amount in the units of the selected mode '
         '(if requires multiple args, separate by comma)')
     parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+                        num_iters=0,
                         offset=comms.COMM_BOOTLOADER_OFFSET)
-    args = parser.parse_args()
+    return parser.parse_args()
 
+def action(args):
     make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple
                                       ) else [x]
     make_type = lambda x, to_type: [to_type(y) for y in x]
@@ -71,6 +73,9 @@ if __name__ == '__main__':
 
         return True
 
-    loop = utils.DebugLoop(callback, iters_per_print=1000)
+    loop = utils.DebugLoop(callback, args.num_iters, iters_per_print=1000)
 
     loop.loop()
+
+if __name__ == '__main__':
+    action(parser_args())

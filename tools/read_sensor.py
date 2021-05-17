@@ -32,8 +32,8 @@ def parser_args():
         help='Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)'
     )
     parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
-                        offset=comms.COMM_BOOTLOADER_OFFSET,
-                        num_iters=0)
+                        num_iters=0,
+                        offset=comms.COMM_BOOTLOADER_OFFSET)
     return parser.parse_args()
 
 
