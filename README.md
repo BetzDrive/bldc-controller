@@ -4,8 +4,12 @@ cd ~
 git clone https://github.com/BetzDrive/bldc-controller.git
 cd bldc-controller
 git submodule update --recursive --remote --init
-sudo apt-get install gcc-arm-none-eabi
+sudo apt-get install gcc-arm-none-eabi gdb-multiarch python3-pip
+python3 -m pip install requirements.txt
 ```
+
+### Testing
+A quick way of running the full test suite is to use `make test`. This will lint and run any code testing.
 
 ### Compiling
 ```bash

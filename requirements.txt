@@ -1,0 +1,7 @@
+# Tool requirements.
+pyserial
+crcmod
+
+# Testing requirements.
+pytest
+pytest-mock
