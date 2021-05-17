@@ -1,6 +1,7 @@
 # Tool requirements.
 crcmod
 numpy
+scipy
 pyserial
 
 # Testing requirements.
