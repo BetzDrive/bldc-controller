@@ -16,6 +16,7 @@ class Args:
 
 
 def test_read_sensor(mocker):
+    """Ensures read sensor runs when given valid arguments."""
     mocker.patch('tools.read_sensor.serial')
     mocker.patch('tools.comms.BLDCControllerClient.enumerateBoards',
                  lambda self, x: x)
@@ -27,4 +28,5 @@ def test_read_sensor(mocker):
                  lambda self: [])
     mocker.patch('tools.comms.BLDCControllerClient.clearWDGRST',
                  lambda self, x: x)
+
     read_sensor.action(Args())
