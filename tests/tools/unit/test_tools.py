@@ -2,7 +2,8 @@ import dataclasses
 
 import pytest
 
-from tools import calibrate_encoder, comms, control_motor, read_sensor
+from tools import (calibrate_encoder, comms, control_motor, read_sensor,
+                   update_calibration)
 
 
 @dataclasses.dataclass
@@ -11,6 +12,7 @@ class BaseArgs:
     serial: str = '/dev/ttyUSB0'
     board_ids: str = '1'
     baud_rate: int = comms.COMM_DEFAULT_BAUD_RATE
+
 
 def _default_mock_comms(mocker):
     mocker.patch('tools.comms.BLDCControllerClient.enumerateBoards',
@@ -23,6 +25,7 @@ def _default_mock_comms(mocker):
                  lambda self: [])
     mocker.patch('tools.comms.BLDCControllerClient.clearWDGRST',
                  lambda self, x: x)
+
 
 def test_calibrate_encoder(mocker):
     """Ensures read control motor runs when given valid arguments."""
@@ -48,21 +51,26 @@ def test_calibrate_encoder(mocker):
                  lambda self, bids: [1])
     mocker.patch('tools.comms.BLDCControllerClient.getRecorderLength',
                  lambda self, bids: [1])
-    mocker.patch('tools.comms.BLDCControllerClient.getRecorderElement',
-                 lambda self, bids, indexes: [0.0] * comms.COMM_NUM_RECORDER_ELEMENTS)
+    mocker.patch(
+        'tools.comms.BLDCControllerClient.getRecorderElement',
+        lambda self, bids, indexes: [0.0] * comms.COMM_NUM_RECORDER_ELEMENTS)
 
     # Fake a slope to stop the math from breaking.
     def grad_generator():
         pos = 0
+
         def grad(client, bids):
             nonlocal pos
             pos += 5.0
             return [pos]
+
         return grad
 
-    mocker.patch('tools.comms.BLDCControllerClient.getRawRotorPosition', grad_generator())
+    mocker.patch('tools.comms.BLDCControllerClient.getRawRotorPosition',
+                 grad_generator())
 
     mocker.patch('tools.calibrate_encoder.input')
+    mocker.patch('tools.calibrate_encoder.open')
     mocker.patch('tools.calibrate_encoder.json')
 
     calibrate_encoder.action(Args())
@@ -99,3 +107,30 @@ def test_read_sensor(mocker):
 
     read_sensor.action(Args())
 
+
+def test_update_calibration(mocker):
+    """Ensures read sensor runs when given valid arguments."""
+    @dataclasses.dataclass
+    class Args(BaseArgs):
+        """Args for this tool."""
+
+    _default_mock_comms(mocker)
+
+    mocker.patch('tools.update_calibration.serial')
+    mocker.patch('tools.comms.BLDCControllerClient.getTorqueConstant',
+                 lambda x, y: [0.0] * len(y))
+    mocker.patch('tools.comms.BLDCControllerClient.setWatchdogTimeout')
+    mocker.patch('tools.comms.BLDCControllerClient.setDirectCurrentKp')
+    mocker.patch('tools.comms.BLDCControllerClient.setDirectCurrentKi')
+    mocker.patch('tools.comms.BLDCControllerClient.setQuadratureCurrentKp')
+    mocker.patch('tools.comms.BLDCControllerClient.setQuadratureCurrentKi')
+    mocker.patch('tools.comms.BLDCControllerClient.setVelocityKp')
+    mocker.patch('tools.comms.BLDCControllerClient.setVelocityKd')
+    mocker.patch('tools.comms.BLDCControllerClient.setPositionKp')
+    mocker.patch('tools.comms.BLDCControllerClient.setPositionKd')
+    mocker.patch('tools.comms.BLDCControllerClient.setCurrentLimit')
+    mocker.patch('tools.comms.BLDCControllerClient.setTorqueLimit')
+    mocker.patch('tools.comms.BLDCControllerClient.setVelocityLimit')
+    mocker.patch('tools.comms.BLDCControllerClient.storeCalibration')
+
+    update_calibration.action(Args())
