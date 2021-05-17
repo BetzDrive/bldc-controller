@@ -4,9 +4,7 @@ import time
 import argparse
 import struct
 
-import comms
-import boards
-import utils
+from tools import comms, boards, utils
 
 ReadOnlyRegs = {}
 ReadOnlyRegs['encoder'] = boards.COMM_ROR_ROTOR_POS
@@ -18,23 +16,28 @@ ReadOnlyRegs['supply'] = boards.COMM_ROR_SUPPLY_V
 ReadOnlyRegs['temp'] = boards.COMM_ROR_TEMPERATURE
 ReadOnlyRegs['imu'] = boards.COMM_ROR_ACC_X
 
-if __name__ == '__main__':
+
+def parser_args():
     parser = argparse.ArgumentParser(description='Read a sensor from boards.')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
+    parser.add_argument('--num_iters', type=int,
+                        help='Number of iterations to loop (default to infinity)')
     parser.add_argument('board_ids',
                         type=str,
                         help='Board ID (separate with comma)')
     parser.add_argument(
         'sensor',
         type=str,
-        help=
-        'Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)'
+        help='Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)'
     )
     parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
-                        offset=comms.COMM_BOOTLOADER_OFFSET)
-    args = parser.parse_args()
+                        offset=comms.COMM_BOOTLOADER_OFFSET,
+                        num_iters=0)
+    return parser.parse_args()
 
+
+def action(args):
     ser = serial.Serial(port=args.serial,
                         baudrate=args.baud_rate,
                         timeout=0.004)
@@ -96,6 +99,12 @@ if __name__ == '__main__':
             print(e)
             return False
 
-    loop = utils.DebugLoop(callback, iters_per_print=1000)
+    loop = utils.DebugLoop(callback=callback,
+                           num_iters=args.num_iters,
+                           iters_per_print=1000)
 
     loop.loop()
+
+
+if __name__ == '__main__':
+    action(parser_args())

@@ -5,9 +5,12 @@ from typing import Callable
 
 class DebugLoop:
     """Loops a function and prints statistics."""
-    def __init__(self,
-                 callback: Callable[[], bool],
-                 iters_per_print: int = 1000):
+    def __init__(
+        self,
+        callback: Callable[[], bool],
+        num_iters: int,
+        iters_per_print: int = 1000,
+    ):
         """
         Initializes the loop variables.
 
@@ -15,9 +18,11 @@ class DebugLoop:
             callback: called for each iteration of the loop. This callable
                 takes no arguments and should return True if successful else,
                 False.
+            num_iters: number of iterations to run before exiting.
             iters_per_print: number of iterations between prints.
         """
         self._callback = callback
+        self._num_iters = num_iters
         self._iters_per_print = iters_per_print
 
         self._errors = 0
@@ -50,7 +55,11 @@ class DebugLoop:
         try:
             while True:
                 self._loop_func()
+                if self._iters >= self._num_iters:
+                    break
         except KeyboardInterrupt:
             print()  # Clear line immediately after the ctrl-c
-            print(f"Interrupted. Loop exiting. Completed {sel._iters} iterations.")
+            print(
+                f"Interrupted. Loop exiting. Completed {self._iters} iterations."
+            )
             pass

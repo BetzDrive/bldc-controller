@@ -1,5 +1,8 @@
 from __future__ import print_function
-from comms import *
+
+import time
+
+from tools import comms
 
 # Read Only Registers
 COMM_ROR_ROTOR_POS = 0x3000
@@ -38,7 +41,7 @@ def initBoards(client, board_ids):
                 if response == bid:
                     found_id = True
                 time.sleep(0.1)
-            except ProtocolError as e:
+            except comms.ProtocolError as e:
                 print("Comms Error:", e)
                 client.resetInputBuffer()
 
@@ -49,7 +52,7 @@ def initBoards(client, board_ids):
                 print("Requesting Confirm")
                 confirmed = client.confirmBoards(bid)
                 time.sleep(0.1)
-            except ProtocolError as e:
+            except comms.ProtocolError as e:
                 print("Comms Error:", e)
                 client.resetInputBuffer()
 
