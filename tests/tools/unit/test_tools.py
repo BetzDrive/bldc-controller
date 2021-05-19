@@ -15,7 +15,8 @@ class BaseArgs:
     baud_rate: int = comms.COMM_DEFAULT_BAUD_RATE
 
 
-def _default_mock_comms(mocker):
+@pytest.fixture
+def default_mock_comms(mocker):
     mocker.patch('tools.comms.BLDCControllerClient.enumerateBoards',
                  lambda self, x: x)
     mocker.patch('tools.comms.BLDCControllerClient.confirmBoards',
@@ -28,7 +29,7 @@ def _default_mock_comms(mocker):
                  lambda self, x: x)
 
 
-def test_calibrate_encoder(mocker):
+def test_calibrate_encoder(mocker, default_mock_comms):
     """Ensures read control motor runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
@@ -39,8 +40,6 @@ def test_calibrate_encoder(mocker):
         delay: float = 0.1
 
     args = Args()
-
-    _default_mock_comms(mocker)
 
     mocker.patch('tools.calibrate_encoder.serial')
     mocker.patch('tools.boards.initMotor')
@@ -77,7 +76,7 @@ def test_calibrate_encoder(mocker):
     calibrate_encoder.action(Args())
 
 
-def test_control_motor(mocker):
+def test_control_motor(mocker, default_mock_comms):
     """Ensures read control motor runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
@@ -86,15 +85,13 @@ def test_control_motor(mocker):
         mode: str = 'torque'
         actuations: str = '0.1'
 
-    _default_mock_comms(mocker)
-
     mocker.patch('tools.control_motor.serial')
     mocker.patch('tools.boards.initMotor')
 
     control_motor.action(Args())
 
 
-def test_read_sensor(mocker):
+def test_read_sensor(mocker, default_mock_comms):
     """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
@@ -102,20 +99,16 @@ def test_read_sensor(mocker):
         sensor: str = 'temp'
         num_iters: int = 1
 
-    _default_mock_comms(mocker)
-
     mocker.patch('tools.read_sensor.serial')
 
     read_sensor.action(Args())
 
 
-def test_update_calibration(mocker):
+def test_update_calibration(mocker, default_mock_comms):
     """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
         """Args for this tool."""
-
-    _default_mock_comms(mocker)
 
     mocker.patch('tools.update_calibration.serial')
     mocker.patch('tools.comms.BLDCControllerClient.getTorqueConstant',
@@ -137,15 +130,13 @@ def test_update_calibration(mocker):
     update_calibration.action(Args())
 
 
-def test_upload_bootloader(mocker):
+def test_upload_bootloader(mocker, default_mock_comms):
     """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
         """Args for this tool."""
         bin_file: str = 'file.bin'
         offset: int = 0x08000000
-
-    _default_mock_comms(mocker)
 
     mocker.patch('tools.upload_bootloader.serial')
     mocker.patch('tools.upload_bootloader.open')
@@ -155,15 +146,13 @@ def test_upload_bootloader(mocker):
     upload_bootloader.action(Args())
 
 
-def test_upload_firmware(mocker):
+def test_upload_firmware(mocker, default_mock_comms):
     """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
         """Args for this tool."""
         bin_file: str = 'file.bin'
         offset: int = 0x08000000
-
-    _default_mock_comms(mocker)
 
     mocker.patch('tools.upload_firmware.serial')
     mocker.patch('tools.upload_firmware.open')
@@ -173,15 +162,13 @@ def test_upload_firmware(mocker):
     upload_firmware.action(Args())
 
 
-def test_view_control_loop(mocker):
+def test_view_control_loop(mocker, default_mock_comms):
     """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
         """Args for this tool."""
         mode: str = 'torque'
         actuations: str = '0.1'
-
-    _default_mock_comms(mocker)
 
     mocker.patch('tools.view_control_loop.serial')
     mocker.patch('tools.boards.initMotor')
