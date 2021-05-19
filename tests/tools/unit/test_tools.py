@@ -30,7 +30,7 @@ def default_mock_comms(mocker):
 
 
 def test_calibrate_encoder(mocker, default_mock_comms):
-    """Ensures read control motor runs when given valid arguments."""
+    """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
         """Args for this tool."""
@@ -77,7 +77,7 @@ def test_calibrate_encoder(mocker, default_mock_comms):
 
 
 def test_control_motor(mocker, default_mock_comms):
-    """Ensures read control motor runs when given valid arguments."""
+    """Ensures script runs when given valid arguments."""
     @dataclasses.dataclass
     class Args(BaseArgs):
         """Args for this tool."""
