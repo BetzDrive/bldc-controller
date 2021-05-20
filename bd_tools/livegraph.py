@@ -6,7 +6,8 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib import style
 import threading, time
 
-class LiveGraph():
+
+class LiveGraph:
 
     """
     This graph spawns a secondary thread to update your data while the main
@@ -15,8 +16,14 @@ class LiveGraph():
 
     """
 
-    def __init__(self, update_func, labels, sample_interval=1,
-                 plot_interval=100, window_size=1000):
+    def __init__(
+        self,
+        update_func,
+        labels,
+        sample_interval=1,
+        plot_interval=100,
+        window_size=1000,
+    ):
         """
         Initialize the livegraph visualizer.
 
@@ -31,15 +38,17 @@ class LiveGraph():
             window_size: number of samples to show when plotting is not paused.
         """
         self.labels = labels
-        self.sample_interval = sample_interval/1000.0
+        self.sample_interval = sample_interval / 1000.0
         self.plot_interval = plot_interval
         self.window_size = window_size
         self.update_func = update_func
 
         self.data = self.Data()
         self.graph = self.Graph(
-            self.data, self.labels, interval=self.plot_interval,
-            window_size=self.window_size
+            self.data,
+            self.labels,
+            interval=self.plot_interval,
+            window_size=self.window_size,
         )
         self.update_thread = self.Update(
             self.data, self.update_func, interval=self.sample_interval
@@ -52,25 +61,25 @@ class LiveGraph():
         self.data.running = False
         self.update_thread.join()
 
-    class Graph():
+    class Graph:
 
         """Sub class to manage running the graph animation update interface."""
 
         def __init__(self, data, labels, interval=10, window_size=100):
             self.data = data
             self.num_items = len(labels)
-            self.labels=labels
+            self.labels = labels
             self.window_size = window_size
 
-            style.use('fivethirtyeight')
+            style.use("fivethirtyeight")
 
             self.fig = plt.figure()
-            self.ax = self.fig.add_subplot(1,1,1)
+            self.ax = self.fig.add_subplot(1, 1, 1)
 
             self.pause = False
             self.drawn = False
 
-            self.fig.canvas.mpl_connect('key_press_event', self.onPress)
+            self.fig.canvas.mpl_connect("key_press_event", self.onPress)
             self.ani = animation.FuncAnimation(
                 self.fig, self.redraw, interval=interval, repeat=True
             )
@@ -82,8 +91,8 @@ class LiveGraph():
                 xs = self.data.xs
             # When not paused, draw only the window
             else:
-                ys = self.data.ys[-self.window_size:]
-                xs = self.data.xs[-self.window_size:]
+                ys = self.data.ys[-self.window_size :]
+                xs = self.data.xs[-self.window_size :]
 
             if not self.drawn:
                 self.ax.clear()
@@ -93,7 +102,7 @@ class LiveGraph():
                     dat = [y[item] for y in ys]
                     self.ax.plot(xs, dat, label=self.labels[item])
 
-                self.ax.legend(loc='upper left')
+                self.ax.legend(loc="upper left")
 
             if self.pause:
                 self.drawn = True
@@ -101,10 +110,10 @@ class LiveGraph():
                 self.drawn = False
 
         def onPress(self, event):
-            if event.key == 'p':
+            if event.key == "p":
                 self.pause ^= True
 
-    class Data():
+    class Data:
 
         """
         Shared coordinate data object for the update and graph sub-classes.
@@ -135,7 +144,7 @@ class LiveGraph():
             count = 0
             while self.data.running:
                 x, y = self.update_func(count)
-                if x is not  None and y is not None:
+                if x is not None and y is not None:
                     self.data.xs.append(x)
                     self.data.ys.append(y)
                 self.nextCall = self.nextCall + self.interval

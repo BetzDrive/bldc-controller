@@ -8,3 +8,8 @@ pytest: install_bd_tools
 
 lint:
 	cpplint --recursive --quiet --extensions=hpp,cpp common/ bootloader/ firmware/
+
+format: format_python
+
+format_python:
+	black tests/ bd_tools/

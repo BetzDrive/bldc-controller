@@ -5,6 +5,7 @@ from typing import Callable
 
 class DebugLoop:
     """Loops a function and prints statistics."""
+
     def __init__(
         self,
         callback: Callable[[], bool],
@@ -39,12 +40,14 @@ class DebugLoop:
 
     def _print_func(self):
         now = time.time()
-        diff = (now - self._iter_start_time)
+        diff = now - self._iter_start_time
 
         freq = self._iters_per_print / diff
         error_rate = self._errors / self._iters_per_print * 100
-        print(f'Loop frequency is {round(freq, 2)}hz at '
-              f'{round(error_rate, 2)}% error rate.')
+        print(
+            f"Loop frequency is {round(freq, 2)}hz at "
+            f"{round(error_rate, 2)}% error rate."
+        )
 
         # Reset statistics variables.
         self._start_time = now
@@ -60,7 +63,5 @@ class DebugLoop:
                     break
         except KeyboardInterrupt:
             print()  # Clear line immediately after the ctrl-c
-            print(
-                f"Interrupted. Loop exiting. Completed {self._iters} iterations."
-            )
+            print(f"Interrupted. Loop exiting. Completed {self._iters} iterations.")
             pass

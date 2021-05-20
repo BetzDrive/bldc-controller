@@ -10,49 +10,55 @@ import ast
 
 from bd_tools import boards, comms, utils
 
+
 def parser_args():
     parser = argparse.ArgumentParser(
-        description='Drive motor module(s) with a given control mode.')
-    parser.add_argument('serial', type=str, help='Serial port')
-    parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
-    parser.add_argument('--num_iters', type=int,
-                        help='Number of iterations to loop (default to infinity)')
-    parser.add_argument('board_ids',
-                        type=str,
-                        help='Board ID (separate with comma)')
-    parser.add_argument('mode',
-                        type=str,
-                        help='Control mode:'
-                        'current (Id[A], Iq[A]),'
-                        'phase (dc,dc,dc),'
-                        'torque (N*m),'
-                        'velocity (rad/s),'
-                        'position (rad),'
-                        'pos_vel (rad,rad/s),'
-                        'pos_ff (rad,ff[A]),'
-                        'pwm (dc)')
+        description="Drive motor module(s) with a given control mode."
+    )
+    parser.add_argument("serial", type=str, help="Serial port")
+    parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
     parser.add_argument(
-        'actuations',
+        "--num_iters",
+        type=int,
+        help="Number of iterations to loop (default to infinity)",
+    )
+    parser.add_argument("board_ids", type=str, help="Board ID (separate with comma)")
+    parser.add_argument(
+        "mode",
         type=str,
-        help='Actuation amount in the units of the selected mode '
-        '(if requires multiple args, separate by comma)')
-    parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
-                        num_iters=0,
-                        offset=comms.COMM_BOOTLOADER_OFFSET)
+        help="Control mode:"
+        "current (Id[A], Iq[A]),"
+        "phase (dc,dc,dc),"
+        "torque (N*m),"
+        "velocity (rad/s),"
+        "position (rad),"
+        "pos_vel (rad,rad/s),"
+        "pos_ff (rad,ff[A]),"
+        "pwm (dc)",
+    )
+    parser.add_argument(
+        "actuations",
+        type=str,
+        help="Actuation amount in the units of the selected mode "
+        "(if requires multiple args, separate by comma)",
+    )
+    parser.set_defaults(
+        baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+        num_iters=0,
+        offset=comms.COMM_BOOTLOADER_OFFSET,
+    )
     return parser.parse_args()
 
+
 def action(args):
-    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple
-                                      ) else [x]
+    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
     make_type = lambda x, to_type: [to_type(y) for y in x]
     board_ids = make_type(make_list(ast.literal_eval(args.board_ids)), int)
     actuations = make_list(ast.literal_eval(args.actuations))
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial,
-                        baudrate=args.baud_rate,
-                        timeout=0.001)
+    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.001)
 
     client = comms.BLDCControllerClient(ser)
     initialized = boards.initBoards(client, board_ids)
@@ -77,5 +83,6 @@ def action(args):
 
     loop.loop()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     action(parser_args())

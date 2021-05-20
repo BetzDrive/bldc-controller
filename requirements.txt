@@ -8,3 +8,6 @@ pyserial
 # Testing requirements.
 pytest
 pytest-mock
+
+# Formatting requirements.
+black

@@ -12,26 +12,26 @@ import matplotlib.pyplot as plt
 from bd_tools import boards, comms
 
 # 14-bit encoder
-encoder_ticks_per_rev = 2**14
-phase_state_list = [(1, 0, 0), (1, 1, 0), (0, 1, 0), (0, 1, 1), (0, 0, 1),
-                    (1, 0, 1)]
+encoder_ticks_per_rev = 2 ** 14
+phase_state_list = [(1, 0, 0), (1, 1, 0), (0, 1, 0), (0, 1, 1), (0, 0, 1), (1, 0, 1)]
 
 
 def parser_args():
     parser = argparse.ArgumentParser(
-        description='Calibrate the encoder on a motor controller board.')
-    parser.add_argument('serial', type=str, help='Serial port')
-    parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
-    parser.add_argument('board_id', type=int, help='Board ID')
-    parser.add_argument('duty_cycle', type=float, help='Duty cycle')
-    parser.add_argument('--max_steps',
-                        type=int,
-                        help='Maximum number of steps')
-    parser.add_argument('--delay', type=float, help='Delay between steps')
-    parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
-                        duty_cycle=0.6,
-                        max_steps=126,
-                        delay=0.05)
+        description="Calibrate the encoder on a motor controller board."
+    )
+    parser.add_argument("serial", type=str, help="Serial port")
+    parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
+    parser.add_argument("board_id", type=int, help="Board ID")
+    parser.add_argument("duty_cycle", type=float, help="Duty cycle")
+    parser.add_argument("--max_steps", type=int, help="Maximum number of steps")
+    parser.add_argument("--delay", type=float, help="Delay between steps")
+    parser.set_defaults(
+        baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+        duty_cycle=0.6,
+        max_steps=126,
+        delay=0.05,
+    )
     return parser.parse_args()
 
 
@@ -56,19 +56,17 @@ def action(args):
 
     def set_phase_state(phase_state):
         a, b, c = phase_state
-        targets = [
-            a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle
-        ]
+        targets = [a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle]
 
         while True:
             try:
-                boards.driveMotor(client, board_ids, targets, 'phase')
+                boards.driveMotor(client, board_ids, targets, "phase")
                 break
             except (comms.MalformedPacketError, comms.ProtocolError):
                 print("Phase state set failed. Retrying.")
 
     # Clear currently loaded current offsets
-    offset_data = struct.pack('<fff', 0, 0, 0)
+    offset_data = struct.pack("<fff", 0, 0, 0)
     client.writeRegisters(board_ids, [0x1050], [3], [offset_data])
 
     client.setWatchdogTimeout(board_ids, [1000])
@@ -130,8 +128,11 @@ def action(args):
             except (comms.MalformedPacketError, comms.ProtocolError):
                 print("Missed packet")
 
-        if i > 4 and abs(forward_raw_angles[0] - raw_angle) < abs(
-                forward_raw_angles[1] - forward_raw_angles[0]) / 3.0:
+        if (
+            i > 4
+            and abs(forward_raw_angles[0] - raw_angle)
+            < abs(forward_raw_angles[1] - forward_raw_angles[0]) / 3.0
+        ):
             break
 
         forward_raw_angles.append(raw_angle)
@@ -196,8 +197,9 @@ def action(args):
     elec_angles = angles * erevs_per_mrev
 
     # Subtract expected trend
-    elec_angle_residuals = elec_angles - (np.r_[:len(elec_angles)] +
-                                          zero_index) * (2 * np.pi / 6)
+    elec_angle_residuals = elec_angles - (np.r_[: len(elec_angles)] + zero_index) * (
+        2 * np.pi / 6
+    )
 
     # Find smallest raw angle aligned with phase A
     elec_angle_offset = np.mean(elec_angle_residuals)
@@ -207,9 +209,9 @@ def action(args):
     angle_offset = wrapped_elec_angle_offset / erevs_per_mrev
     erev_start = angle_offset / (2 * np.pi) * encoder_ticks_per_rev
 
-    print('    erev_start: {:5d}'.format(int(round(erev_start))))
-    print('erevs_per_mrev: {:5d}'.format(abs(erevs_per_mrev)))
-    print('   flip_phases: {:5d}'.format(int(erevs_per_mrev > 0)))
+    print("    erev_start: {:5d}".format(int(round(erev_start))))
+    print("erevs_per_mrev: {:5d}".format(abs(erevs_per_mrev)))
+    print("   flip_phases: {:5d}".format(int(erevs_per_mrev > 0)))
 
     size = str(input("What size is the motor? (S/L)\n"))
     upload_data = {
@@ -226,20 +228,20 @@ def action(args):
     print("Calibration")
     print(upload_data)
 
-    with open('calibrations.json', 'w') as outfile:
+    with open("calibrations.json", "w") as outfile:
         json.dump([upload_data], outfile)
 
-    #mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
-    #plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
-    #plt.title('Encoder angle residuals')
-    #plt.xlabel('Mechanical angle (rad)')
-    #plt.ylabel('Encoder angle residual (counts)')
-    #plt.show()
+    # mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
+    # plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
+    # plt.title('Encoder angle residuals')
+    # plt.xlabel('Mechanical angle (rad)')
+    # plt.ylabel('Encoder angle residual (counts)')
+    # plt.show()
 
     # # Apply smoothing
     # angle_residuals = sps.savgol_filter(angle_residuals, 31, 3, mode='wrap')
     # smoothed_angles = angle_residuals + indices * angle_slope
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     action(parser_args())

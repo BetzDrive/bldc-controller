@@ -64,40 +64,50 @@ def initBoards(client, board_ids):
 
 
 def loadCalibrationFromJSON(client, board_id, calibration_obj):
-    client.setZeroAngle([board_id], [calibration_obj['angle']])
-    client.setInvertPhases([board_id], [calibration_obj['inv']])
-    client.setERevsPerMRev([board_id], [calibration_obj['epm']])
-    client.setTorqueConstant([board_id], [calibration_obj['torque']])
-    client.setPositionOffset([board_id], [calibration_obj['zero']])
+    client.setZeroAngle([board_id], [calibration_obj["angle"]])
+    client.setInvertPhases([board_id], [calibration_obj["inv"]])
+    client.setERevsPerMRev([board_id], [calibration_obj["epm"]])
+    client.setTorqueConstant([board_id], [calibration_obj["torque"]])
+    client.setPositionOffset([board_id], [calibration_obj["zero"]])
 
-    if 'eac_type' in calibration_obj and calibration_obj['eac_type'] == 'int8':
-        print('EAC calibration available')
+    if "eac_type" in calibration_obj and calibration_obj["eac_type"] == "int8":
+        print("EAC calibration available")
         try:
             client.writeRegisters(
-                [board_id], [0x1100], [1],
-                [struct.pack('<f', calibration_obj['eac_scale'])])
+                [board_id],
+                [0x1100],
+                [1],
+                [struct.pack("<f", calibration_obj["eac_scale"])],
+            )
             client.writeRegisters(
-                [board_id], [0x1101], [1],
-                [struct.pack('<f', calibration_obj['eac_offset'])])
-            eac_table_len = len(calibration_obj['eac_table'])
+                [board_id],
+                [0x1101],
+                [1],
+                [struct.pack("<f", calibration_obj["eac_offset"])],
+            )
+            eac_table_len = len(calibration_obj["eac_table"])
             slice_len = 64
             for i in range(0, eac_table_len, slice_len):
-                table_slice = calibration_obj['eac_table'][i:i + slice_len]
+                table_slice = calibration_obj["eac_table"][i : i + slice_len]
                 client.writeRegisters(
-                    [board_id], [0x1200 + i], [len(table_slice)], [
-                        struct.pack('<{}b'.format(len(table_slice)), *
-                                    table_slice)
-                    ])
+                    [board_id],
+                    [0x1200 + i],
+                    [len(table_slice)],
+                    [struct.pack("<{}b".format(len(table_slice)), *table_slice)],
+                )
         except ProtocolError:
             print(
-                'WARNING: Motor driver board does not support encoder angle compensation, try updating the firmware.'
+                "WARNING: Motor driver board does not support encoder angle compensation, try updating the firmware."
             )
     client.setCurrentControlMode([board_id])
 
     # Upload current offsets
-    offset_data = struct.pack('<fff', calibration_obj['ia_off'],
-                              calibration_obj['ib_off'],
-                              calibration_obj['ic_off'])
+    offset_data = struct.pack(
+        "<fff",
+        calibration_obj["ia_off"],
+        calibration_obj["ib_off"],
+        calibration_obj["ic_off"],
+    )
     client.writeRegisters([board_id], [0x1050], [3], [offset_data])
 
 
@@ -121,52 +131,65 @@ def initMotor(client, board_ids):
 
 # Defining Control Mode ID Lookup
 control_modes = {
-    'current': 0,
-    'phase': 1,
-    'torque': 2,
-    'velocity': 3,
-    'position': 4,
-    'pos_vel': 5,
-    'pos_ff': 6,
-    'pwm': 7
+    "current": 0,
+    "phase": 1,
+    "torque": 2,
+    "velocity": 3,
+    "position": 4,
+    "pos_vel": 5,
+    "pos_ff": 6,
+    "pwm": 7,
 }
 
 
 # This should be placed in a try/catch to handle comms errors
 def driveMotor(client, board_ids, actuations, mode):
-    if (len(board_ids) == 1):
+    if len(board_ids) == 1:
         actuations = [actuations]
 
     for board_id, actuation in zip(board_ids, actuations):
         control_mode = control_modes[mode]
         client.writeRegisters(
-            [board_id], [0x2000], [1],
-            [struct.pack('<B', control_mode)])  # Set Control Mode
+            [board_id], [0x2000], [1], [struct.pack("<B", control_mode)]
+        )  # Set Control Mode
 
-        if mode == 'current':
+        if mode == "current":
             client.writeRegisters(
-                [board_id], [0x2001], [2],
-                [struct.pack('<ff', actuation[0], actuation[1])])
-        elif mode == 'phase':
-            client.writeRegisters([board_id], [0x2003], [3], [
-                struct.pack('<fff', actuation[0], actuation[1], actuation[2])
-            ])
-        elif mode == 'torque':
-            client.writeRegisters([board_id], [0x2006], [1],
-                                  [struct.pack('<f', actuation[0])])
-        elif mode == 'velocity':
-            client.writeRegisters([board_id], [0x2007], [1],
-                                  [struct.pack('<f', actuation[0])])
-        elif mode == 'position':
-            client.writeRegisters([board_id], [0x2008], [1],
-                                  [struct.pack('<f', actuation[0])])
-        elif mode == 'pos_ff':
+                [board_id],
+                [0x2001],
+                [2],
+                [struct.pack("<ff", actuation[0], actuation[1])],
+            )
+        elif mode == "phase":
             client.writeRegisters(
-                [board_id], [0x2008], [2],
-                [struct.pack('<ff', actuation[0], actuation[1])])
-        elif mode == 'pwm':
-            client.writeRegisters([board_id], [0x200A], [1],
-                                  [struct.pack('<f', actuation[0])])
+                [board_id],
+                [0x2003],
+                [3],
+                [struct.pack("<fff", actuation[0], actuation[1], actuation[2])],
+            )
+        elif mode == "torque":
+            client.writeRegisters(
+                [board_id], [0x2006], [1], [struct.pack("<f", actuation[0])]
+            )
+        elif mode == "velocity":
+            client.writeRegisters(
+                [board_id], [0x2007], [1], [struct.pack("<f", actuation[0])]
+            )
+        elif mode == "position":
+            client.writeRegisters(
+                [board_id], [0x2008], [1], [struct.pack("<f", actuation[0])]
+            )
+        elif mode == "pos_ff":
+            client.writeRegisters(
+                [board_id],
+                [0x2008],
+                [2],
+                [struct.pack("<ff", actuation[0], actuation[1])],
+            )
+        elif mode == "pwm":
+            client.writeRegisters(
+                [board_id], [0x200A], [1], [struct.pack("<f", actuation[0])]
+            )
 
 
 def clearWDGRST(client):

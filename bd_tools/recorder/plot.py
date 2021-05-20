@@ -8,7 +8,7 @@ if len(sys.argv) < 2:
     exit(0)
 
 data = []
-with open(sys.argv[1], 'rb') as file:
+with open(sys.argv[1], "rb") as file:
     data = pickle.load(file)
 
 length = len(data) // num_channels
@@ -24,46 +24,46 @@ angle = [data[i * num_channels + 7] for i in range(length)]
 vel = [data[i * num_channels + 8] for i in range(length)]
 
 plt.plot(ia)
-plt.xlabel('sample')
-plt.ylabel('Current A')
+plt.xlabel("sample")
+plt.ylabel("Current A")
 plt.show()
 
 plt.plot(ib)
-plt.xlabel('sample')
-plt.ylabel('Current B')
+plt.xlabel("sample")
+plt.ylabel("Current B")
 plt.show()
 
 plt.plot(ic)
-plt.xlabel('sample')
-plt.ylabel('Current C')
+plt.xlabel("sample")
+plt.ylabel("Current C")
 plt.show()
 
 plt.plot(va)
-plt.xlabel('sample')
-plt.ylabel('Voltage A')
+plt.xlabel("sample")
+plt.ylabel("Voltage A")
 plt.show()
 
 plt.plot(vb)
-plt.xlabel('sample')
-plt.ylabel('Voltage B')
+plt.xlabel("sample")
+plt.ylabel("Voltage B")
 plt.show()
 
 plt.plot(vc)
-plt.xlabel('sample')
-plt.ylabel('Voltage C')
+plt.xlabel("sample")
+plt.ylabel("Voltage C")
 plt.show()
 
 plt.plot(vin)
-plt.xlabel('sample')
-plt.ylabel('Vin')
+plt.xlabel("sample")
+plt.ylabel("Vin")
 plt.show()
 
 plt.plot(angle)
-plt.xlabel('sample')
-plt.ylabel('Encoder Angle')
+plt.xlabel("sample")
+plt.ylabel("Encoder Angle")
 plt.show()
 
 plt.plot(vel)
-plt.xlabel('sample')
-plt.ylabel('Encoder Velocity')
+plt.xlabel("sample")
+plt.ylabel("Encoder Velocity")
 plt.show()

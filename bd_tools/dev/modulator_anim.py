@@ -7,22 +7,26 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import math
 
-SCALE = 1. / math.sqrt(3)
+SCALE = 1.0 / math.sqrt(3)
+
 
 def sinusoidal_duty_cycles(angle, amplitude):
-    return np.array([
-        cos(angle),
-        cos(angle - 2. / 3. * pi),
-        cos(angle - 4. / 3. * pi)
-    ]) * SCALE * amplitude + 0.5
+    return (
+        np.array([cos(angle), cos(angle - 2.0 / 3.0 * pi), cos(angle - 4.0 / 3.0 * pi)])
+        * SCALE
+        * amplitude
+        + 0.5
+    )
+
 
 def tbc_duty_cycles(angle, amplitude):
     dc = sinusoidal_duty_cycles(angle, amplitude)
 
-    top_shift = 1. - np.max(dc, axis=0)
+    top_shift = 1.0 - np.max(dc, axis=0)
     bottom_shift = np.min(dc, axis=0)
 
     return np.where(top_shift < bottom_shift, dc + top_shift, dc - bottom_shift)
+
 
 angles = np.linspace(0, 4 * pi, 1001)
 dc = np.zeros((3, len(angles)))
@@ -30,30 +34,31 @@ dc_a, dc_b, dc_c = dc
 
 fig, (ax1, ax2) = plt.subplots(1, 2)
 
-plot_a, = ax1.plot(angles, dc_a, color='r', label='A')
-plot_b, = ax1.plot(angles, dc_b, color='g', label='B')
-plot_c, = ax1.plot(angles, dc_c, color='b', label='C')
-plot_avg, = ax1.plot(angles, np.mean(dc, axis=0), color='k', label='Avg.')
-ax1.set_title('Phase voltages')
-ax1.set_xlabel('Angle (rad)')
-ax1.set_ylabel('Voltage (V)')
+(plot_a,) = ax1.plot(angles, dc_a, color="r", label="A")
+(plot_b,) = ax1.plot(angles, dc_b, color="g", label="B")
+(plot_c,) = ax1.plot(angles, dc_c, color="b", label="C")
+(plot_avg,) = ax1.plot(angles, np.mean(dc, axis=0), color="k", label="Avg.")
+ax1.set_title("Phase voltages")
+ax1.set_xlabel("Angle (rad)")
+ax1.set_ylabel("Voltage (V)")
 ax1.set_ylim(-2, 2)
 ax1.legend()
 
-plot_ab, = ax2.plot(angles, dc_a - dc_b, color='y', label='A - B')
-plot_bc, = ax2.plot(angles, dc_b - dc_c, color='c', label='B - C')
-plot_ca, = ax2.plot(angles, dc_c - dc_a, color='m', label='C - A')
-ax2.set_title('Phase voltage differences')
-ax2.set_xlabel('Angle (rad)')
-ax2.set_ylabel('Voltage difference (V)')
+(plot_ab,) = ax2.plot(angles, dc_a - dc_b, color="y", label="A - B")
+(plot_bc,) = ax2.plot(angles, dc_b - dc_c, color="c", label="B - C")
+(plot_ca,) = ax2.plot(angles, dc_c - dc_a, color="m", label="C - A")
+ax2.set_title("Phase voltage differences")
+ax2.set_xlabel("Angle (rad)")
+ax2.set_ylabel("Voltage difference (V)")
 ax2.set_ylim(-4, 4)
 ax2.legend()
 
+
 def anim_update(i):
     if i < 100:
-        amplitude = i / 100.
+        amplitude = i / 100.0
     else:
-        amplitude = 1.0 - (i - 100) / 100.
+        amplitude = 1.0 - (i - 100) / 100.0
     dc = tbc_duty_cycles(angles, amplitude)
     dc_a, dc_b, dc_c = dc
 
@@ -67,6 +72,9 @@ def anim_update(i):
 
     return [plot_a, plot_b, plot_c, plot_ab, plot_bc, plot_ca]
 
-anim = animation.FuncAnimation(fig, anim_update, np.arange(0, 200), interval=25, blit=False)
+
+anim = animation.FuncAnimation(
+    fig, anim_update, np.arange(0, 200), interval=25, blit=False
+)
 
 plt.show()
