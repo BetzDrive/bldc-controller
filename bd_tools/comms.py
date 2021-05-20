@@ -312,7 +312,7 @@ class BLDCControllerClient:
             server_ids, [0x8000 + i for i in indexes],
             [COMM_NUM_RECORDER_ELEMENTS for sid in server_ids])
         return [
-            struct.unpack('<' + str(COMM_NUM_RECORDER_ELEMENTS) + 'f', data)[0]
+            struct.unpack('<' + str(COMM_NUM_RECORDER_ELEMENTS) + 'f', data)
             for data in ret
         ]
 

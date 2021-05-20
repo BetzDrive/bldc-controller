@@ -14,7 +14,7 @@ def parser_args():
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board id(s) to flash')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE)
+    parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE)
     return parser.parse_args()
 
 def action(args):

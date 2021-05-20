@@ -28,7 +28,7 @@ def parser_args():
                         type=int,
                         help='Maximum number of steps')
     parser.add_argument('--delay', type=float, help='Delay between steps')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE,
+    parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
                         duty_cycle=0.6,
                         max_steps=126,
                         delay=0.05)
@@ -95,7 +95,7 @@ def action(args):
     for i in range(0, l, comms.COMM_NUM_RECORDER_ELEMENTS):
         # Grab the recorder data
         try:
-            data += [client.getRecorderElement(board_ids, [i])]
+            data.extend(client.getRecorderElement(board_ids, [i]))
         except (comms.MalformedPacketError, comms.ProtocolError):
             print("Missed packet")
 

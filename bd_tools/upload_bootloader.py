@@ -17,8 +17,8 @@ def parser_args():
     parser.add_argument('--offset',
                         type=int,
                         help='Offset address for bootloader image')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE,
-                        offset=COMM_BOOTLOADER_OFFSET)
+    parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+                        offset=comms.COMM_BOOTLOADER_OFFSET)
     return parser.parse_args()
 
 

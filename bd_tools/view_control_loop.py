@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-import sys
-import serial
-import time
-from math import sin, cos, pi
 import argparse
 import ast
+import serial
+import struct
+import time
 
 from bd_tools import boards, comms, livegraph
 
@@ -32,8 +31,8 @@ def parser_args():
              'multiple args, separate by comma)'
     )
     parser.set_defaults(
-        baud_rate=COMM_DEFAULT_BAUD_RATE,
-        offset=COMM_BOOTLOADER_OFFSET)
+        baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+        offset=comms.COMM_BOOTLOADER_OFFSET)
     return parser.parse_args()
 
 def action(args):
@@ -65,7 +64,7 @@ def action(args):
                 # Read the iq command
                 data.append(struct.unpack(
                     '<f', client.readRegisters([board_id], [0x3020], [1])[0]))
-            except (MalformedPacketError, ProtocolError):
+            except (comms.MalformedPacketError, comms.ProtocolError):
                 print("Failed to communicate with board: ", board_id)
         return time.time(), None if len(data) != (2 * len(board_ids)) else data
 

@@ -53,7 +53,7 @@ def test_calibrate_encoder(mocker, default_mock_comms):
                  lambda self, bids: [1])
     mocker.patch(
         'bd_tools.comms.BLDCControllerClient.getRecorderElement',
-        lambda self, bids, indexes: [0.0] * comms.COMM_NUM_RECORDER_ELEMENTS)
+        lambda self, bids, indexes: [(0.0,) * comms.COMM_NUM_RECORDER_ELEMENTS])
 
     # Fake a slope to stop the math from breaking.
     def grad_generator():
