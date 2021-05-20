@@ -35,6 +35,7 @@ class DebugLoop:
 
         if self._iters % self._iters_per_print == 0:
             self._print_func()
+            self._iter_start_time = time.time()
 
     def _print_func(self):
         now = time.time()
@@ -55,7 +56,7 @@ class DebugLoop:
         try:
             while True:
                 self._loop_func()
-                if self._iters >= self._num_iters:
+                if self._iters >= self._num_iters and self._num_iters != 0:
                     break
         except KeyboardInterrupt:
             print()  # Clear line immediately after the ctrl-c

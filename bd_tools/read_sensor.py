@@ -4,7 +4,7 @@ import time
 import argparse
 import struct
 
-from tools import comms, boards, utils
+from bd_tools import boards, comms, utils
 
 ReadOnlyRegs = {}
 ReadOnlyRegs['encoder'] = boards.COMM_ROR_ROTOR_POS

@@ -6,7 +6,7 @@ import json
 import struct
 import ast
 
-from tools import boards, comms
+from bd_tools import boards, comms
 
 def parser_args():
     parser = argparse.ArgumentParser(

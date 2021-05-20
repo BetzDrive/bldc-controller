@@ -7,7 +7,7 @@ from math import sin, cos, pi
 import argparse
 import ast
 
-from tools import boards, comms, livegraph
+from bd_tools import boards, comms, livegraph
 
 def parser_args():
     parser = argparse.ArgumentParser(

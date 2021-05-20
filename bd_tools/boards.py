@@ -3,7 +3,7 @@ from __future__ import print_function
 import struct
 import time
 
-from tools import comms
+from bd_tools import comms
 
 # Read Only Registers
 COMM_ROR_ROTOR_POS = 0x3000

@@ -3,8 +3,7 @@ import argparse
 import serial
 import time
 
-from tools import boards, comms
-
+from bd_tools import boards, comms
 
 def parser_args():
     parser = argparse.ArgumentParser(

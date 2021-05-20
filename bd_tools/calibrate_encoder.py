@@ -9,7 +9,7 @@ import numpy as np
 from scipy import signal as sps, stats, interpolate
 import matplotlib.pyplot as plt
 
-from tools import comms, boards
+from bd_tools import boards, comms
 
 # 14-bit encoder
 encoder_ticks_per_rev = 2**14
