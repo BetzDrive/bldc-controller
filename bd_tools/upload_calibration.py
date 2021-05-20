@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
-from comms import *
-from boards import *
+#!/usr/bin/env python3
 
 import argparse
 import serial
@@ -11,20 +7,30 @@ import json
 import struct
 import ast
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Upload calibration values to motor driver board(s)')
+from bd_tools import boards, comms
+
+
+def parser_args():
+    parser = argparse.ArgumentParser(
+        description='Upload calibration values to motor driver board(s)')
     parser.add_argument('serial', type=str, help='Serial port')
     parser.add_argument('--baud_rate', type=int, help='Serial baud rate')
     parser.add_argument('board_ids', type=str, help='Board id(s) to flash')
-    parser.add_argument('--calibration_file', type=str, help='The file which the calibration(s) is/are in')
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, calibration_file='calibrations.json')
-    args = parser.parse_args()
+    parser.add_argument('--calibration_file',
+                        type=str,
+                        help='The file which the calibration(s) is/are in')
+    parser.set_defaults(baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+                        calibration_file='calibrations.json')
+    return parser.parse_args()
 
+
+def action(args):
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=2.0)
     time.sleep(0.2)
     ser.reset_input_buffer()
 
-    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple
+                                      ) else [x]
     make_int = lambda x: [int(y) for y in x]
     board_ids = make_int(make_list(ast.literal_eval(args.board_ids)))
 
@@ -32,9 +38,9 @@ if __name__ == '__main__':
     with open(args.calibration_file) as json_file:
         calibration = json.load(json_file)
 
-    client = BLDCControllerClient(ser)
+    client = comms.BLDCControllerClient(ser)
 
-    initialized = initBoards(client, board_ids)
+    initialized = boards.initBoards(client, board_ids)
 
     client.resetInputBuffer()
 
@@ -46,7 +52,7 @@ if __name__ == '__main__':
             # Reset Calibration on Board
             client.clearCalibration([board_id])
 
-            loadCalibrationFromJSON(client, board_id, calib)
+            boards.loadCalibrationFromJSON(client, board_id, calib)
 
             client.setWatchdogTimeout([board_id], [1000])
 
@@ -60,3 +66,7 @@ if __name__ == '__main__':
             client.storeCalibration([board_id])
 
     ser.close()
+
+
+if __name__ == '__main__':
+    action(parser_args())

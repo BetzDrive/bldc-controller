@@ -1,0 +1,10 @@
+# Tool requirements.
+crcmod
+matplotlib
+numpy
+scipy
+pyserial
+
+# Testing requirements.
+pytest
+pytest-mock
