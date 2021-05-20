@@ -1,19 +1,13 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
-import sys
-
-sys.path.append("..")
-
-import serial
-import time
-from math import sin, cos, pi
+#!/usr/bin/env python3
 import argparse
 import ast
+import serial
+import struct
+import time
+
 import numpy as np
 
-from comms import *
-from boards import *
+from bd_tools import boards, comms
 
 GRAVITY = 9.81
 
@@ -42,17 +36,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "actuations",
         type=str,
-        help="Actuation amount in the units of the selected mode (if requires multiple args, separate by comma)",
+        help="Actuation amount in the units of the selected mode (if requires "
+        "multiple args, separate by comma)",
     )
     parser.set_defaults(
-        baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET
+        baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+        offset=comms.COMM_BOOTLOADER_OFFSET,
     )
     args = parser.parse_args()
 
-    make_list = (
-        lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
-    )
-    make_type = lambda x, to_type: [to_type(y) for y in x]
+    def make_list(x):
+        return list(x) if (type(x) == list or type(x) == tuple) else [x]
+
+    def make_type(x, to_type):
+        return [to_type(y) for y in x]
+
     board_ids = make_type(make_list(ast.literal_eval(args.board_ids)), int)
     actuations = make_list(ast.literal_eval(args.actuations))
 
@@ -60,32 +58,36 @@ if __name__ == "__main__":
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
 
-    client = BLDCControllerClient(ser)
-    initialized = initBoards(client, board_ids)
+    client = comms.BLDCControllerClient(ser)
+    initialized = boards.initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
 
     client.resetInputBuffer()
 
-    initMotor(client, board_ids)
+    boards.initMotor(client, board_ids)
 
     start_time = time.time()
     count = 0
     rollover = 1000
-    getIMU = lambda bids: client.readRegisters(
-        bids, [COMM_ROR_ACC_X] * len(bids), [3] * len(bids)
-    )
+
+    def getIMU(bids):
+        return client.readRegisters(
+            bids, [comms.COMM_ROR_ACC_X] * len(bids), [3] * len(bids)
+        )
+
     while True:
-        # If there's a watchdog reset, clear the reset and perform any configuration again
+        # If there's a watchdog reset, clear the reset and perform any
+        # configuration again
         crashed = client.checkWDGRST()
         if crashed != []:
             try:
                 client.clearWDGRST(crashed)
-            except (MalformedPacketError, ProtocolError):
+            except (comms.MalformedPacketError, comms.ProtocolError):
                 pass
 
         try:
-            driveMotor(client, board_ids, actuations, mode)
+            boards.driveMotor(client, board_ids, actuations, mode)
             responses = getIMU(board_ids)
             for i in range(len(responses)):
                 val = struct.unpack("<hhh", responses[i])
@@ -99,5 +101,5 @@ if __name__ == "__main__":
                     message.format("imu", np_val),
                     np.linalg.norm(np_val),
                 )
-        except (MalformedPacketError, ProtocolError):
+        except (comms.MalformedPacketError, comms.ProtocolError):
             time.sleep(0.1)

@@ -56,8 +56,6 @@ def test_calibrate_encoder(mocker, default_mock_comms):
         board_id: int = 1
         delay: float = 0.1
 
-    args = Args()
-
     mocker.patch("bd_tools.calibrate_encoder.serial")
     mocker.patch("bd_tools.boards.initMotor")
     mocker.patch("bd_tools.boards.driveMotor")
