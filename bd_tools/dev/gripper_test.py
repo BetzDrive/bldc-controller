@@ -19,7 +19,9 @@ if __name__ == "__main__":
         addresses = [int(sys.argv[2])]
         duty_cycles = [float(sys.argv[3])]
     except ValueError:
-        addresses = [int(address_str) for address_str in sys.argv[2].split(",")]
+        addresses = [
+            int(address_str) for address_str in sys.argv[2].split(",")
+        ]
         duty_cycles = [
             float(duty_cycle_str) for duty_cycle_str in sys.argv[3].split(",")
         ]
@@ -38,7 +40,10 @@ if __name__ == "__main__":
         client.setERevsPerMRev([address], [calibration_obj["epm"]])
         client.setTorqueConstant([address], [calibration_obj["torque"]])
         client.setPositionOffset([address], [calibration_obj["zero"]])
-        if "eac_type" in calibration_obj and calibration_obj["eac_type"] == "int8":
+        if (
+            "eac_type" in calibration_obj
+            and calibration_obj["eac_type"] == "int8"
+        ):
             print("EAC calibration available")
             try:
                 client.writeRegisters(
@@ -56,28 +61,36 @@ if __name__ == "__main__":
                 eac_table_len = len(calibration_obj["eac_table"])
                 slice_len = 64
                 for i in range(0, eac_table_len, slice_len):
-                    table_slice = calibration_obj["eac_table"][i : i + slice_len]
+                    table_slice = calibration_obj["eac_table"][
+                        i : i + slice_len
+                    ]
                     client.writeRegisters(
                         [address],
                         [0x1200 + i],
                         [len(table_slice)],
-                        [struct.pack("<{}b".format(len(table_slice)), *table_slice)],
+                        [
+                            struct.pack(
+                                "<{}b".format(len(table_slice)), *table_slice
+                            )
+                        ],
                     )
             except ProtocolError:
                 print(
                     "WARNING: Motor driver board does not support encoder angle compensation, try updating the firmware."
                 )
         client.setCurrentControlMode([address])
-        client.writeRegisters([address], [0x1030], [1], [struct.pack("<H", 1000)])
+        client.writeRegisters(
+            [address], [0x1030], [1], [struct.pack("<H", 1000)]
+        )
         client.writeRegisters(
             [address], [0x2000], [1], [struct.pack("<B", 2)]
         )  # Torque control
         # print("Motor %d ready: supply voltage=%fV", address, client.getVoltage(address))
 
     num_grips = 0
-    start_pos = struct.unpack("<f", client.readRegisters([address], [0x3000], [1])[0])[
-        0
-    ]
+    start_pos = struct.unpack(
+        "<f", client.readRegisters([address], [0x3000], [1])[0]
+    )[0]
     overheated = False
 
     di_list = []
@@ -101,7 +114,8 @@ if __name__ == "__main__":
                     [address], [0x2006], [1], [struct.pack("<f", duty_cycle)]
                 )
                 state = struct.unpack(
-                    "<ffffff", client.readRegisters([address], [0x3000], [6])[0]
+                    "<ffffff",
+                    client.readRegisters([address], [0x3000], [6])[0],
                 )
                 di_list.append(state[2])
                 qi_list.append(state[3])
@@ -120,7 +134,8 @@ if __name__ == "__main__":
                     [address], [0x2006], [1], [struct.pack("<f", -duty_cycle)]
                 )
                 state = struct.unpack(
-                    "<ffffff", client.readRegisters([address], [0x3000], [6])[0]
+                    "<ffffff",
+                    client.readRegisters([address], [0x3000], [6])[0],
                 )
                 di_list.append(state[2])
                 qi_list.append(state[3])

@@ -12,7 +12,14 @@ import pprint
 import argparse
 
 # 14-bit encoder
-phase_state_list = [(1, 0, 0), (1, 1, 0), (0, 1, 0), (0, 1, 1), (0, 0, 1), (1, 0, 1)]
+phase_state_list = [
+    (1, 0, 0),
+    (1, 1, 0),
+    (0, 1, 0),
+    (0, 1, 1),
+    (0, 0, 1),
+    (1, 0, 1),
+]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -71,7 +78,9 @@ if __name__ == "__main__":
     client.writeRegisters(
         [args.board_id], [0x2003], [3], [struct.pack("<fff", 0, 0, 0)]
     )
-    client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack("<B", 1)])
+    client.writeRegisters(
+        [args.board_id], [0x2000], [1], [struct.pack("<B", 1)]
+    )
 
     time.sleep(args.delay)
 
@@ -86,7 +95,9 @@ if __name__ == "__main__":
     print("success: %u" % success)
 
     for i in range(args.steps):
-        set_phase_state(phase_state_list[i % 6])  # Commute motor through the 6 phases
+        set_phase_state(
+            phase_state_list[i % 6]
+        )  # Commute motor through the 6 phases
         time.sleep(args.delay)
 
     # The number of values returned by the recorder (all floats)
@@ -110,7 +121,9 @@ if __name__ == "__main__":
                     a = struct.unpack(
                         "<" + str(num_recorder_elements) + "f",
                         client.readRegisters(
-                            [args.board_id], [0x8000 + i], [num_recorder_elements]
+                            [args.board_id],
+                            [0x8000 + i],
+                            [num_recorder_elements],
                         )[0],
                     )
                     arr += [a]

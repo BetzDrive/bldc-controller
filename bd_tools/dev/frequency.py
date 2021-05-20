@@ -32,8 +32,14 @@ for id in motor_ids:
             client.setERevsPerMRev([id], [calibrations["epm"]])
             client.setTorqueConstant([id], [calibrations["torque"]])
             client.setPositionOffset([id], [calibrations["zero"]])
-            client.writeRegisters([id], [0x1030], [1], [struct.pack("<H", 1000)])
-            print("Motor %d ready: supply voltage=%fV", id, client.getVoltage([id])[0])
+            client.writeRegisters(
+                [id], [0x1030], [1], [struct.pack("<H", 1000)]
+            )
+            print(
+                "Motor %d ready: supply voltage=%fV",
+                id,
+                client.getVoltage([id])[0],
+            )
             success = True
             break
         except Exception as e:
@@ -58,7 +64,9 @@ while True:
     # Update user every 1000 packets.
     for _ in range(1000):
         try:
-            states = client.setCommandAndGetState(motor_ids, [0.3] * len(motor_ids))
+            states = client.setCommandAndGetState(
+                motor_ids, [0.3] * len(motor_ids)
+            )
             for state in states:
                 if state == None:
                     errors += 1
@@ -72,7 +80,12 @@ while True:
     if errors:
         with open("spinner_log.txt", "a") as myfile:
             myfile.write(
-                str(time.time()) + ", " + str(thous_packs) + ", " + str(errors) + "\n"
+                str(time.time())
+                + ", "
+                + str(thous_packs)
+                + ", "
+                + str(errors)
+                + "\n"
             )
         myfile.close()
 

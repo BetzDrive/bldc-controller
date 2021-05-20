@@ -22,7 +22,9 @@ def parser_args():
         type=int,
         help="Number of iterations to loop (default to infinity)",
     )
-    parser.add_argument("board_ids", type=str, help="Board ID (separate with comma)")
+    parser.add_argument(
+        "board_ids", type=str, help="Board ID (separate with comma)"
+    )
     parser.add_argument(
         "mode",
         type=str,
@@ -51,14 +53,18 @@ def parser_args():
 
 
 def action(args):
-    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    make_list = (
+        lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    )
     make_type = lambda x, to_type: [to_type(y) for y in x]
     board_ids = make_type(make_list(ast.literal_eval(args.board_ids)), int)
     actuations = make_list(ast.literal_eval(args.actuations))
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.001)
+    ser = serial.Serial(
+        port=args.serial, baudrate=args.baud_rate, timeout=0.001
+    )
 
     client = comms.BLDCControllerClient(ser)
     initialized = boards.initBoards(client, board_ids)

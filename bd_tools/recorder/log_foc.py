@@ -56,7 +56,9 @@ if __name__ == "__main__":
         "<B", client.readRegisters([args.board_id], [0x300B], [1])[0]
     )[0]
     print("reset: %u" % reset)
-    success = struct.unpack("<B", client.readRegisters([board_id], [0x3009], [1])[0])[0]
+    success = struct.unpack(
+        "<B", client.readRegisters([board_id], [0x3009], [1])[0]
+    )[0]
     print("started: %u" % success)
 
     run_time = 2
@@ -70,16 +72,22 @@ if __name__ == "__main__":
         time.sleep(0.1)
     time.sleep(1.2)
 
-    l = struct.unpack("<H", client.readRegisters([board_id], [0x300A], [1])[0])[0]
+    l = struct.unpack(
+        "<H", client.readRegisters([board_id], [0x300A], [1])[0]
+    )[0]
     while l == 0:
-        l = struct.unpack("<H", client.readRegisters([board_id], [0x300A], [1])[0])[0]
+        l = struct.unpack(
+            "<H", client.readRegisters([board_id], [0x300A], [1])[0]
+        )[0]
         time.sleep(0.1)
     arr = []
     for i in range(0, l, num_recorder_elements):
         # Grab the recorder data
         a = struct.unpack(
             "<" + str(num_recorder_elements) + "f",
-            client.readRegisters([board_id], [0x8000 + i], [num_recorder_elements])[0],
+            client.readRegisters(
+                [board_id], [0x8000 + i], [num_recorder_elements]
+            )[0],
         )
         arr += [a]
 

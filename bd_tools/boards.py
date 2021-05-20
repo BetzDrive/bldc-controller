@@ -93,7 +93,11 @@ def loadCalibrationFromJSON(client, board_id, calibration_obj):
                     [board_id],
                     [0x1200 + i],
                     [len(table_slice)],
-                    [struct.pack("<{}b".format(len(table_slice)), *table_slice)],
+                    [
+                        struct.pack(
+                            "<{}b".format(len(table_slice)), *table_slice
+                        )
+                    ],
                 )
         except ProtocolError:
             print(
@@ -165,7 +169,11 @@ def driveMotor(client, board_ids, actuations, mode):
                 [board_id],
                 [0x2003],
                 [3],
-                [struct.pack("<fff", actuation[0], actuation[1], actuation[2])],
+                [
+                    struct.pack(
+                        "<fff", actuation[0], actuation[1], actuation[2]
+                    )
+                ],
             )
         elif mode == "torque":
             client.writeRegisters(

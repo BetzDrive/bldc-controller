@@ -26,14 +26,22 @@ class BaseArgs:
 @pytest.fixture
 def default_mock_comms(mocker):
     mocker.patch(
-        "bd_tools.comms.BLDCControllerClient.enumerateBoards", lambda self, x: x
+        "bd_tools.comms.BLDCControllerClient.enumerateBoards",
+        lambda self, x: x,
     )
-    mocker.patch("bd_tools.comms.BLDCControllerClient.confirmBoards", lambda self, x: x)
     mocker.patch(
-        "bd_tools.comms.BLDCControllerClient.leaveBootloader", lambda self, x: x
+        "bd_tools.comms.BLDCControllerClient.confirmBoards", lambda self, x: x
     )
-    mocker.patch("bd_tools.comms.BLDCControllerClient.checkWDGRST", lambda self: [])
-    mocker.patch("bd_tools.comms.BLDCControllerClient.clearWDGRST", lambda self, x: x)
+    mocker.patch(
+        "bd_tools.comms.BLDCControllerClient.leaveBootloader",
+        lambda self, x: x,
+    )
+    mocker.patch(
+        "bd_tools.comms.BLDCControllerClient.checkWDGRST", lambda self: []
+    )
+    mocker.patch(
+        "bd_tools.comms.BLDCControllerClient.clearWDGRST", lambda self, x: x
+    )
 
 
 def test_calibrate_encoder(mocker, default_mock_comms):
@@ -59,14 +67,18 @@ def test_calibrate_encoder(mocker, default_mock_comms):
         lambda self, bids: [1],
     )
     mocker.patch(
-        "bd_tools.comms.BLDCControllerClient.startRecorder", lambda self, bids: [1]
+        "bd_tools.comms.BLDCControllerClient.startRecorder",
+        lambda self, bids: [1],
     )
     mocker.patch(
-        "bd_tools.comms.BLDCControllerClient.getRecorderLength", lambda self, bids: [1]
+        "bd_tools.comms.BLDCControllerClient.getRecorderLength",
+        lambda self, bids: [1],
     )
     mocker.patch(
         "bd_tools.comms.BLDCControllerClient.getRecorderElement",
-        lambda self, bids, indexes: [(0.0,) * comms.COMM_NUM_RECORDER_ELEMENTS],
+        lambda self, bids, indexes: [
+            (0.0,) * comms.COMM_NUM_RECORDER_ELEMENTS
+        ],
     )
 
     # Fake a slope to stop the math from breaking.
@@ -81,7 +93,8 @@ def test_calibrate_encoder(mocker, default_mock_comms):
         return grad
 
     mocker.patch(
-        "bd_tools.comms.BLDCControllerClient.getRawRotorPosition", grad_generator()
+        "bd_tools.comms.BLDCControllerClient.getRawRotorPosition",
+        grad_generator(),
     )
 
     mocker.patch("bd_tools.calibrate_encoder.input")

@@ -15,15 +15,21 @@ if __name__ == "__main__":
         description="Drive motor module(s) with a given control mode."
     )
     parser.add_argument(
-        "transmit", type=str, help="Transmitter serial port (i.e. /dev/ttyUSB0)"
+        "transmit",
+        type=str,
+        help="Transmitter serial port (i.e. /dev/ttyUSB0)",
     )
     parser.add_argument("receive", type=str, help="Receiver serial port")
     parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
     parser.set_defaults(baud_rate=DEFAULT_BAUD_RATE)
     args = parser.parse_args()
 
-    trn = serial.Serial(port=args.transmit, baudrate=args.baud_rate, timeout=2.0)
-    rec = serial.Serial(port=args.receive, baudrate=args.baud_rate, timeout=2.0)
+    trn = serial.Serial(
+        port=args.transmit, baudrate=args.baud_rate, timeout=2.0
+    )
+    rec = serial.Serial(
+        port=args.receive, baudrate=args.baud_rate, timeout=2.0
+    )
 
     trn.reset_input_buffer()
     rec.reset_input_buffer()

@@ -16,7 +16,9 @@ def parser_args():
     )
     parser.add_argument("serial", type=str, help="Serial port")
     parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
-    parser.add_argument("board_ids", type=str, help="Board ID (separate with comma)")
+    parser.add_argument(
+        "board_ids", type=str, help="Board ID (separate with comma)"
+    )
     parser.add_argument(
         "mode",
         type=str,
@@ -36,20 +38,25 @@ def parser_args():
         "multiple args, separate by comma)",
     )
     parser.set_defaults(
-        baud_rate=comms.COMM_DEFAULT_BAUD_RATE, offset=comms.COMM_BOOTLOADER_OFFSET
+        baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+        offset=comms.COMM_BOOTLOADER_OFFSET,
     )
     return parser.parse_args()
 
 
 def action(args):
-    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    make_list = (
+        lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    )
     make_int = lambda x: [int(y) for y in x]
     board_ids = make_int(make_list(ast.literal_eval(args.board_ids)))
     actuations = make_list(ast.literal_eval(args.actuations))
 
     mode = args.mode
 
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.05)
+    ser = serial.Serial(
+        port=args.serial, baudrate=args.baud_rate, timeout=0.05
+    )
 
     client = comms.BLDCControllerClient(ser)
     initialized = boards.initBoards(client, board_ids)
@@ -67,13 +74,15 @@ def action(args):
                 # Read the iq calulated
                 data.append(
                     struct.unpack(
-                        "<f", client.readRegisters([board_id], [0x3003], [1])[0]
+                        "<f",
+                        client.readRegisters([board_id], [0x3003], [1])[0],
                     )
                 )
                 # Read the iq command
                 data.append(
                     struct.unpack(
-                        "<f", client.readRegisters([board_id], [0x3020], [1])[0]
+                        "<f",
+                        client.readRegisters([board_id], [0x3020], [1])[0],
                     )
                 )
             except (comms.MalformedPacketError, comms.ProtocolError):

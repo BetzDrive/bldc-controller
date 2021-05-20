@@ -23,7 +23,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("serial", type=str, help="Serial port")
     parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
-    parser.add_argument("board_ids", type=str, help="Board ID (separate with comma)")
+    parser.add_argument(
+        "board_ids", type=str, help="Board ID (separate with comma)"
+    )
     parser.add_argument(
         "mode",
         type=str,
@@ -42,10 +44,14 @@ if __name__ == "__main__":
         type=str,
         help="Actuation amount in the units of the selected mode (if requires multiple args, separate by comma)",
     )
-    parser.set_defaults(baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET)
+    parser.set_defaults(
+        baud_rate=COMM_DEFAULT_BAUD_RATE, offset=COMM_BOOTLOADER_OFFSET
+    )
     args = parser.parse_args()
 
-    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    make_list = (
+        lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    )
     make_type = lambda x, to_type: [to_type(y) for y in x]
     board_ids = make_type(make_list(ast.literal_eval(args.board_ids)), int)
     actuations = make_list(ast.literal_eval(args.actuations))
@@ -88,7 +94,10 @@ if __name__ == "__main__":
                 bid = board_ids[i]
                 message = "{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}"
                 print(
-                    "Board:", bid, message.format("imu", np_val), np.linalg.norm(np_val)
+                    "Board:",
+                    bid,
+                    message.format("imu", np_val),
+                    np.linalg.norm(np_val),
                 )
         except (MalformedPacketError, ProtocolError):
             time.sleep(0.1)

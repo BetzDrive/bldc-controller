@@ -87,7 +87,9 @@ if __name__ == "__main__":
                     a = struct.unpack(
                         "<" + str(num_recorder_elements) + "f",
                         client.readRegisters(
-                            [args.board_id], [0x8000 + i], [num_recorder_elements]
+                            [args.board_id],
+                            [0x8000 + i],
+                            [num_recorder_elements],
                         )[0],
                     )
                     arr += [a]

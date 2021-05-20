@@ -42,11 +42,19 @@ def writeAngle(address, value):
 
 def writeCalibration(address):
     calibrations = client.readCalibration(address)
-    client.writeRegisters(address, 0x1000, 1, struct.pack("<H", calibrations["angle"]))
+    client.writeRegisters(
+        address, 0x1000, 1, struct.pack("<H", calibrations["angle"])
+    )
     client.writeRegisters(address, 0x2000, 1, struct.pack("<B", 0))
-    client.writeRegisters(address, 0x1002, 1, struct.pack("<B", calibrations["inv"]))
-    client.writeRegisters(address, 0x1001, 1, struct.pack("<B", calibrations["epm"]))
-    client.writeRegisters(address, 0x1022, 1, struct.pack("<f", calibrations["torque"]))
+    client.writeRegisters(
+        address, 0x1002, 1, struct.pack("<B", calibrations["inv"])
+    )
+    client.writeRegisters(
+        address, 0x1001, 1, struct.pack("<B", calibrations["epm"])
+    )
+    client.writeRegisters(
+        address, 0x1022, 1, struct.pack("<f", calibrations["torque"])
+    )
 
 
 angle1s = [0, 0]

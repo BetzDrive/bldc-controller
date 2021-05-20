@@ -65,7 +65,10 @@ class MalformedPacketError(Exception):
 
 class FlashSectorMap:
     def __init__(self, sector_count, sector_starts, sector_sizes):
-        if len(sector_starts) != sector_count or len(sector_sizes) != sector_count:
+        if (
+            len(sector_starts) != sector_count
+            or len(sector_sizes) != sector_count
+        ):
             raise ValueError(
                 "sector_starts and sector_sizes must have the correct length"
             )
@@ -149,7 +152,9 @@ class BLDCControllerClient:
         angles = [
             struct.unpack("<f", data)[0]
             for data in self.readRegisters(
-                server_ids, [0x3000 for sid in server_ids], [1 for sid in server_ids]
+                server_ids,
+                [0x3000 for sid in server_ids],
+                [1 for sid in server_ids],
             )
         ]
         return angles
@@ -158,7 +163,9 @@ class BLDCControllerClient:
         ticks = [
             struct.unpack("<H", data)[0]
             for data in self.readRegisters(
-                server_ids, [0x3010 for sid in server_ids], [1 for sid in server_ids]
+                server_ids,
+                [0x3010 for sid in server_ids],
+                [1 for sid in server_ids],
             )
         ]
         return ticks
@@ -168,7 +175,9 @@ class BLDCControllerClient:
         states = [
             struct.unpack("<ffffffiii", data)
             for data in self.readRegisters(
-                server_ids, [0x3000 for sid in server_ids], [9 for sid in server_ids]
+                server_ids,
+                [0x3000 for sid in server_ids],
+                [9 for sid in server_ids],
             )
         ]
         return states
@@ -178,7 +187,9 @@ class BLDCControllerClient:
         states = [
             struct.unpack("<f", data)[0]
             for data in self.readRegisters(
-                server_ids, [0x3004 for sid in server_ids], [1 for sid in server_ids]
+                server_ids,
+                [0x3004 for sid in server_ids],
+                [1 for sid in server_ids],
             )
         ]
         return states
@@ -188,7 +199,9 @@ class BLDCControllerClient:
         states = [
             struct.unpack("<f", data)[0]
             for data in self.readRegisters(
-                server_ids, [0x3005 for sid in server_ids], [1 for sid in server_ids]
+                server_ids,
+                [0x3005 for sid in server_ids],
+                [1 for sid in server_ids],
             )
         ]
         return states
@@ -317,7 +330,9 @@ class BLDCControllerClient:
         torque_const = [
             struct.unpack("<f", data)[0]
             for data in self.readRegisters(
-                server_ids, [0x1022 for sid in server_ids], [1 for sid in server_ids]
+                server_ids,
+                [0x1022 for sid in server_ids],
+                [1 for sid in server_ids],
             )
         ]
         return torque_const
@@ -368,19 +383,25 @@ class BLDCControllerClient:
 
     def resetRecorderBuffer(self, server_ids):
         ret = self.readRegisters(
-            server_ids, [0x300B for sid in server_ids], [1 for sid in server_ids]
+            server_ids,
+            [0x300B for sid in server_ids],
+            [1 for sid in server_ids],
         )
         return [struct.unpack("<B", data)[0] for data in ret]
 
     def startRecorder(self, server_ids):
         ret = self.readRegisters(
-            server_ids, [0x3009 for sid in server_ids], [1 for sid in server_ids]
+            server_ids,
+            [0x3009 for sid in server_ids],
+            [1 for sid in server_ids],
         )
         return [struct.unpack("<B", data)[0] for data in ret]
 
     def getRecorderLength(self, server_ids):
         ret = self.readRegisters(
-            server_ids, [0x300A for sid in server_ids], [1 for sid in server_ids]
+            server_ids,
+            [0x300A for sid in server_ids],
+            [1 for sid in server_ids],
         )
         return [struct.unpack("<H", data)[0] for data in ret]
 
@@ -425,7 +446,9 @@ class BLDCControllerClient:
         return success
 
     def leaveBootloader(self, server_ids):
-        self.jumpToAddress(server_ids, [COMM_FIRMWARE_OFFSET for sid in server_ids])
+        self.jumpToAddress(
+            server_ids, [COMM_FIRMWARE_OFFSET for sid in server_ids]
+        )
         time.sleep(0.1)
         self._ser.read_all()
 
@@ -436,7 +459,10 @@ class BLDCControllerClient:
         responses = self.doTransaction(
             server_ids,
             [COMM_FC_REG_READ] * len(server_ids),
-            [struct.pack("<HB", addr, ct) for addr, ct in zip(start_addr, count)],
+            [
+                struct.pack("<HB", addr, ct)
+                for addr, ct in zip(start_addr, count)
+            ],
         )
         data = [response[1] for response in responses]
         return data
@@ -465,7 +491,11 @@ class BLDCControllerClient:
         message = [
             struct.pack("<HBHB", readsa, readct, writesa, writect) + writed
             for readsa, readct, writesa, writect, writed in zip(
-                read_start_addr, read_count, write_start_addr, write_count, write_data
+                read_start_addr,
+                read_count,
+                write_start_addr,
+                write_count,
+                write_data,
             )
         ]
         responses = self.doTransaction(
@@ -487,29 +517,35 @@ class BLDCControllerClient:
         return True
 
     def getFlashSectorCount(self, server_id):
-        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_COUNT], [b""])[
-            0
-        ]
+        responses = self.doTransaction(
+            server_id, [COMM_FC_FLASH_SECTOR_COUNT], [b""]
+        )[0]
         _, data = responses
         return struct.unpack("<I", data)[0]
 
     def getFlashSectorStart(self, server_id, sector_nums):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_SECTOR_START], [struct.pack("<I", sector_nums)]
+            server_id,
+            [COMM_FC_FLASH_SECTOR_START],
+            [struct.pack("<I", sector_nums)],
         )[0]
         _, data = responses
         return struct.unpack("<I", data)[0]
 
     def getFlashSectorSize(self, server_id, sector_nums):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_SECTOR_SIZE], [struct.pack("<I", sector_nums)]
+            server_id,
+            [COMM_FC_FLASH_SECTOR_SIZE],
+            [struct.pack("<I", sector_nums)],
         )[0]
         _, data = responses
         return struct.unpack("<I", data)[0]
 
     def eraseFlashSector(self, server_id, sector_nums):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_SECTOR_ERASE], [struct.pack("<I", sector_nums)]
+            server_id,
+            [COMM_FC_FLASH_SECTOR_ERASE],
+            [struct.pack("<I", sector_nums)],
         )[0]
         success, _ = responses
         return success
@@ -525,12 +561,16 @@ class BLDCControllerClient:
                         data[i : i + COMM_SINGLE_PROGRAM_LENGTH],
                     )
                 except (MalformedPacketError, ProtocolError) as e:
-                    print(f"Error: Retrying upload of segment {i} of {len(data)}")
+                    print(
+                        f"Error: Retrying upload of segment {i} of {len(data)}"
+                    )
         return True
 
     def _programFlashLimitedLength(self, server_id, dest_addr, data):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_PROGRAM], [(struct.pack("<I", dest_addr) + data)]
+            server_id,
+            [COMM_FC_FLASH_PROGRAM],
+            [(struct.pack("<I", dest_addr) + data)],
         )[0]
         success, _ = responses
         return success
@@ -539,7 +579,9 @@ class BLDCControllerClient:
         data = b""
         for i in range(0, length, COMM_SINGLE_READ_LENGTH):
             read_len = min(length - i, COMM_SINGLE_READ_LENGTH)
-            data_chunk = self._readFlashLimitedLength(server_id, src_addr + i, read_len)
+            data_chunk = self._readFlashLimitedLength(
+                server_id, src_addr + i, read_len
+            )
             if len(data_chunk) != read_len:
                 return False
             data += data_chunk
@@ -547,13 +589,17 @@ class BLDCControllerClient:
 
     def _readFlashLimitedLength(self, server_id, src_addr, length):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_READ], [struct.pack("<II", src_addr, length)]
+            server_id,
+            [COMM_FC_FLASH_READ],
+            [struct.pack("<II", src_addr, length)],
         )[0]
         _, data = responses
         return data
 
     def readCalibration(self, server_id):
-        l = struct.unpack("<H", self.readFlash(server_id, COMM_NVPARAMS_OFFSET, 2))[0]
+        l = struct.unpack(
+            "<H", self.readFlash(server_id, COMM_NVPARAMS_OFFSET, 2)
+        )[0]
         print("Calibration of length:", l)
         b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET + 2, l)
         return json.loads(b)
@@ -570,12 +616,16 @@ class BLDCControllerClient:
                         data[i : i + COMM_SINGLE_VERIFY_LENGTH],
                     )
                 except (MalformedPacketError, ProtocolError) as e:
-                    print(f"Error: Retrying verification of segment {i} of {len(data)}")
+                    print(
+                        f"Error: Retrying verification of segment {i} of {len(data)}"
+                    )
         return True
 
     def _verifyFlashLimitedLength(self, server_id, dest_addr, data):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_VERIFY], [struct.pack("<I", dest_addr) + data]
+            server_id,
+            [COMM_FC_FLASH_VERIFY],
+            [struct.pack("<I", dest_addr) + data],
         )[0]
         success, _ = responses
         return success
@@ -594,7 +644,9 @@ class BLDCControllerClient:
             sector_map = self.getFlashSectorMap(server_id)
 
         # Find out which sectors need to be erased
-        board_sector_nums = sector_map.getFlashSectorsOfAddressRange(addr, length)
+        board_sector_nums = sector_map.getFlashSectorsOfAddressRange(
+            addr, length
+        )
 
         for nums in board_sector_nums:
             success = self.eraseFlashSector(server_id, nums)
@@ -673,10 +725,13 @@ class BLDCControllerClient:
             sub_message = struct.pack("<BB", server_ids[i], func_code[i])
             if data != []:
                 sub_message = sub_message + data[i]
-            message = message + struct.pack("H", len(sub_message)) + sub_message
+            message = (
+                message + struct.pack("H", len(sub_message)) + sub_message
+            )
 
         prefixed_message = (
-            struct.pack("<BBBH", 0xFF, COMM_VERSION, flags, len(message)) + message
+            struct.pack("<BBBH", 0xFF, COMM_VERSION, flags, len(message))
+            + message
         )
         crc = self._computeCRC(message)
         datagram = prefixed_message + struct.pack("<H", crc)
@@ -695,7 +750,9 @@ class BLDCControllerClient:
         if len(sync) != 1 or sync != b"\xff":
             # Reached maximum number of tries
             # self._ser.flushInput()
-            raise MalformedPacketError(f"id: {server_id} - Unfound start byte.")
+            raise MalformedPacketError(
+                f"id: {server_id} - Unfound start byte."
+            )
 
         if DEBUG:
             print("Found Packet")
@@ -703,7 +760,9 @@ class BLDCControllerClient:
         version = self._ser.read()
         if len(version) != 1 or version != b"\xfe":
             # self._ser.flushInput()
-            raise MalformedPacketError(f"id: {server_id} - Incorrect version number.")
+            raise MalformedPacketError(
+                f"id: {server_id} - Incorrect version number."
+            )
 
         if DEBUG:
             print("Proper Protocol")
@@ -712,7 +771,9 @@ class BLDCControllerClient:
 
         length = self._ser.read(2)
         if length == None or len(length) != 2:
-            raise MalformedPacketError(f"id: {server_id} - Packet length incorrect.")
+            raise MalformedPacketError(
+                f"id: {server_id} - Packet length incorrect."
+            )
 
         (message_len,) = struct.unpack("H", length)
 
@@ -727,7 +788,9 @@ class BLDCControllerClient:
 
         if len(message) < message_len:
             # self._ser.flushInput()
-            raise MalformedPacketError(f"id: {server_id} - Incomplete packet received.")
+            raise MalformedPacketError(
+                f"id: {server_id} - Incomplete packet received."
+            )
 
         crc_bytes = self._ser.read(2)
         # print (":".join("{:02x}".format(c) for c in crc_bytes))

@@ -12,7 +12,13 @@ SCALE = 1.0 / math.sqrt(3)
 
 def sinusoidal_duty_cycles(angle, amplitude):
     return (
-        np.array([cos(angle), cos(angle - 2.0 / 3.0 * pi), cos(angle - 4.0 / 3.0 * pi)])
+        np.array(
+            [
+                cos(angle),
+                cos(angle - 2.0 / 3.0 * pi),
+                cos(angle - 4.0 / 3.0 * pi),
+            ]
+        )
         * SCALE
         * amplitude
         + 0.5
@@ -25,7 +31,9 @@ def tbc_duty_cycles(angle, amplitude):
     top_shift = 1.0 - np.max(dc, axis=0)
     bottom_shift = np.min(dc, axis=0)
 
-    return np.where(top_shift < bottom_shift, dc + top_shift, dc - bottom_shift)
+    return np.where(
+        top_shift < bottom_shift, dc + top_shift, dc - bottom_shift
+    )
 
 
 angles = np.linspace(0, 4 * pi, 1001)

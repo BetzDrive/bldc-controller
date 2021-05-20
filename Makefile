@@ -17,4 +17,4 @@ lint_cpp:
 format: format_python
 
 format_python:
-	black tests bd_tools
+	black --line-length 79 tests bd_tools

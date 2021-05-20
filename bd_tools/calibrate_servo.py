@@ -33,7 +33,9 @@ def midpoint_clamping_svm(angle, magnitude):
 
 
 def circular_mean(a, b):
-    return np.arctan2(0.5 * (np.sin(a) + np.sin(b)), 0.5 * (np.cos(a) + np.cos(b)))
+    return np.arctan2(
+        0.5 * (np.sin(a) + np.sin(b)), 0.5 * (np.cos(a) + np.cos(b))
+    )
 
 
 def wrap_pi(a):
@@ -76,9 +78,13 @@ if __name__ == "__main__":
     parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
     parser.add_argument("board_id", type=int, help="Board ID")
     parser.add_argument("duty_cycle", type=float, help="Duty cycle")
-    parser.add_argument("--max_steps", type=int, help="Maximum number of steps")
+    parser.add_argument(
+        "--max_steps", type=int, help="Maximum number of steps"
+    )
     parser.add_argument("--delay", type=float, help="Delay between steps")
-    parser.add_argument("--start_delay", type=float, help="Delay before first step")
+    parser.add_argument(
+        "--start_delay", type=float, help="Delay before first step"
+    )
     parser.add_argument(
         "--plot",
         dest="plot",
@@ -129,7 +135,9 @@ if __name__ == "__main__":
     client.writeRegisters(
         [args.board_id], [0x2003], [3], [struct.pack("<fff", 0, 0, 0)]
     )
-    client.writeRegisters([args.board_id], [0x2000], [1], [struct.pack("<B", 1)])
+    client.writeRegisters(
+        [args.board_id], [0x2000], [1], [struct.pack("<B", 1)]
+    )
 
     # Start one step before phase A to avoid boundary issues
     set_phase_state(-1)
@@ -150,7 +158,10 @@ if __name__ == "__main__":
             and (i % steps_per_erev == 0)
             and (
                 abs(forward_raw_angles[0] - raw_angle)
-                < abs(forward_raw_angles[steps_per_erev // 2] - forward_raw_angles[0])
+                < abs(
+                    forward_raw_angles[steps_per_erev // 2]
+                    - forward_raw_angles[0]
+                )
             )
         ):
             break
@@ -198,7 +209,9 @@ if __name__ == "__main__":
     enc_angles = circular_mean(forward_angles, backward_angles)
 
     # Move smallest encoder angle aligned with phase A to the front, for consistency
-    smallest_index = np.argmin(enc_angles[::steps_per_erev] % (2 * pi)) * steps_per_erev
+    smallest_index = (
+        np.argmin(enc_angles[::steps_per_erev] % (2 * pi)) * steps_per_erev
+    )
     enc_angles = np.roll(enc_angles, -smallest_index)
 
     # Find the most likely true encoder angles
@@ -210,24 +223,31 @@ if __name__ == "__main__":
     true_enc_angles = enc_angles_start + enc_angles_trend
 
     # Build encoder angle compensation table
-    interp_enc_angles = np.linspace(0, 2 * pi, enc_ang_corr_table_size, endpoint=False)
+    interp_enc_angles = np.linspace(
+        0, 2 * pi, enc_ang_corr_table_size, endpoint=False
+    )
     interp_true_enc_angles = interp_periodic_periodic(
         interp_enc_angles, enc_angles, true_enc_angles
     )
-    interp_true_enc_angle_diff = wrap_pi(interp_true_enc_angles - interp_enc_angles)
+    interp_true_enc_angle_diff = wrap_pi(
+        interp_true_enc_angles - interp_enc_angles
+    )
     eac_scale = np.ptp(interp_true_enc_angle_diff) / 254
     eac_offset = (
         np.min(interp_true_enc_angle_diff) + np.max(interp_true_enc_angle_diff)
     ) / 2
-    eac_table = np.round((interp_true_enc_angle_diff - eac_offset) / eac_scale).astype(
-        np.int8
-    )
+    eac_table = np.round(
+        (interp_true_enc_angle_diff - eac_offset) / eac_scale
+    ).astype(np.int8)
 
     if args.plot:
         plt.figure()
         plt.plot(interp_enc_angles, interp_true_enc_angle_diff, label="float")
         plt.plot(
-            interp_enc_angles, eac_scale * eac_table + eac_offset, ".", label="int8"
+            interp_enc_angles,
+            eac_scale * eac_table + eac_offset,
+            ".",
+            label="int8",
         )
         plt.title("Encoder angle compensation")
         plt.xlabel("Raw encoder angle (rad)")

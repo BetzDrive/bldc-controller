@@ -23,7 +23,8 @@ def parser_args():
         help="The file which the calibration(s) is/are in",
     )
     parser.set_defaults(
-        baud_rate=comms.COMM_DEFAULT_BAUD_RATE, calibration_file="calibrations.json"
+        baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
+        calibration_file="calibrations.json",
     )
     return parser.parse_args()
 
@@ -33,7 +34,9 @@ def action(args):
     time.sleep(0.2)
     ser.reset_input_buffer()
 
-    make_list = lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    make_list = (
+        lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
+    )
     make_int = lambda x: [int(y) for y in x]
     board_ids = make_int(make_list(ast.literal_eval(args.board_ids)))
 

@@ -44,10 +44,14 @@ if len(sys.argv) >= 3:
     #     print "WARNING: Motor driver board does not support erevs_per_mrev, try updating the firmware."
 
     # Align motor to phase A
-    client.writeRegisters(address, 0x2003, 1, struct.pack("<f", PWM_DUTY_CYCLE))
+    client.writeRegisters(
+        address, 0x2003, 1, struct.pack("<f", PWM_DUTY_CYCLE)
+    )
     client.writeRegisters(address, 0x2004, 1, struct.pack("<f", 0))
     client.writeRegisters(address, 0x2005, 1, struct.pack("<f", 0))
-    client.writeRegisters(address, 0x2000, 1, struct.pack("<B", 1))  # Raw PWM control
+    client.writeRegisters(
+        address, 0x2000, 1, struct.pack("<B", 1)
+    )  # Raw PWM control
 
     time.sleep(0.5)
 
@@ -61,7 +65,9 @@ if len(sys.argv) >= 3:
     print("success: %u" % success)
 
     if success:
-        client.writeRegisters(address, 0x2003, 1, struct.pack("<f", PWM_DUTY_CYCLE))
+        client.writeRegisters(
+            address, 0x2003, 1, struct.pack("<f", PWM_DUTY_CYCLE)
+        )
 
         time.sleep(0.2)
 
@@ -69,7 +75,9 @@ if len(sys.argv) >= 3:
 
         l = struct.unpack("<H", client.readRegisters(address, 0x300A, 1))[0]
         while l == 0:
-            l = struct.unpack("<H", client.readRegisters(address, 0x300A, 1))[0]
+            l = struct.unpack("<H", client.readRegisters(address, 0x300A, 1))[
+                0
+            ]
             time.sleep(0.1)
         data = []
         chunk_len = 16
@@ -80,7 +88,9 @@ if len(sys.argv) >= 3:
             )
             data += a
 
-    supply_voltage = struct.unpack("<f", client.readRegisters(address, 0x3004, 1))[0]
+    supply_voltage = struct.unpack(
+        "<f", client.readRegisters(address, 0x3004, 1)
+    )[0]
 
     with open("characterize.pkl", "wb") as file:
         pickle.dump({"data": data, "supply_voltage": supply_voltage}, file)
@@ -146,7 +156,9 @@ def current_func(y, t0):
     )
 
 
-current_sim = odeint(current_func, current[start_index], time[start_index:end_index])
+current_sim = odeint(
+    current_func, current[start_index], time[start_index:end_index]
+)
 
 plt.figure()
 plt.plot(

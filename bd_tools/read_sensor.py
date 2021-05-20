@@ -26,7 +26,9 @@ def parser_args():
         type=int,
         help="Number of iterations to loop (default to infinity)",
     )
-    parser.add_argument("board_ids", type=str, help="Board ID (separate with comma)")
+    parser.add_argument(
+        "board_ids", type=str, help="Board ID (separate with comma)"
+    )
     parser.add_argument(
         "sensor",
         type=str,
@@ -41,7 +43,9 @@ def parser_args():
 
 
 def action(args):
-    ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.004)
+    ser = serial.Serial(
+        port=args.serial, baudrate=args.baud_rate, timeout=0.004
+    )
 
     board_ids = [int(bid) for bid in args.board_ids.split(",")]
 

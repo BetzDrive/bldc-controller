@@ -13,7 +13,14 @@ from bd_tools import boards, comms
 
 # 14-bit encoder
 encoder_ticks_per_rev = 2 ** 14
-phase_state_list = [(1, 0, 0), (1, 1, 0), (0, 1, 0), (0, 1, 1), (0, 0, 1), (1, 0, 1)]
+phase_state_list = [
+    (1, 0, 0),
+    (1, 1, 0),
+    (0, 1, 0),
+    (0, 1, 1),
+    (0, 0, 1),
+    (1, 0, 1),
+]
 
 
 def parser_args():
@@ -24,7 +31,9 @@ def parser_args():
     parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
     parser.add_argument("board_id", type=int, help="Board ID")
     parser.add_argument("duty_cycle", type=float, help="Duty cycle")
-    parser.add_argument("--max_steps", type=int, help="Maximum number of steps")
+    parser.add_argument(
+        "--max_steps", type=int, help="Maximum number of steps"
+    )
     parser.add_argument("--delay", type=float, help="Delay between steps")
     parser.set_defaults(
         baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
@@ -56,7 +65,11 @@ def action(args):
 
     def set_phase_state(phase_state):
         a, b, c = phase_state
-        targets = [a * args.duty_cycle, b * args.duty_cycle, c * args.duty_cycle]
+        targets = [
+            a * args.duty_cycle,
+            b * args.duty_cycle,
+            c * args.duty_cycle,
+        ]
 
         while True:
             try:
@@ -197,9 +210,9 @@ def action(args):
     elec_angles = angles * erevs_per_mrev
 
     # Subtract expected trend
-    elec_angle_residuals = elec_angles - (np.r_[: len(elec_angles)] + zero_index) * (
-        2 * np.pi / 6
-    )
+    elec_angle_residuals = elec_angles - (
+        np.r_[: len(elec_angles)] + zero_index
+    ) * (2 * np.pi / 6)
 
     # Find smallest raw angle aligned with phase A
     elec_angle_offset = np.mean(elec_angle_residuals)
