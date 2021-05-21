@@ -1,6 +1,7 @@
-import struct
 import json
+import struct
 import time
+
 import crcmod
 
 DEBUG = False

@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
-import numpy as np
-import matplotlib.pyplot as plt
-import sys
 import pickle
+import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

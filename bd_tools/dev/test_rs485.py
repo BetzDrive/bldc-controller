@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import sys
-import serial
-import time
 import argparse
 import random
+import sys
+import time
+
 import numpy as np
+import serial
 
 DEFAULT_BAUD_RATE = 3000000  # 1 Mbps
 

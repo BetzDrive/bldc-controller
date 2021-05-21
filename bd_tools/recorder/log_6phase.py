@@ -3,13 +3,14 @@ import sys
 
 sys.path.append("..")
 
-from comms import *
-from boards import *
-import serial
-import time
+import argparse
 import pickle
 import pprint
-import argparse
+import time
+
+import serial
+from boards import *
+from comms import *
 
 # 14-bit encoder
 phase_state_list = [

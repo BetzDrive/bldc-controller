@@ -1,12 +1,12 @@
 #!/usr/bin/env python2
 from __future__ import print_function
 
-import serial
-import time
 import argparse
+import time
 
-from comms import *
+import serial
 from boards import *
+from comms import *
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

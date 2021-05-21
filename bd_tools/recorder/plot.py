@@ -1,6 +1,7 @@
-import matplotlib.pyplot as plt
 import pickle
 import sys
+
+import matplotlib.pyplot as plt
 
 num_channels = 9
 if len(sys.argv) < 2:

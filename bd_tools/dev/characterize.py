@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 from __future__ import division
-from comms import *
-import serial
+
+import pickle
 import sys
 import time
-import pickle
-import numpy as np
+
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
+import numpy as np
+import serial
+from comms import *
 from scipy.integrate import odeint
+from scipy.optimize import curve_fit
 
 PWM_DUTY_CYCLE = 0.3
 

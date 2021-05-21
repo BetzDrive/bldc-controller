@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-import serial
-import time
 import argparse
 import struct
+import time
+
+import serial
 
 from bd_tools import boards, comms, utils
 

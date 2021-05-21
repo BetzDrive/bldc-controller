@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 from __future__ import division
 
-from comms import *
-from boards import *
-
 import argparse
-import serial
-import time
-import numpy as np
-from scipy import signal as sps, stats, interpolate
-import matplotlib.pyplot as plt
-import math
-from math import pi
 import json
+import math
+import time
 from collections import OrderedDict
+from math import pi
+
+import matplotlib.pyplot as plt
+import numpy as np
+import serial
+from boards import *
+from comms import *
+from scipy import interpolate
+from scipy import signal as sps
+from scipy import stats
 
 # 14-bit encoder
 encoder_ticks_per_rev = 2 ** 14

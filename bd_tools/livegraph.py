@@ -1,10 +1,12 @@
 """ Live Graph Plotting - By: Greg Balke """
 
-import matplotlib.pyplot as plt
+import threading
+import time
+
 import matplotlib.animation as animation
-from matplotlib.ticker import MaxNLocator
+import matplotlib.pyplot as plt
 from matplotlib import style
-import threading, time
+from matplotlib.ticker import MaxNLocator
 
 
 class LiveGraph:

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+import math
+
+import matplotlib
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy import cos, pi
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import math
 
 SCALE = 1.0 / math.sqrt(3)
 

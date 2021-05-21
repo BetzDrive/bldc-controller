@@ -9,7 +9,8 @@ pytest: install_bd_tools
 lint: lint_python lint_cpp
 
 lint_python:
-	black --line-length 79 --check tests bd_tools
+	isort --check tests bd_tools
+	black --check tests bd_tools
 	#flake8 bd_tools tests
 
 lint_cpp:
@@ -18,4 +19,5 @@ lint_cpp:
 format: format_python
 
 format_python:
-	black --line-length 79 tests bd_tools
+	isort tests bd_tools
+	black tests bd_tools

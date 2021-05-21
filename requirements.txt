@@ -10,5 +10,6 @@ pytest
 pytest-mock
 
 # Linting and formatting requirements.
-black
+black == 21.5b1
+isort == 5.8.0
 cpplint <= 1.5.4

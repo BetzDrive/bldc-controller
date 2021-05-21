@@ -2,9 +2,10 @@
 
 import argparse
 import ast
-import serial
 import struct
 import time
+
+import serial
 
 from bd_tools import boards, comms, livegraph
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import sys
-from tools.comms import *
-import serial
 import time
-from math import sin, cos, pi
+from math import cos, pi, sin
+
+import serial
+from tools.comms import *
 
 MAX_CYCLES = 1000
 

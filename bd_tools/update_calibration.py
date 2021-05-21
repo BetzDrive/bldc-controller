@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import argparse
-import serial
-import time
+import ast
 import json
 import struct
-import ast
+import time
+
+import serial
 
 from bd_tools import boards, comms
 

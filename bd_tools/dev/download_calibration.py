@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-from comms import *
-from boards import *
-
 import argparse
-import serial
-import time
 import json
 import struct
+import time
+
+import serial
+from boards import *
+from comms import *
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

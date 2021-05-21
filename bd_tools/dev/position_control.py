@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import sys
-import numpy as np
-from comms import *
-import serial
 import time
+
+import numpy as np
+import serial
+from comms import *
 
 port = sys.argv[1]
 s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.001)

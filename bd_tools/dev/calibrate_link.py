@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-import sys
-from comms import *
-import serial
-import time
 import math
+import sys
+import time
+
+import serial
+from comms import *
 
 e = 0.00001
 

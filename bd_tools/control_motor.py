@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 from __future__ import print_function
 
-import sys
-import serial
-import time
-from math import sin, cos, pi
 import argparse
 import ast
+import sys
+import time
+from math import cos, pi, sin
+
+import serial
 
 from bd_tools import boards, comms, utils
 

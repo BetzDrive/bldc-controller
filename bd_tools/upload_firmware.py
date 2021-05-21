@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import argparse
-import serial
 import time
+
+import serial
 
 from bd_tools import boards, comms
 

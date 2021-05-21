@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import argparse
 import ast
-import serial
 import struct
 import time
 
 import numpy as np
+import serial
 
 from bd_tools import boards, comms
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import sys
-from comms import *
-import serial
 import time
+
+import serial
+from comms import *
 
 if len(sys.argv) < 3:
     print("give me a serial port and motor_ids(es)")

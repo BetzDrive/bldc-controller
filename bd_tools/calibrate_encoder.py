@@ -2,12 +2,15 @@
 
 import argparse
 import json
-import serial
 import struct
 import time
-import numpy as np
-from scipy import signal as sps, stats, interpolate
+
 import matplotlib.pyplot as plt
+import numpy as np
+import serial
+from scipy import interpolate
+from scipy import signal as sps
+from scipy import stats
 
 from bd_tools import boards, comms
 
