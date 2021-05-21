@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import struct
-import time
 
 import serial
 
@@ -33,7 +32,8 @@ def parser_args():
     parser.add_argument(
         "sensor",
         type=str,
-        help="Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, temp, imu)",
+        help="Choose sensor (encoder, encoder_raw, velocity, id, iq, supply, "
+        "temp, imu)",
     )
     parser.set_defaults(
         baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
@@ -52,7 +52,7 @@ def action(args):
 
     client = comms.BLDCControllerClient(ser)
 
-    initialized = boards.initBoards(client, board_ids)
+    boards.initBoards(client, board_ids)
 
     for bid in board_ids:
         client.leaveBootloader([bid])
@@ -89,7 +89,6 @@ def action(args):
         boards.clearWDGRST(client)
 
         try:
-            address = ReadOnlyRegs[args.sensor]
             responses = client.readRegisters(
                 board_ids, [address] * num_boards, [num_regs] * num_boards
             )

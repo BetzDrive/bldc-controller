@@ -3,3 +3,7 @@ line-length = 79
 
 [tool.isort]
 profile = "black"
+
+[tool.flake8]
+exclude = "bd_tools/recorder,bd_tools/dev,"
+extend-ignore = "E203,"

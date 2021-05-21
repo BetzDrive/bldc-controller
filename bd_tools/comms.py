@@ -172,7 +172,8 @@ class BLDCControllerClient:
         return ticks
 
     def getState(self, server_ids):
-        # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
+        # order: angle, velocity, direct_current, quadrature_current,
+        # supply_voltage, board_temp, accel_x, accel_y, accel_z
         states = [
             struct.unpack("<ffffffiii", data)
             for data in self.readRegisters(
@@ -184,7 +185,6 @@ class BLDCControllerClient:
         return states
 
     def getVoltage(self, server_ids):
-        # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
         states = [
             struct.unpack("<f", data)[0]
             for data in self.readRegisters(
@@ -196,7 +196,6 @@ class BLDCControllerClient:
         return states
 
     def getTemperature(self, server_ids):
-        # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
         states = [
             struct.unpack("<f", data)[0]
             for data in self.readRegisters(
@@ -561,7 +560,7 @@ class BLDCControllerClient:
                         dest_addr + i,
                         data[i : i + COMM_SINGLE_PROGRAM_LENGTH],
                     )
-                except (MalformedPacketError, ProtocolError) as e:
+                except (MalformedPacketError, ProtocolError):
                     print(
                         f"Error: Retrying upload of segment {i} of {len(data)}"
                     )
@@ -598,11 +597,13 @@ class BLDCControllerClient:
         return data
 
     def readCalibration(self, server_id):
-        l = struct.unpack(
+        calibration_length = struct.unpack(
             "<H", self.readFlash(server_id, COMM_NVPARAMS_OFFSET, 2)
         )[0]
-        print("Calibration of length:", l)
-        b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET + 2, l)
+        print("Calibration of length:", calibration_length)
+        b = self.readFlash(
+            server_id, COMM_NVPARAMS_OFFSET + 2, calibration_length
+        )
         return json.loads(b)
 
     def verifyFlash(self, server_id, dest_addr, data):
@@ -616,9 +617,10 @@ class BLDCControllerClient:
                         dest_addr + i,
                         data[i : i + COMM_SINGLE_VERIFY_LENGTH],
                     )
-                except (MalformedPacketError, ProtocolError) as e:
+                except (MalformedPacketError, ProtocolError):
                     print(
-                        f"Error: Retrying verification of segment {i} of {len(data)}"
+                        f"Error: Retrying verification of segment {i} "
+                        f"of {len(data)}"
                     )
         return True
 
@@ -697,7 +699,8 @@ class BLDCControllerClient:
         sector_starts = []
         sector_sizes = []
 
-        # TODO: Make this individual sector stars and sizes. THis does the 0th item only.
+        # TODO: Make this individual sector stars and sizes. THis does the 0th
+        # item only.
         for count in range(sector_counts):
             sector_starts.append(self.getFlashSectorStart(server_id, count))
             sector_sizes.append(self.getFlashSectorSize(server_id, count))
@@ -771,7 +774,7 @@ class BLDCControllerClient:
         (flags,) = struct.unpack("<B", self._ser.read())
 
         length = self._ser.read(2)
-        if length == None or len(length) != 2:
+        if length is None or len(length) != 2:
             raise MalformedPacketError(
                 f"id: {server_id} - Packet length incorrect."
             )

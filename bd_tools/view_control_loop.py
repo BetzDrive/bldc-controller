@@ -49,7 +49,10 @@ def action(args):
     make_list = (
         lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
     )
-    make_int = lambda x: [int(y) for y in x]
+
+    def make_int(x):
+        return [int(y) for y in x]
+
     board_ids = make_int(make_list(ast.literal_eval(args.board_ids)))
     actuations = make_list(ast.literal_eval(args.actuations))
 
@@ -60,7 +63,7 @@ def action(args):
     )
 
     client = comms.BLDCControllerClient(ser)
-    initialized = boards.initBoards(client, board_ids)
+    boards.initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
     client.resetInputBuffer()
@@ -90,7 +93,8 @@ def action(args):
                 print("Failed to communicate with board: ", board_id)
         return time.time(), None if len(data) != (2 * len(board_ids)) else data
 
-    flatten = lambda l: [item for sublist in l for item in sublist]
+    def flatten(item_list):
+        return [item for sublist in item_list for item in sublist]
 
     labels = []
     labels.extend(

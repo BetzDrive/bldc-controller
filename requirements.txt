@@ -12,4 +12,7 @@ pytest-mock
 # Linting and formatting requirements.
 black == 21.5b1
 isort == 5.8.0
+flake8 == 3.9.2
+flake8-black == 0.2.1
+pyproject-flake8 == 0.0.1a2
 cpplint <= 1.5.4

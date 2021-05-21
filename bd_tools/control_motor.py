@@ -3,9 +3,6 @@ from __future__ import print_function
 
 import argparse
 import ast
-import sys
-import time
-from math import cos, pi, sin
 
 import serial
 
@@ -54,10 +51,12 @@ def parser_args():
 
 
 def action(args):
-    make_list = (
-        lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
-    )
-    make_type = lambda x, to_type: [to_type(y) for y in x]
+    def make_list(x):
+        return list(x) if (type(x) == list or type(x) == tuple) else [x]
+
+    def make_type(x, to_type):
+        return [to_type(y) for y in x]
+
     board_ids = make_type(make_list(ast.literal_eval(args.board_ids)), int)
     actuations = make_list(ast.literal_eval(args.actuations))
 
@@ -68,7 +67,7 @@ def action(args):
     )
 
     client = comms.BLDCControllerClient(ser)
-    initialized = boards.initBoards(client, board_ids)
+    boards.initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
 
@@ -81,7 +80,7 @@ def action(args):
 
         try:
             boards.driveMotor(client, board_ids, actuations, mode)
-        except (comms.ProtocolError, comms.MalformedPacketError) as e:
+        except (comms.ProtocolError, comms.MalformedPacketError):
             return False
 
         return True

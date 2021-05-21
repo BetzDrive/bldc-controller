@@ -99,9 +99,10 @@ def loadCalibrationFromJSON(client, board_id, calibration_obj):
                         )
                     ],
                 )
-        except ProtocolError:
+        except comms.ProtocolError:
             print(
-                "WARNING: Motor driver board does not support encoder angle compensation, try updating the firmware."
+                "WARNING: Motor driver board does not support encoder angle "
+                "compensation, try updating the firmware."
             )
     client.setCurrentControlMode([board_id])
 
