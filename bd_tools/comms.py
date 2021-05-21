@@ -1,6 +1,7 @@
-import struct
 import json
+import struct
 import time
+
 import crcmod
 
 DEBUG = False
@@ -65,10 +66,13 @@ class MalformedPacketError(Exception):
 
 class FlashSectorMap:
     def __init__(self, sector_count, sector_starts, sector_sizes):
-        if len(sector_starts) != sector_count or len(
-                sector_sizes) != sector_count:
+        if (
+            len(sector_starts) != sector_count
+            or len(sector_sizes) != sector_count
+        ):
             raise ValueError(
-                'sector_starts and sector_sizes must have the correct length')
+                "sector_starts and sector_sizes must have the correct length"
+            )
         self._sector_count = sector_count
         self._sector_starts = sector_starts
         self._sector_sizes = sector_sizes
@@ -108,211 +112,309 @@ class FlashSectorMap:
         return sector_nums
 
     def __str__(self):
-        lines = ['num       start     size']
+        lines = ["num       start     size"]
         for sector_num in range(self.getFlashSectorCount()):
-            lines.append('{:3d}  0x{:08x} {:8d}'.format(
-                sector_num, self.getFlashSectorStart(sector_num),
-                self.getFlashSectorSize(sector_num)))
-        return '\n'.join(lines)
+            lines.append(
+                "{:3d}  0x{:08x} {:8d}".format(
+                    sector_num,
+                    self.getFlashSectorStart(sector_num),
+                    self.getFlashSectorSize(sector_num),
+                )
+            )
+        return "\n".join(lines)
 
 
 class BLDCControllerClient:
     def __init__(self, ser):
         self._ser = ser
         self._crash = {}
-        self._crc_alg = crcmod.predefined.PredefinedCrc('crc-16')
+        self._crc_alg = crcmod.predefined.PredefinedCrc("crc-16")
 
     def resetInputBuffer(self):
         self._ser.reset_input_buffer()
 
     def storeCalibration(self, server_ids):
-        return self.writeRegisters(server_ids, [0x0004 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [b'' for sid in server_ids])
+        return self.writeRegisters(
+            server_ids,
+            [0x0004 for sid in server_ids],
+            [1 for sid in server_ids],
+            [b"" for sid in server_ids],
+        )
 
     def clearCalibration(self, server_ids):
-        return self.writeRegisters(server_ids, [0x0005 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [b'' for sid in server_ids])
+        return self.writeRegisters(
+            server_ids,
+            [0x0005 for sid in server_ids],
+            [1 for sid in server_ids],
+            [b"" for sid in server_ids],
+        )
 
     def getRotorPosition(self, server_ids):
         angles = [
-            struct.unpack('<f', data)[0] for data in self.readRegisters(
-                server_ids, [0x3000
-                             for sid in server_ids], [1 for sid in server_ids])
+            struct.unpack("<f", data)[0]
+            for data in self.readRegisters(
+                server_ids,
+                [0x3000 for sid in server_ids],
+                [1 for sid in server_ids],
+            )
         ]
         return angles
 
     def getRawRotorPosition(self, server_ids):
         ticks = [
-            struct.unpack('<H', data)[0] for data in self.readRegisters(
-                server_ids, [0x3010
-                             for sid in server_ids], [1 for sid in server_ids])
+            struct.unpack("<H", data)[0]
+            for data in self.readRegisters(
+                server_ids,
+                [0x3010 for sid in server_ids],
+                [1 for sid in server_ids],
+            )
         ]
         return ticks
 
     def getState(self, server_ids):
         # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
         states = [
-            struct.unpack('<ffffffiii', data) for data in self.readRegisters(
-                server_ids, [0x3000
-                             for sid in server_ids], [9 for sid in server_ids])
+            struct.unpack("<ffffffiii", data)
+            for data in self.readRegisters(
+                server_ids,
+                [0x3000 for sid in server_ids],
+                [9 for sid in server_ids],
+            )
         ]
         return states
 
     def getVoltage(self, server_ids):
         # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
         states = [
-            struct.unpack('<f', data)[0] for data in self.readRegisters(
-                server_ids, [0x3004
-                             for sid in server_ids], [1 for sid in server_ids])
+            struct.unpack("<f", data)[0]
+            for data in self.readRegisters(
+                server_ids,
+                [0x3004 for sid in server_ids],
+                [1 for sid in server_ids],
+            )
         ]
         return states
 
     def getTemperature(self, server_ids):
         # order: angle, velocity, direct_current, quadrature_current, supply_voltage, board_temp, accel_x, accel_y, accel_z
         states = [
-            struct.unpack('<f', data)[0] for data in self.readRegisters(
-                server_ids, [0x3005
-                             for sid in server_ids], [1 for sid in server_ids])
+            struct.unpack("<f", data)[0]
+            for data in self.readRegisters(
+                server_ids,
+                [0x3005 for sid in server_ids],
+                [1 for sid in server_ids],
+            )
         ]
         return states
 
     def setZeroAngle(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1000 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<H', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1000 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<H", val) for val in value],
+        )
 
     def setInvertPhases(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1002 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<B', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1002 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<B", val) for val in value],
+        )
 
     def setERevsPerMRev(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1001 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<B', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1001 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<B", val) for val in value],
+        )
 
     def setDirectCurrentKp(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1003 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1003 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setDirectCurrentKi(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1004 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1004 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setQuadratureCurrentKp(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1005 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1005 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setQuadratureCurrentKi(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1006 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1006 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setVelocityKp(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1007 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1007 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setVelocityKd(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1008 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1008 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setPositionKp(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1009 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1009 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setPositionKd(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x100A for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x100A for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setCurrentLimit(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1010 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1010 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setTorqueLimit(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1011 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1011 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setVelocityLimit(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1012 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1012 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setTorqueConstant(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1022 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1022 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def getTorqueConstant(self, server_ids):
         torque_const = [
-            struct.unpack('<f', data)[0] for data in self.readRegisters(
-                server_ids, [0x1022
-                             for sid in server_ids], [1 for sid in server_ids])
+            struct.unpack("<f", data)[0]
+            for data in self.readRegisters(
+                server_ids,
+                [0x1022 for sid in server_ids],
+                [1 for sid in server_ids],
+            )
         ]
         return torque_const
 
     def setPositionOffset(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1015 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1015 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setWatchdogTimeout(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x1030 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<H', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x1030 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<H", val) for val in value],
+        )
 
     def setCurrentControlMode(self, server_ids):
         return self.writeRegisters(
-            server_ids, [0x2000
-                         for sid in server_ids], [1 for sid in server_ids],
-            [struct.pack('<B', 0) for sid in server_ids])
+            server_ids,
+            [0x2000 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<B", 0) for sid in server_ids],
+        )
 
     def setCommand(self, server_ids, value):
-        return self.writeRegisters(server_ids, [0x2002 for sid in server_ids],
-                                   [1 for sid in server_ids],
-                                   [struct.pack('<f', val) for val in value])
+        return self.writeRegisters(
+            server_ids,
+            [0x2002 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
 
     def setCommandAndGetState(self, server_ids, value):
         ret = self.readWriteRegisters(
-            server_ids, [0x3000
-                         for sid in server_ids], [9 for sid in server_ids],
-            [0x2002 for sid in server_ids], [1 for sid in server_ids],
-            [struct.pack('<f', val) for val in value])
-        states = [struct.unpack('<ffffffiii', data) for data in ret]
+            server_ids,
+            [0x3000 for sid in server_ids],
+            [9 for sid in server_ids],
+            [0x2002 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
+        states = [struct.unpack("<ffffffiii", data) for data in ret]
         return states
 
     def resetRecorderBuffer(self, server_ids):
-        ret = self.readRegisters(server_ids, [0x300b for sid in server_ids],
-                                 [1 for sid in server_ids])
-        return [struct.unpack('<B', data)[0] for data in ret]
+        ret = self.readRegisters(
+            server_ids,
+            [0x300B for sid in server_ids],
+            [1 for sid in server_ids],
+        )
+        return [struct.unpack("<B", data)[0] for data in ret]
 
     def startRecorder(self, server_ids):
-        ret = self.readRegisters(server_ids, [0x3009 for sid in server_ids],
-                                 [1 for sid in server_ids])
-        return [struct.unpack('<B', data)[0] for data in ret]
+        ret = self.readRegisters(
+            server_ids,
+            [0x3009 for sid in server_ids],
+            [1 for sid in server_ids],
+        )
+        return [struct.unpack("<B", data)[0] for data in ret]
 
     def getRecorderLength(self, server_ids):
-        ret = self.readRegisters(server_ids, [0x300a for sid in server_ids],
-                                 [1 for sid in server_ids])
-        return [struct.unpack('<H', data)[0] for data in ret]
+        ret = self.readRegisters(
+            server_ids,
+            [0x300A for sid in server_ids],
+            [1 for sid in server_ids],
+        )
+        return [struct.unpack("<H", data)[0] for data in ret]
 
     def getRecorderElement(self, server_ids, indexes):
         assert len(indexes) == len(server_ids)
         ret = self.readRegisters(
-            server_ids, [0x8000 + i for i in indexes],
-            [COMM_NUM_RECORDER_ELEMENTS for sid in server_ids])
+            server_ids,
+            [0x8000 + i for i in indexes],
+            [COMM_NUM_RECORDER_ELEMENTS for sid in server_ids],
+        )
         return [
-            struct.unpack('<' + str(COMM_NUM_RECORDER_ELEMENTS) + 'f', data)
+            struct.unpack("<" + str(COMM_NUM_RECORDER_ELEMENTS) + "f", data)
             for data in ret
         ]
 
@@ -321,18 +423,20 @@ class BLDCControllerClient:
 
     def clearWDGRST(self, server_ids):
         response = self.doTransaction(
-            server_ids, [COMM_FC_CLEAR_IWDGRST for sid in server_ids], [])
+            server_ids, [COMM_FC_CLEAR_IWDGRST for sid in server_ids], []
+        )
         success = response[0][0]
         return success
 
     # Bootloader only
     def enumerateBoards(self, server_id):
         response = []
-        response = self.doTransaction([0], [COMM_FC_ENUMERATE],
-                                      [struct.pack('<B', server_id)])
+        response = self.doTransaction(
+            [0], [COMM_FC_ENUMERATE], [struct.pack("<B", server_id)]
+        )
         success = response[0][0]
         if success:
-            data = struct.unpack('<B', response[0][1])[0]
+            data = struct.unpack("<B", response[0][1])[0]
         else:
             data = 0
         return data
@@ -343,8 +447,9 @@ class BLDCControllerClient:
         return success
 
     def leaveBootloader(self, server_ids):
-        self.jumpToAddress(server_ids,
-                           [COMM_FIRMWARE_OFFSET for sid in server_ids])
+        self.jumpToAddress(
+            server_ids, [COMM_FIRMWARE_OFFSET for sid in server_ids]
+        )
         time.sleep(0.1)
         self._ser.read_all()
 
@@ -353,32 +458,50 @@ class BLDCControllerClient:
 
     def readRegisters(self, server_ids, start_addr, count):
         responses = self.doTransaction(
-            server_ids, [COMM_FC_REG_READ] * len(server_ids), [
-                struct.pack('<HB', addr, ct)
+            server_ids,
+            [COMM_FC_REG_READ] * len(server_ids),
+            [
+                struct.pack("<HB", addr, ct)
                 for addr, ct in zip(start_addr, count)
-            ])
+            ],
+        )
         data = [response[1] for response in responses]
         return data
 
     def writeRegisters(self, server_ids, start_addr, count, data):
         responses = self.doTransaction(
-            server_ids, [COMM_FC_REG_WRITE] * len(server_ids), [
-                struct.pack('<HB', addr, ct) + dat
+            server_ids,
+            [COMM_FC_REG_WRITE] * len(server_ids),
+            [
+                struct.pack("<HB", addr, ct) + dat
                 for addr, ct, dat in zip(start_addr, count, data)
-            ])
+            ],
+        )
         success = [response[0] for response in responses]
         return success
 
-    def readWriteRegisters(self, server_ids, read_start_addr, read_count,
-                           write_start_addr, write_count, write_data):
+    def readWriteRegisters(
+        self,
+        server_ids,
+        read_start_addr,
+        read_count,
+        write_start_addr,
+        write_count,
+        write_data,
+    ):
         message = [
-            struct.pack('<HBHB', readsa, readct, writesa, writect) + writed
+            struct.pack("<HBHB", readsa, readct, writesa, writect) + writed
             for readsa, readct, writesa, writect, writed in zip(
-                read_start_addr, read_count, write_start_addr, write_count,
-                write_data)
+                read_start_addr,
+                read_count,
+                write_start_addr,
+                write_count,
+                write_data,
+            )
         ]
-        responses = self.doTransaction(server_ids, [COMM_FC_REG_READ_WRITE] *
-                                       len(server_ids), message)
+        responses = self.doTransaction(
+            server_ids, [COMM_FC_REG_READ_WRITE] * len(server_ids), message
+        )
         data = [response[1] for response in responses]
         return data
 
@@ -387,31 +510,44 @@ class BLDCControllerClient:
         return True
 
     def jumpToAddress(self, server_ids, jump_addr=[COMM_FIRMWARE_OFFSET]):
-        self.writeRequest(server_ids, [COMM_FC_JUMP_TO_ADDR] * len(server_ids),
-                          [struct.pack('<I', addr) for addr in jump_addr])
+        self.writeRequest(
+            server_ids,
+            [COMM_FC_JUMP_TO_ADDR] * len(server_ids),
+            [struct.pack("<I", addr) for addr in jump_addr],
+        )
         return True
 
     def getFlashSectorCount(self, server_id):
-        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_COUNT],
-                                       [b''])[0]
+        responses = self.doTransaction(
+            server_id, [COMM_FC_FLASH_SECTOR_COUNT], [b""]
+        )[0]
         _, data = responses
-        return struct.unpack('<I', data)[0]
+        return struct.unpack("<I", data)[0]
 
     def getFlashSectorStart(self, server_id, sector_nums):
-        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_START],
-                                       [struct.pack('<I', sector_nums)])[0]
+        responses = self.doTransaction(
+            server_id,
+            [COMM_FC_FLASH_SECTOR_START],
+            [struct.pack("<I", sector_nums)],
+        )[0]
         _, data = responses
-        return struct.unpack('<I', data)[0]
+        return struct.unpack("<I", data)[0]
 
     def getFlashSectorSize(self, server_id, sector_nums):
-        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_SIZE],
-                                       [struct.pack('<I', sector_nums)])[0]
+        responses = self.doTransaction(
+            server_id,
+            [COMM_FC_FLASH_SECTOR_SIZE],
+            [struct.pack("<I", sector_nums)],
+        )[0]
         _, data = responses
-        return struct.unpack('<I', data)[0]
+        return struct.unpack("<I", data)[0]
 
     def eraseFlashSector(self, server_id, sector_nums):
-        responses = self.doTransaction(server_id, [COMM_FC_FLASH_SECTOR_ERASE],
-                                       [struct.pack('<I', sector_nums)])[0]
+        responses = self.doTransaction(
+            server_id,
+            [COMM_FC_FLASH_SECTOR_ERASE],
+            [struct.pack("<I", sector_nums)],
+        )[0]
         success, _ = responses
         return success
 
@@ -421,27 +557,32 @@ class BLDCControllerClient:
             while not success:
                 try:
                     success = self._programFlashLimitedLength(
-                        server_id, dest_addr + i,
-                        data[i:i + COMM_SINGLE_PROGRAM_LENGTH])
+                        server_id,
+                        dest_addr + i,
+                        data[i : i + COMM_SINGLE_PROGRAM_LENGTH],
+                    )
                 except (MalformedPacketError, ProtocolError) as e:
                     print(
-                        f'Error: Retrying upload of segment {i} of {len(data)}'
+                        f"Error: Retrying upload of segment {i} of {len(data)}"
                     )
         return True
 
     def _programFlashLimitedLength(self, server_id, dest_addr, data):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_PROGRAM],
-            [(struct.pack('<I', dest_addr) + data)])[0]
+            server_id,
+            [COMM_FC_FLASH_PROGRAM],
+            [(struct.pack("<I", dest_addr) + data)],
+        )[0]
         success, _ = responses
         return success
 
     def readFlash(self, server_id, src_addr, length):
-        data = b''
+        data = b""
         for i in range(0, length, COMM_SINGLE_READ_LENGTH):
             read_len = min(length - i, COMM_SINGLE_READ_LENGTH)
-            data_chunk = self._readFlashLimitedLength(server_id, src_addr + i,
-                                                      read_len)
+            data_chunk = self._readFlashLimitedLength(
+                server_id, src_addr + i, read_len
+            )
             if len(data_chunk) != read_len:
                 return False
             data += data_chunk
@@ -449,15 +590,17 @@ class BLDCControllerClient:
 
     def _readFlashLimitedLength(self, server_id, src_addr, length):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_READ],
-            [struct.pack('<II', src_addr, length)])[0]
+            server_id,
+            [COMM_FC_FLASH_READ],
+            [struct.pack("<II", src_addr, length)],
+        )[0]
         _, data = responses
         return data
 
     def readCalibration(self, server_id):
-        l = struct.unpack('<H',
-                          self.readFlash(server_id, COMM_NVPARAMS_OFFSET,
-                                         2))[0]
+        l = struct.unpack(
+            "<H", self.readFlash(server_id, COMM_NVPARAMS_OFFSET, 2)
+        )[0]
         print("Calibration of length:", l)
         b = self.readFlash(server_id, COMM_NVPARAMS_OFFSET + 2, l)
         return json.loads(b)
@@ -469,25 +612,31 @@ class BLDCControllerClient:
             while not success:
                 try:
                     success = self._verifyFlashLimitedLength(
-                        server_id, dest_addr + i,
-                        data[i:i + COMM_SINGLE_VERIFY_LENGTH])
+                        server_id,
+                        dest_addr + i,
+                        data[i : i + COMM_SINGLE_VERIFY_LENGTH],
+                    )
                 except (MalformedPacketError, ProtocolError) as e:
                     print(
-                        f'Error: Retrying verification of segment {i} of {len(data)}'
+                        f"Error: Retrying verification of segment {i} of {len(data)}"
                     )
         return True
 
     def _verifyFlashLimitedLength(self, server_id, dest_addr, data):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_VERIFY],
-            [struct.pack('<I', dest_addr) + data])[0]
+            server_id,
+            [COMM_FC_FLASH_VERIFY],
+            [struct.pack("<I", dest_addr) + data],
+        )[0]
         success, _ = responses
         return success
 
     def verifyFlashErased(self, server_id, dest_addr, length):
         responses = self.doTransaction(
-            server_id, [COMM_FC_FLASH_VERIFY_ERASED],
-            [struct.pack('<II', dest_addr, length)])[0]
+            server_id,
+            [COMM_FC_FLASH_VERIFY_ERASED],
+            [struct.pack("<II", dest_addr, length)],
+        )[0]
         success, _ = responses
         return success
 
@@ -497,7 +646,8 @@ class BLDCControllerClient:
 
         # Find out which sectors need to be erased
         board_sector_nums = sector_map.getFlashSectorsOfAddressRange(
-            addr, length)
+            addr, length
+        )
 
         for nums in board_sector_nums:
             success = self.eraseFlashSector(server_id, nums)
@@ -506,12 +656,9 @@ class BLDCControllerClient:
 
         return True
 
-    def writeFlash(self,
-                   server_id,
-                   dest_addr,
-                   data,
-                   sector_map=None,
-                   print_progress=False):
+    def writeFlash(
+        self, server_id, dest_addr, data, sector_map=None, print_progress=False
+    ):
         if sector_map is None:
             sector_map = self.getFlashSectorMap(server_id)
 
@@ -566,26 +713,29 @@ class BLDCControllerClient:
         self.writeRequest(server_ids, func_code, data)
 
         # Listen to the responses.
-        responses = [b''] * len(server_ids)
+        responses = [b""] * len(server_ids)
         for i in range(len(responses)):
             responses[i] = self.readResponse(server_ids[i], func_code[i])
 
         return responses
 
     def writeRequest(self, server_ids, func_code, data=[]):
-        message = b''
+        message = b""
         flags = COMM_FLAG_SEND
         for i in range(len(server_ids)):
-            sub_message = struct.pack('<BB', server_ids[i], func_code[i])
+            sub_message = struct.pack("<BB", server_ids[i], func_code[i])
             if data != []:
                 sub_message = sub_message + data[i]
-            message = message + struct.pack('H',
-                                            len(sub_message)) + sub_message
+            message = (
+                message + struct.pack("H", len(sub_message)) + sub_message
+            )
 
-        prefixed_message = struct.pack('<BBBH', 0xFF, COMM_VERSION, flags,
-                                       len(message)) + message
+        prefixed_message = (
+            struct.pack("<BBBH", 0xFF, COMM_VERSION, flags, len(message))
+            + message
+        )
         crc = self._computeCRC(message)
-        datagram = prefixed_message + struct.pack('<H', crc)
+        datagram = prefixed_message + struct.pack("<H", crc)
 
         if DEBUG:
             print("Transmitting packet of length:", len(datagram))
@@ -595,35 +745,38 @@ class BLDCControllerClient:
     def readResponse(self, server_id, func_code):
         for attempt in range(5):
             sync = self._ser.read()
-            if len(sync) == 1 and sync == b'\xff':
+            if len(sync) == 1 and sync == b"\xff":
                 break
 
-        if len(sync) != 1 or sync != b'\xff':
+        if len(sync) != 1 or sync != b"\xff":
             # Reached maximum number of tries
             # self._ser.flushInput()
             raise MalformedPacketError(
-                f'id: {server_id} - Unfound start byte.')
+                f"id: {server_id} - Unfound start byte."
+            )
 
         if DEBUG:
             print("Found Packet")
 
         version = self._ser.read()
-        if len(version) != 1 or version != b'\xfe':
+        if len(version) != 1 or version != b"\xfe":
             # self._ser.flushInput()
             raise MalformedPacketError(
-                f'id: {server_id} - Incorrect version number.')
+                f"id: {server_id} - Incorrect version number."
+            )
 
         if DEBUG:
             print("Proper Protocol")
 
-        flags, = struct.unpack('<B', self._ser.read())
+        (flags,) = struct.unpack("<B", self._ser.read())
 
         length = self._ser.read(2)
         if length == None or len(length) != 2:
             raise MalformedPacketError(
-                f'id: {server_id} - Packet length incorrect.')
+                f"id: {server_id} - Packet length incorrect."
+            )
 
-        message_len, = struct.unpack('H', length)
+        (message_len,) = struct.unpack("H", length)
 
         if DEBUG:
             print("Length is: ", message_len)
@@ -637,56 +790,66 @@ class BLDCControllerClient:
         if len(message) < message_len:
             # self._ser.flushInput()
             raise MalformedPacketError(
-                f'id: {server_id} - Incomplete packet received.')
+                f"id: {server_id} - Incomplete packet received."
+            )
 
         crc_bytes = self._ser.read(2)
-        #print (":".join("{:02x}".format(c) for c in crc_bytes))
+        # print (":".join("{:02x}".format(c) for c in crc_bytes))
 
         if len(crc_bytes) < 2:
             # self._ser.flushInput()
-            raise MalformedPacketError(f'id: {server_id} - CRC not found.')
+            raise MalformedPacketError(f"id: {server_id} - CRC not found.")
 
         message_server_id, message_func_code, errors = struct.unpack(
-            '<BBH', message[2:6])
+            "<BBH", message[2:6]
+        )
 
         if flags & COMM_FLAG_CRASH:
             self._crash[message_server_id] = True
             pass
 
         if message_server_id != server_id and not server_id == 0:
-            raise ProtocolError('received unexpected server ID: saw ' \
-                                + str(message_server_id) + ', expected ' + str(server_id))
+            raise ProtocolError(
+                "received unexpected server ID: saw "
+                + str(message_server_id)
+                + ", expected "
+                + str(server_id)
+            )
 
         if message_func_code != func_code:
-            raise ProtocolError('received unexpected func ID: saw ' \
-                                + str(message_func_code) + ', expected ' + str(func_code))
+            raise ProtocolError(
+                "received unexpected func ID: saw "
+                + str(message_func_code)
+                + ", expected "
+                + str(func_code)
+            )
 
-        message_crc, = struct.unpack('<H', crc_bytes)
+        (message_crc,) = struct.unpack("<H", crc_bytes)
         computed_crc = self._computeCRC(message)
 
         if message_crc != computed_crc:
-            raise ProtocolError('received unexpected CRC')
+            raise ProtocolError("received unexpected CRC")
 
         success = (errors & COMM_ERRORS_OP_FAILED) == 0
 
         if (errors & COMM_ERRORS_OP_FAILED) != 0:
-            raise ProtocolError('operation failed')
+            raise ProtocolError("operation failed")
 
         if (errors & COMM_ERRORS_MALFORMED) != 0:
-            raise ProtocolError('malformed request')
+            raise ProtocolError("malformed request")
 
         if (errors & COMM_ERRORS_INVALID_FC) != 0:
-            raise ProtocolError('invalid function code')
+            raise ProtocolError("invalid function code")
 
         if (errors & COMM_ERRORS_INVALID_ARGS) != 0:
-            raise ProtocolError('invalid arguments')
+            raise ProtocolError("invalid arguments")
 
         if (errors & COMM_ERRORS_BUF_LEN_MISMATCH) != 0:
-            raise ProtocolError('buffer length mismatch')
+            raise ProtocolError("buffer length mismatch")
 
         # Raise an exception if another type of error occurred
         if (errors & ~COMM_ERRORS_OP_FAILED) != 0:
-            raise ProtocolError('other error flags set', errors)
+            raise ProtocolError("other error flags set", errors)
 
         return success, message[6:]
 
