@@ -1,4 +1,4 @@
-name: cpplint
+name: linters
 on: [pull_request]
 jobs:
   cpplint:
@@ -8,3 +8,10 @@ jobs:
     - uses: actions/setup-python@v1
     - run: pip install cpplint
     - run: cpplint --recursive common/ bootloader/ firmware/
+  python_lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+    - run: pip install -r requirements.txt
+    - run: make lint_python

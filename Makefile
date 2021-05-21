@@ -9,7 +9,8 @@ pytest: install_bd_tools
 lint: lint_python lint_cpp
 
 lint_python:
-	flake8 bd_tools tests
+	black --line-length 79 --check tests bd_tools
+	#flake8 bd_tools tests
 
 lint_cpp:
 	cpplint --recursive --quiet --extensions=hpp,cpp common/ bootloader/ firmware/

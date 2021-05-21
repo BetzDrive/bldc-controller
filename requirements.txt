@@ -9,5 +9,6 @@ pyserial
 pytest
 pytest-mock
 
-# Formatting requirements.
+# Linting and formatting requirements.
 black
+cpplint
