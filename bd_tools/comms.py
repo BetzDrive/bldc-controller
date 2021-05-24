@@ -699,7 +699,7 @@ class BLDCControllerClient:
         sector_starts = []
         sector_sizes = []
 
-        # TODO: Make this individual sector stars and sizes. THis does the 0th
+        # TODO: Make this individual sector stars and sizes. This does the 0th
         # item only.
         for count in range(sector_counts):
             sector_starts.append(self.getFlashSectorStart(server_id, count))
