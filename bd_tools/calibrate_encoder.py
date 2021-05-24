@@ -8,9 +8,6 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import serial
-from scipy import interpolate
-from scipy import signal as sps
-from scipy import stats
 
 from bd_tools import boards, comms
 
@@ -59,7 +56,7 @@ def action(args):
 
     client = comms.BLDCControllerClient(ser)
 
-    initialized = boards.initBoards(client, board_ids)
+    boards.initBoards(client, board_ids)
 
     client.leaveBootloader(board_ids)
     time.sleep(0.2)
@@ -97,16 +94,16 @@ def action(args):
     print("started: %u" % success)
 
     data = []
-    l = 0
-    while l == 0:
+    data_length = 0
+    while data_length == 0:
         try:
-            l = client.getRecorderLength(board_ids)[0]
+            data_length = client.getRecorderLength(board_ids)[0]
         except comms.MalformedPacketError as e:
             print(e)
             continue
         time.sleep(0.1)
-    arr = []
-    for i in range(0, l, comms.COMM_NUM_RECORDER_ELEMENTS):
+
+    for i in range(0, data_length, comms.COMM_NUM_RECORDER_ELEMENTS):
         # Grab the recorder data
         try:
             data.extend(client.getRecorderElement(board_ids, [i]))
@@ -247,15 +244,23 @@ def action(args):
     with open("calibrations.json", "w") as outfile:
         json.dump([upload_data], outfile)
 
-    # mech_angle = np.linspace(0, 2 * np.pi, len(elec_angle_residuals), endpoint=False)
-    # plt.plot(mech_angle, (elec_angle_residuals - elec_angle_offset) / erevs_per_mrev / (2 * np.pi) * encoder_ticks_per_rev)
-    # plt.title('Encoder angle residuals')
-    # plt.xlabel('Mechanical angle (rad)')
-    # plt.ylabel('Encoder angle residual (counts)')
+    # mech_angle = np.linspace(
+    #    0, 2 * np.pi, len(elec_angle_residuals), endpoint=False
+    # )
+    # plt.plot(
+    #    mech_angle,
+    #    (elec_angle_residuals - elec_angle_offset)
+    #    / erevs_per_mrev
+    #    / (2 * np.pi)
+    #    * encoder_ticks_per_rev,
+    # )
+    # plt.title("Encoder angle residuals")
+    # plt.xlabel("Mechanical angle (rad)")
+    # plt.ylabel("Encoder angle residual (counts)")
     # plt.show()
 
     # # Apply smoothing
-    # angle_residuals = sps.savgol_filter(angle_residuals, 31, 3, mode='wrap')
+    # angle_residuals = sps.savgol_filter(angle_residuals, 31, 3, mode="wrap")
     # smoothed_angles = angle_residuals + indices * angle_slope
 
 

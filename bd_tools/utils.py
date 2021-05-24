@@ -64,6 +64,7 @@ class DebugLoop:
         except KeyboardInterrupt:
             print()  # Clear line immediately after the ctrl-c
             print(
-                f"Interrupted. Loop exiting. Completed {self._iters} iterations."
+                f"Interrupted. Loop exiting. Completed {self._iters} "
+                f"iterations."
             )
             pass

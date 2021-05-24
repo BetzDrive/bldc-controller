@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import ast
-import json
-import struct
 import time
 
 import serial
@@ -26,10 +24,12 @@ def action(args):
     time.sleep(0.2)
     ser.reset_input_buffer()
 
-    make_list = (
-        lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
-    )
-    make_int = lambda x: [int(y) for y in x]
+    def make_list(x):
+        return list(x) if (type(x) == list or type(x) == tuple) else [x]
+
+    def make_int(x):
+        return [int(y) for y in x]
+
     board_ids = make_int(make_list(ast.literal_eval(args.board_ids)))
 
     client = comms.BLDCControllerClient(ser)
@@ -54,7 +54,8 @@ def action(args):
             client.setQuadratureCurrentKp([board_id], [1.0])
             client.setQuadratureCurrentKi([board_id], [0.2])
 
-            # Velocity controller is not used right now. Tunings need to be adjusted.
+            # Velocity controller is not used right now. Tunings need to be
+            # adjusted.
             client.setVelocityKp([board_id], [0.5])
             client.setVelocityKd([board_id], [0.01])
 

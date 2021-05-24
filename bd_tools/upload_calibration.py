@@ -3,7 +3,6 @@
 import argparse
 import ast
 import json
-import struct
 import time
 
 import serial
@@ -35,10 +34,12 @@ def action(args):
     time.sleep(0.2)
     ser.reset_input_buffer()
 
-    make_list = (
-        lambda x: list(x) if (type(x) == list or type(x) == tuple) else [x]
-    )
-    make_int = lambda x: [int(y) for y in x]
+    def make_list(x):
+        return list(x) if (type(x) == list or type(x) == tuple) else [x]
+
+    def make_int(x):
+        return [int(y) for y in x]
+
     board_ids = make_int(make_list(ast.literal_eval(args.board_ids)))
 
     # Load in Custom Values
