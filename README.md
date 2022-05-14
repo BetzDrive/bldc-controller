@@ -5,7 +5,7 @@ git clone https://github.com/BetzDrive/bldc-controller.git
 cd bldc-controller
 git submodule update --recursive --remote --init
 sudo apt-get install gcc-arm-none-eabi gdb-multiarch python3-pip
-python3 -m pip install requirements.txt
+python3 -m pip install -r requirements.txt
 make install_bd_tools
 ```
 
