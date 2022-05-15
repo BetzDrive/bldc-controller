@@ -43,7 +43,16 @@ if __name__ == "__main__":
             if "--help" in sys.argv:
                 sys.argv.remove("--help")
 
+    # Need to cache args to sub-command so the parser doesn't see them as
+    # "unrecognized arguments"
+    cache_args = []
+    if len(sys.argv) > 2:
+        cache_args = sys.argv[2:]
+        sys.argv = sys.argv[:2]
+
     args = parser_args(get_tools())
+
+    sys.argv.extend(cache_args)
 
     # If we requested a tool help, inject it back into the sys args for the
     # sub-tool to process.
