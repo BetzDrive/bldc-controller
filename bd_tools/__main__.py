@@ -8,7 +8,7 @@ BIN_PATH = Path(__file__).parent / "bin"
 
 def get_tools():
     """Returns all scripts in the bin directory"""
-    return [tool.stem for tool in BIN_PATH.glob("*.py")]
+    return [tool.stem for tool in BIN_PATH.glob("[!__]*.py")]
 
 
 def parser_args(tools):
