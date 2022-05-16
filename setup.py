@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -13,7 +13,7 @@ setup(
     author="Greg Balke",
     author_email="gbalke@berkeley.edu",
     license="BSD",
-    packages=["bd_tools"],
+    packages=find_packages(),
     install_requires=["crcmod", "matplotlib", "numpy", "scipy", "pyserial"],
     zip_safe=False,
     classifiers=[
