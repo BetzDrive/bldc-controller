@@ -77,6 +77,9 @@ CHIBIOS = ../chibios
 COMMON = ../common
 include $(COMMON)/common.mk
 
+NANOPB = ../proto/nanopb
+include $(NANOPB)/extra/nanopb.mk
+
 # Define linker script file here
 LDSCRIPT = link.ld
 
@@ -98,6 +101,9 @@ CSRC = $(PORTSRC) \
        $(BOARDSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
        $(CHIBIOS)/os/various/memstreams.c \
+	   $(NANOPB_DIR)/pb_encode.c \
+	   $(NANOPB_DIR)/pb_decode.c \
+	   $(NANOPB_DIR)/pb_common.c \
        $(COMMON_SRC)/utils.c \
        $(COMMON_SRC)/flash.c \
        $(COMMON_SRC)/helper.c \
@@ -150,8 +156,12 @@ ASMSRC = $(PORTASM)
 INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(CHIBIOS)/os/various \
+		 $(NANOPB_DIR) \
          $(COMMON_INCLUDE) \
          $(INCLUDE)
+
+# Src/Inc dir for proto messages.
+INCDIR += proto/
 
 #
 # Project, sources and paths
@@ -252,6 +262,10 @@ RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
 include $(RULESPATH)/rules.mk
 
 .PHONY: upload
+
+# Build rule for the protocol
+messages.pb.c: proto/messages.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/messages.proto
 
 upload: build/$(PROJECT).bin
 	openocd -f openocd.cfg -c "\
