@@ -265,3 +265,6 @@ upload: build/$(PROJECT).bin
 
 debug: build/$(PROJECT).elf
 	./run_gdb.sh
+
+upload_tty:
+	python3 -m bd_tools upload_firmware /dev/ttyUSB0 1 build/firmware.bin
