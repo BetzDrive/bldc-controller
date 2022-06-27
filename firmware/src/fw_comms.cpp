@@ -33,11 +33,14 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
         }
       }
     } else if (addr >= 0x1200 &&
-               addr < 0x1200 + consts::enc_ang_corr_table_size) {
+               addr <
+                   0x1200 +
+                       state::calibration_pb.enc_ang_corr_table_values.size) {
       // Encoder Angle Correction Table Values
-      handleVarAccess(
-          state::calibration.enc_ang_corr_table_values[addr - 0x1200], buf,
-          index, buf_size, access_type, errors);
+      handleVarAccess(reinterpret_cast<int8_t *>(
+                          state::calibration_pb.enc_ang_corr_table_values
+                              .bytes)[addr - 0x1200],
+                      buf, index, buf_size, access_type, errors);
     } else {
       switch (addr) {
       case 0x0000: // Register Map Version
@@ -56,115 +59,115 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
         break;
 
       case 0x1000: // Electrical Revolution Start
-        handleVarAccess(state::calibration.erev_start, buf, index, buf_size,
-                        access_type, errors);
+        handleVarAccess((uint16_t &)state::calibration_pb.erev_start, buf,
+                        index, buf_size, access_type, errors);
         break;
       case 0x1001: // Electrical Revolutions Per Mechanical Revolution
-        handleVarAccess(state::calibration.erevs_per_mrev, buf, index, buf_size,
-                        access_type, errors);
+        handleVarAccess((uint16_t &)state::calibration_pb.erevs_per_mrev, buf,
+                        index, buf_size, access_type, errors);
         break;
       case 0x1002: // Invert Phases
-        handleVarAccess(state::calibration.flip_phases, buf, index, buf_size,
-                        access_type, errors);
+        handleVarAccess((uint8_t &)state::calibration_pb.flip_phases, buf,
+                        index, buf_size, access_type, errors);
         break;
       case 0x1003: // Direct Current Controller Kp
-        handleVarAccess(state::calibration.foc_kp_d, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.foc_kp_d, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1004: // Direct Current Controller Ki
-        handleVarAccess(state::calibration.foc_ki_d, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.foc_ki_d, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1005: // Quadrature Current Controller Kp
-        handleVarAccess(state::calibration.foc_kp_q, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.foc_kp_q, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1006: // Quadrature Current Controller Ki
-        handleVarAccess(state::calibration.foc_ki_q, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.foc_ki_q, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1007: // Velocity Controller Kp
-        handleVarAccess(state::calibration.velocity_kp, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.velocity_kp, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1008: // Velocity Controller Kd
-        handleVarAccess(state::calibration.velocity_kd, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.velocity_kd, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1009: // Position Controller Kp
-        handleVarAccess(state::calibration.position_kp, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.position_kp, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x100A: // Position Controller Kd
-        handleVarAccess(state::calibration.position_kd, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.position_kd, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1010: // Current Limit (A)
-        handleVarAccess(state::calibration.current_limit, buf, index, buf_size,
-                        access_type, errors);
+        handleVarAccess(state::calibration_pb.current_limit, buf, index,
+                        buf_size, access_type, errors);
         break;
       case 0x1011: // Torque Limit (N*m)
-        handleVarAccess(state::calibration.torque_limit, buf, index, buf_size,
-                        access_type, errors);
+        handleVarAccess(state::calibration_pb.torque_limit, buf, index,
+                        buf_size, access_type, errors);
         break;
       case 0x1012: // Velocity Limit (rad/s)
-        handleVarAccess(state::calibration.velocity_limit, buf, index, buf_size,
-                        access_type, errors);
+        handleVarAccess(state::calibration_pb.velocity_limit, buf, index,
+                        buf_size, access_type, errors);
         break;
       case 0x1013: // Position Lower Limit (rad)
-        handleVarAccess(state::calibration.position_lower_limit, buf, index,
+        handleVarAccess(state::calibration_pb.position_lower_limit, buf, index,
                         buf_size, access_type, errors);
         break;
       case 0x1014: // Position Upper Limit (rad)
-        handleVarAccess(state::calibration.position_upper_limit, buf, index,
+        handleVarAccess(state::calibration_pb.position_upper_limit, buf, index,
                         buf_size, access_type, errors);
         break;
       case 0x1015: // Position Offset
-        handleVarAccess(state::calibration.position_offset, buf, index,
+        handleVarAccess(state::calibration_pb.position_offset, buf, index,
                         buf_size, access_type, errors);
         break;
       case 0x1020: // Motor Resistance (ohm)
-        handleVarAccess(state::calibration.motor_resistance, buf, index,
+        handleVarAccess(state::calibration_pb.motor_resistance, buf, index,
                         buf_size, access_type, errors);
         break;
       case 0x1021: // Motor Inductance (H)
-        handleVarAccess(state::calibration.motor_inductance, buf, index,
+        handleVarAccess(state::calibration_pb.motor_inductance, buf, index,
                         buf_size, access_type, errors);
         break;
       case 0x1022: // Motor Torque Constant (N*m/A)
-        handleVarAccess(state::calibration.motor_torque_const, buf, index,
+        handleVarAccess(state::calibration_pb.motor_torque_const, buf, index,
                         buf_size, access_type, errors);
         break;
       case 0x1030: // Control Timeout (ms)
-        handleVarAccess(state::calibration.control_timeout, buf, index,
-                        buf_size, access_type, errors);
+        handleVarAccess((uint16_t &)state::calibration_pb.control_timeout, buf,
+                        index, buf_size, access_type, errors);
         break;
       case 0x1040: // HF Velocity Filter Parameter
-        handleVarAccess(state::calibration.hf_velocity_filter_param, buf, index,
-                        buf_size, access_type, errors);
+        handleVarAccess(state::calibration_pb.hf_velocity_filter_param, buf,
+                        index, buf_size, access_type, errors);
         break;
       case 0x1041: // LF Velocity Filter Parameter
-        handleVarAccess(state::calibration.lf_velocity_filter_param, buf, index,
-                        buf_size, access_type, errors);
+        handleVarAccess(state::calibration_pb.lf_velocity_filter_param, buf,
+                        index, buf_size, access_type, errors);
         break;
       case 0x1050: // Current Phase A Offset
-        handleVarAccess(state::calibration.ia_offset, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.ia_offset, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1051: // Current Phase B Offset
-        handleVarAccess(state::calibration.ib_offset, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.ib_offset, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1052: // Current Phase C Offset
-        handleVarAccess(state::calibration.ic_offset, buf, index, buf_size,
+        handleVarAccess(state::calibration_pb.ic_offset, buf, index, buf_size,
                         access_type, errors);
         break;
       case 0x1100: // Encoder Angle Correction Scale (rad)
-        handleVarAccess(state::calibration.enc_ang_corr_scale, buf, index,
+        handleVarAccess(state::calibration_pb.enc_ang_corr_scale, buf, index,
                         buf_size, access_type, errors);
         break;
       case 0x1101: // Encoder Angle Correction Offset (rad)
-        handleVarAccess(state::calibration.enc_ang_corr_offset, buf, index,
+        handleVarAccess(state::calibration_pb.enc_ang_corr_offset, buf, index,
                         buf_size, access_type, errors);
         break;
 

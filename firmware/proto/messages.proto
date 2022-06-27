@@ -59,6 +59,5 @@ message motor_calibration_t {
   // Encoder angle correction offset (rad).
   float enc_ang_corr_offset = 28;
   // Encoder angle correction table values.
-  bytes enc_ang_corr_table_values = 29
-      [ (nanopb).max_count = 257, (nanopb).fixed_count = true ];
+  bytes enc_ang_corr_table_values = 29 [ (nanopb).max_size = 257 ];
 }

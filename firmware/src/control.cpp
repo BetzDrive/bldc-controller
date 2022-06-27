@@ -21,15 +21,17 @@ static Thread *control_thread_ptr = nullptr;
 
 static SVM modulator(SVMStrategy::MIDPOINT_CLAMP);
 
-static PID pid_id(state::calibration.foc_kp_d, state::calibration.foc_ki_d,
-                  0.0f, consts::current_control_interval);
-static PID pid_iq(state::calibration.foc_kp_q, state::calibration.foc_ki_q,
-                  0.0f, consts::current_control_interval);
-static PID pid_velocity(state::calibration.velocity_kp, 0.0f,
-                        state::calibration.velocity_kd,
+static PID pid_id(state::calibration_pb.foc_kp_d,
+                  state::calibration_pb.foc_ki_d, 0.0f,
+                  consts::current_control_interval);
+static PID pid_iq(state::calibration_pb.foc_kp_q,
+                  state::calibration_pb.foc_ki_q, 0.0f,
+                  consts::current_control_interval);
+static PID pid_velocity(state::calibration_pb.velocity_kp, 0.0f,
+                        state::calibration_pb.velocity_kd,
                         consts::velocity_control_interval);
-static PID pid_position(state::calibration.position_kp, 0.0f,
-                        state::calibration.position_kd,
+static PID pid_position(state::calibration_pb.position_kp, 0.0f,
+                        state::calibration_pb.position_kd,
                         consts::position_control_interval);
 
 static systime_t last_control_timeout_reset;
@@ -41,14 +43,17 @@ static const math::LFPeriodicity enc_ang_corr_periodicity = {
     1, enc_ang_corr_periodicity_flips};
 
 static math::LUTFunction<int8_t> enc_ang_corr_table(
-    0, 2 * consts::pi, state::calibration.enc_ang_corr_table_values,
-    consts::enc_ang_corr_table_size, enc_ang_corr_periodicity);
+    0, 2 * consts::pi,
+    reinterpret_cast<int8_t *>(
+        state::calibration_pb.enc_ang_corr_table_values.bytes),
+    state::calibration_pb.enc_ang_corr_table_values.size,
+    enc_ang_corr_periodicity);
 
 static float getEncoderAngleCorrection(float raw_enc_pos) {
-  if (state::calibration.enc_ang_corr_scale != 0.0f) {
+  if (state::calibration_pb.enc_ang_corr_scale != 0.0f) {
     return ((enc_ang_corr_table(raw_enc_pos) *
-             state::calibration.enc_ang_corr_scale) +
-            state::calibration.enc_ang_corr_offset);
+             state::calibration_pb.enc_ang_corr_scale) +
+            state::calibration_pb.enc_ang_corr_offset);
   } else {
     return 0.0f;
   }
@@ -130,9 +135,9 @@ void runInnerControlLoop() {
     //   related command arrives (in fw_comms.cpp)
     // TODO(gbalke): The flag clear is placed in a bad location... Figure out a
     // cleaner solution.
-    if (state::calibration.control_timeout != 0 &&
+    if (state::calibration_pb.control_timeout != 0 &&
         ((chTimeNow() - last_control_timeout_reset) >=
-         MS2ST(state::calibration.control_timeout))) {
+         MS2ST(state::calibration_pb.control_timeout))) {
       brakeMotor();
       state::parameters.timeout_flag = true;
     }
@@ -190,16 +195,16 @@ void estimateState() {
 
   state::results.rotor_pos =
       (enc_pos + (state::results.rotor_revs * 2 * consts::pi) -
-       state::calibration.position_offset);
+       state::calibration_pb.position_offset);
 
   float rotor_vel_update = enc_pos_diff * consts::current_control_freq;
   // High frequency estimate used for on-board commutation
-  float hf_alpha = state::calibration.hf_velocity_filter_param;
+  float hf_alpha = state::calibration_pb.hf_velocity_filter_param;
   state::results.hf_rotor_vel =
       (hf_alpha * rotor_vel_update +
        (1.0f - hf_alpha) * state::results.hf_rotor_vel);
   // Low frequency estimate sent to host
-  float lf_alpha = state::calibration.lf_velocity_filter_param;
+  float lf_alpha = state::calibration_pb.lf_velocity_filter_param;
   state::results.lf_rotor_vel =
       (lf_alpha * rotor_vel_update +
        (1.0f - lf_alpha) * state::results.lf_rotor_vel);
@@ -252,9 +257,9 @@ void estimateState() {
   avg_vin = peripherals::adcValueToVoltage(
       raw_avg_vin / consts::ivsense_rolling_average_count);
 
-  state::results.ia = avg_ia - state::calibration.ia_offset;
-  state::results.ib = avg_ib - state::calibration.ib_offset;
-  state::results.ic = avg_ic - state::calibration.ic_offset;
+  state::results.ia = avg_ia - state::calibration_pb.ia_offset;
+  state::results.ib = avg_ib - state::calibration_pb.ib_offset;
+  state::results.ic = avg_ic - state::calibration_pb.ic_offset;
   state::results.vin = avg_vin;
 
   // if (results.duty_a > results.duty_b && results.duty_a > results.duty_c) {
@@ -302,11 +307,11 @@ void runPositionControl() {
        consts::control_mode_position_velocity) ||
       (state::parameters.control_mode ==
        consts::control_mode_position_feed_forward)) {
-    pid_position.setGains(state::calibration.position_kp, 0.0f,
-                          state::calibration.position_kd);
+    pid_position.setGains(state::calibration_pb.position_kp, 0.0f,
+                          state::calibration_pb.position_kd);
     pid_position.setAlpha(consts::position_control_alpha);
-    pid_position.setLimits(-state::calibration.torque_limit,
-                           state::calibration.torque_limit);
+    pid_position.setLimits(-state::calibration_pb.torque_limit,
+                           state::calibration_pb.torque_limit);
     pid_position.setTarget(state::parameters.position_sp);
     state::parameters.torque_sp =
         pid_position.compute(state::results.rotor_pos);
@@ -317,12 +322,12 @@ void runVelocityControl() {
   if (state::parameters.control_mode == consts::control_mode_velocity ||
       (state::parameters.control_mode ==
        consts::control_mode_position_velocity)) {
-    pid_velocity.setGains(state::calibration.velocity_kp, 0.0f,
-                          state::calibration.velocity_kp);
+    pid_velocity.setGains(state::calibration_pb.velocity_kp, 0.0f,
+                          state::calibration_pb.velocity_kp);
     // float velocity_max = state::results.vin /
-    // state::calibration.motor_torque_const;
-    pid_velocity.setLimits(-state::calibration.torque_limit,
-                           state::calibration.torque_limit);
+    // state::calibration_pb.motor_torque_const;
+    pid_velocity.setLimits(-state::calibration_pb.torque_limit,
+                           state::calibration_pb.torque_limit);
     pid_velocity.setTarget(state::parameters.velocity_sp);
     state::parameters.torque_sp =
         pid_velocity.compute(state::results.hf_rotor_vel);
@@ -353,13 +358,14 @@ void runCurrentControl() {
     math::transformClarke(state::results.ia, state::results.ib,
                           state::results.ic, ialpha, ibeta);
 
-    if (state::calibration.flip_phases) {
+    if (state::calibration_pb.flip_phases) {
       ibeta = -ibeta;
     }
 
-    float mech_pos = (state::results.enc_pos -
-                      state::calibration.erev_start * consts::rad_per_enc_tick);
-    float elec_pos = mech_pos * state::calibration.erevs_per_mrev;
+    float mech_pos =
+        (state::results.enc_pos -
+         state::calibration_pb.erev_start * consts::rad_per_enc_tick);
+    float elec_pos = mech_pos * state::calibration_pb.erevs_per_mrev;
 
     float cos_theta = math::fast_cos(elec_pos);
     float sin_theta = math::fast_sin(elec_pos);
@@ -367,15 +373,15 @@ void runCurrentControl() {
     float id, iq;
     math::transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
 
-    pid_id.setGains(state::calibration.foc_kp_d, state::calibration.foc_ki_d,
-                    0.0f);
-    pid_iq.setGains(state::calibration.foc_kp_q, state::calibration.foc_ki_q,
-                    0.0f);
+    pid_id.setGains(state::calibration_pb.foc_kp_d,
+                    state::calibration_pb.foc_ki_d, 0.0f);
+    pid_iq.setGains(state::calibration_pb.foc_kp_q,
+                    state::calibration_pb.foc_ki_q, 0.0f);
 
-    pid_id.setLimits(-state::calibration.current_limit,
-                     state::calibration.current_limit);
-    pid_iq.setLimits(-state::calibration.current_limit,
-                     state::calibration.current_limit);
+    pid_id.setLimits(-state::calibration_pb.current_limit,
+                     state::calibration_pb.current_limit);
+    pid_iq.setLimits(-state::calibration_pb.current_limit,
+                     state::calibration_pb.current_limit);
 
     float id_sp, iq_sp;
     if (state::parameters.control_mode == consts::control_mode_foc_current) {
@@ -386,13 +392,13 @@ void runCurrentControl() {
                consts::control_mode_position_feed_forward) {
       id_sp = 0.0f;
       iq_sp = ((state::parameters.torque_sp /
-                state::calibration.motor_torque_const) +
+                state::calibration_pb.motor_torque_const) +
                state::parameters.feed_forward);
     } else {
       // Generate FOC current setpoints from the reference torque
       id_sp = 0.0f;
-      iq_sp =
-          (state::parameters.torque_sp / state::calibration.motor_torque_const);
+      iq_sp = (state::parameters.torque_sp /
+               state::calibration_pb.motor_torque_const);
     }
 
     float vd = 0.0;
@@ -407,8 +413,8 @@ void runCurrentControl() {
       state::results.id_output = pid_id.compute(id);
       state::results.iq_output = pid_iq.compute(iq);
 
-      vd = state::results.id_output * state::calibration.motor_resistance;
-      vq = state::results.iq_output * state::calibration.motor_resistance;
+      vd = state::results.id_output * state::calibration_pb.motor_resistance;
+      vq = state::results.iq_output * state::calibration_pb.motor_resistance;
     }
 
     // Normalize the vectors
@@ -421,7 +427,7 @@ void runCurrentControl() {
     math::transformInversePark(vd_norm, vq_norm, cos_theta, sin_theta,
                                valpha_norm, vbeta_norm);
 
-    if (state::calibration.flip_phases) {
+    if (state::calibration_pb.flip_phases) {
       vbeta_norm = -vbeta_norm;
     }
 

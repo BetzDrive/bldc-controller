@@ -264,8 +264,8 @@ include $(RULESPATH)/rules.mk
 .PHONY: upload
 
 # Build rule for the protocol
-messages.pb.c: proto/messages.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/messages.proto
+messages.pb.c messages.pb.h: proto/messages.proto
+	$(PROTOC) $(PROTOC_OPTS) -I$(NANOPB_DIR)/generator/proto --nanopb_out=. $<
 
 upload: build/$(PROJECT).bin
 	openocd -f openocd.cfg -c "\
