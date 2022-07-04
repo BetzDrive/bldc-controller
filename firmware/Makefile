@@ -53,7 +53,7 @@ endif
 
 # Enables the use of FPU on Cortex-M4 (no, softfp, hard).
 ifeq ($(USE_FPU),)
-  USE_FPU = softfp
+  USE_FPU = hard
 endif
 
 # Enable this if you really want to use the STM FWLib.
@@ -78,7 +78,16 @@ COMMON = ../common
 include $(COMMON)/common.mk
 
 NANOPB = ../proto/nanopb
+PROTO_DIR = proto
+GEN_DIR = ${BUILDDIR}/gen
+PB_GEN_DIR = ${GEN_DIR}/proto
 include $(NANOPB)/extra/nanopb.mk
+
+PB_GEN = ${PB_GEN_DIR}/messages.pb.c ${PB_GEN_DIR}/messages.pb.h
+# The rules to generate object files from the generated source files
+# This could be merge with another rule from your Makefile
+PB_GEN_SRC := $(filter %.c,$(PB_GEN))
+PB_GEN_OBJ := $(patsubst %.c,%.o,$(PB_GEN_SRC))
 
 # Define linker script file here
 LDSCRIPT = link.ld
@@ -99,11 +108,9 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
+	   $(NANOPB_CORE) \
        $(CHIBIOS)/os/various/chprintf.c \
        $(CHIBIOS)/os/various/memstreams.c \
-	   $(NANOPB_DIR)/pb_encode.c \
-	   $(NANOPB_DIR)/pb_decode.c \
-	   $(NANOPB_DIR)/pb_common.c \
        $(COMMON_SRC)/utils.c \
        $(COMMON_SRC)/flash.c \
        $(COMMON_SRC)/helper.c \
@@ -160,8 +167,9 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
          $(COMMON_INCLUDE) \
          $(INCLUDE)
 
-# Src/Inc dir for proto messages.
-INCDIR += proto/
+# Dir for proto messages.
+INCDIR += ${GEN_DIR}
+CSRC += ${PB_GEN_DIR}/messages.pb.c
 
 #
 # Project, sources and paths
@@ -262,10 +270,17 @@ RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
 include $(RULESPATH)/rules.mk
 
 .PHONY: upload
+.PHONY: uload_tty
+.PHONY: debug
 
 # Build rule for the protocol
-messages.pb.c messages.pb.h: proto/messages.proto
-	$(PROTOC) $(PROTOC_OPTS) -I$(NANOPB_DIR)/generator/proto --nanopb_out=. $<
+${PB_GEN}: ${PROTO_DIR}/messages.proto
+	mkdir -p ${PB_GEN_DIR}
+	$(PROTOC) $(PROTOC_OPTS) -I$(NANOPB_DIR)/generator/proto \
+		--nanopb_out=${PB_GEN_DIR} --proto_path=${PROTO_DIR} $<
+
+$(PB_GEN_OBJ): $(PB_GEN_SRC)
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 upload: build/$(PROJECT).bin
 	openocd -f openocd.cfg -c "\
