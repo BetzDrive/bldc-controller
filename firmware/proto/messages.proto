@@ -1,0 +1,63 @@
+syntax = "proto3";
+import "nanopb.proto";
+
+message motor_calibration_t {
+  // Encoder reading at the start of an electrical revolution.
+  uint32 erev_start = 1;
+  // Electrical revolutions per mechanical revolution.
+  uint32 erevs_per_mrev = 2;
+  // Phases A, B, C are arranged in clockwise instead of ccw order.
+  bool flip_phases = 3;
+  // Proportional gain for FOC/d PI loop.
+  float foc_kp_d = 4;
+  // Integral gain for FOC/d PI loop.
+  float foc_ki_d = 5;
+  // Proportional gain for FOC/q PI loop.
+  float foc_kp_q = 6;
+  // Integral gain for FOC/q PI loop.
+  float foc_ki_q = 7;
+  // Proportional gain for velocity PI loop.
+  float velocity_kp = 8;
+  // Integral gain for velocity PI loop.
+  float velocity_kd = 9;
+  // Proportional gain for position PI loop.
+  float position_kp = 10;
+  // Integral gain for position PI loop.
+  float position_kd = 11;
+  // Current limit (A).
+  float current_limit = 12;
+  // Torque limit (N*m).
+  float torque_limit = 13;
+  // Velocity limit (rad/s).
+  float velocity_limit = 14;
+  // Position lower limit (rad).
+  float position_lower_limit = 15;
+  // Position upper limit (rad).
+  float position_upper_limit = 16;
+  // Motor resistance (ohm).
+  float motor_resistance = 17;
+  // Motor inductance (henries).
+  float motor_inductance = 18;
+  // Motor torque constant (newton-meters per ampere).
+  float motor_torque_const = 19;
+  // Control timeout (ms).
+  uint32 control_timeout = 20;
+  // Parameter for high frequency velocity estimate.
+  float hf_velocity_filter_param = 21;
+  // Parameter for low frequency velocity estimate.
+  float lf_velocity_filter_param = 22;
+  // Position offset.
+  float position_offset = 23;
+  // Current Offset for Phase A.
+  float ia_offset = 24;
+  // Current Offset for Phase B.
+  float ib_offset = 25;
+  // Current Offset for Phase C.
+  float ic_offset = 26;
+  // Encoder angle correction scale (rad).
+  float enc_ang_corr_scale = 27;
+  // Encoder angle correction offset (rad).
+  float enc_ang_corr_offset = 28;
+  // Encoder angle correction table values.
+  bytes enc_ang_corr_table_values = 29 [ (nanopb).max_size = 257 ];
+}

@@ -1,2 +1,4 @@
 build/
 .dep/
+*.pb.c
+*.pb.h

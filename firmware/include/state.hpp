@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "proto/messages.pb.h"
+
 #include "Recorder.hpp"
 #include "ch.h"
 #include "constants.hpp"
@@ -194,6 +196,7 @@ extern Results results;
  * Calibration values
  */
 extern Calibration calibration;
+extern motor_calibration_t calibration_pb;
 
 /**
  * Parameter values written by the comms thread
