@@ -14,9 +14,7 @@ def parser_args():
     parser = argparse.ArgumentParser(
         description="Upload calibration values to motor driver board(s)"
     )
-    parser.add_argument("serial", type=str, help="Serial port")
-    parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
-    parser.add_argument("board_ids", type=str, help="Board id(s) to flash")
+    boards.addBoardArgs(parser)
     parser.add_argument(
         "--calibration_file",
         type=str,

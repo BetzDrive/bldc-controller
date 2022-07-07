@@ -19,15 +19,11 @@ ReadOnlyRegs["imu"] = boards.COMM_ROR_ACC_X
 
 def parser_args():
     parser = argparse.ArgumentParser(description="Read a sensor from boards.")
-    parser.add_argument("serial", type=str, help="Serial port")
-    parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
+    boards.addBoardArgs(parser)
     parser.add_argument(
         "--num_iters",
         type=int,
         help="Number of iterations to loop (default to infinity)",
-    )
-    parser.add_argument(
-        "board_ids", type=str, help="Board ID (separate with comma)"
     )
     parser.add_argument(
         "sensor",

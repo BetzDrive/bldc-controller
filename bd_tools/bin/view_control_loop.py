@@ -15,29 +15,8 @@ def parser_args():
         description="Drive motor module(s) with a given control mode and plot "
         "current measurements."
     )
-    parser.add_argument("serial", type=str, help="Serial port")
-    parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
-    parser.add_argument(
-        "board_ids", type=str, help="Board ID (separate with comma)"
-    )
-    parser.add_argument(
-        "mode",
-        type=str,
-        help="Control mode: current (Id[A], Iq[A]), "
-        "phase (dc,dc,dc), "
-        "torque (N*m), "
-        "velocity (rad/s), "
-        "position (rad), "
-        "pos_vel (rad,rad/s), "
-        "pos_ff (rad,ff[A]), "
-        "pwm (dc)",
-    )
-    parser.add_argument(
-        "actuations",
-        type=str,
-        help="Actuation amount in the units of the selected mode (if requires "
-        "multiple args, separate by comma)",
-    )
+    boards.addBoardArgs(parser)
+    boards.addMotorControlArgs(parser)
     parser.set_defaults(
         baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
         offset=comms.COMM_BOOTLOADER_OFFSET,

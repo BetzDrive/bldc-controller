@@ -27,9 +27,7 @@ def parser_args():
     parser = argparse.ArgumentParser(
         description="Calibrate the encoder on a motor controller board."
     )
-    parser.add_argument("serial", type=str, help="Serial port")
-    parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
-    parser.add_argument("board_id", type=int, help="Board ID")
+    boards.addBoardArgs(parser)
     parser.add_argument("duty_cycle", type=float, help="Duty cycle")
     parser.add_argument(
         "--max_steps", type=int, help="Maximum number of steps"
