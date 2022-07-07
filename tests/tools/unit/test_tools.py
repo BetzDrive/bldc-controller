@@ -150,6 +150,8 @@ def test_update_calibration(mocker, default_mock_comms):
     mocker.patch("bd_tools.comms.BLDCControllerClient.setTorqueLimit")
     mocker.patch("bd_tools.comms.BLDCControllerClient.setVelocityLimit")
     mocker.patch("bd_tools.comms.BLDCControllerClient.storeCalibration")
+    mocker.patch("bd_tools.comms.BLDCControllerClient.setHfVelocityAlpha")
+    mocker.patch("bd_tools.comms.BLDCControllerClient.setLfVelocityAlpha")
 
     bd_tools.bin.update_calibration.action(Args())
 

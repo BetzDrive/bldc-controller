@@ -89,9 +89,16 @@ def action(args):
                         client.readRegisters([board_id], [0x3020], [1])[0],
                     )
                 )
+                # Read the low frequency velocity estimate
+                data.append(
+                    struct.unpack(
+                        "<f",
+                        client.readRegisters([board_id], [0x3001], [1])[0],
+                    )
+                )
             except (comms.MalformedPacketError, comms.ProtocolError):
                 print("Failed to communicate with board: ", board_id)
-        return time.time(), None if len(data) != (2 * len(board_ids)) else data
+        return time.time(), None if len(data) != (3 * len(board_ids)) else data
 
     def flatten(item_list):
         return [item for sublist in item_list for item in sublist]
@@ -99,7 +106,11 @@ def action(args):
     labels = []
     labels.extend(
         [
-            [str(bid) + "'s iq Reading", str(bid) + "'s iq PID output"]
+            [
+                str(bid) + "'s iq Reading",
+                str(bid) + "'s iq PID output",
+                str(bid) + "'s lf velocity",
+            ]
             for bid in board_ids
         ]
     )

@@ -60,13 +60,17 @@ def action(args):
             client.setVelocityKd([board_id], [0.01])
 
             if torque_const > large_motor_tc - 0.01:
-                # Big motors
+                print("Large motor detected")
                 client.setPositionKp([board_id], [1.0])
                 client.setPositionKd([board_id], [1000.0])
             else:
-                # Small motors
+                print("Small motor detected")
                 client.setPositionKp([board_id], [0.5])
                 client.setPositionKd([board_id], [100.0])
+                client.setVelocityKp([board_id], [0.2])
+                client.setVelocityKd([board_id], [10.0])
+                client.setHfVelocityAlpha([board_id], [0.001])
+                client.setLfVelocityAlpha([board_id], [1.0 - 0.9975])
 
             # Modifying Limits
             client.setCurrentLimit([board_id], [2.0])
