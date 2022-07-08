@@ -1,11 +1,5 @@
 test: pytest lint
 
-install_python_packages:
-	python3 -m pip install -r requirements.txt
-
-install_bd_tools:
-	python3 setup.py install --user
-
 pytest: install_bd_tools
 	python3 -m pytest tests/
 
@@ -24,3 +18,14 @@ format: format_python
 format_python:
 	isort tests bd_tools
 	black tests bd_tools
+
+setup: init_submodules install_python_packages install_bd_tools
+
+init_submodules:
+	git submodule update --recursive --init
+
+install_python_packages:
+	python3 -m pip install -r requirements.txt
+
+install_bd_tools:
+	python3 setup.py install --user
