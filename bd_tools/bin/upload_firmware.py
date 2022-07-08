@@ -11,9 +11,7 @@ def parser_args():
     parser = argparse.ArgumentParser(
         description="Upload firmware to a motor controller board."
     )
-    parser.add_argument("serial", type=str, help="Serial port")
-    parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
-    parser.add_argument("board_ids", type=str, help="Board IDs")
+    boards.addBoardArgs(parser)
     parser.add_argument(
         "bin_file", type=str, help=".bin file containing firmware image"
     )

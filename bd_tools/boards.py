@@ -18,6 +18,14 @@ COMM_ROR_ACC_Z = 0x3008
 COMM_ROR_ROTOR_POS_RAW = 0x3010
 
 
+def addBoardArgs(parser):
+    parser.add_argument("serial", type=str, help="Serial port")
+    parser.add_argument("--baud_rate", type=int, help="Serial baud rate")
+    parser.add_argument(
+        "board_ids", type=str, help="Board ID (separate with comma)"
+    )
+
+
 def initBoards(client, board_ids):
 
     if type(board_ids) == int:
@@ -145,6 +153,27 @@ control_modes = {
     "pos_ff": 6,
     "pwm": 7,
 }
+
+
+def addMotorControlArgs(parser):
+    parser.add_argument(
+        "mode",
+        type=str,
+        help="Control mode: current (Id[A], Iq[A]), "
+        "phase (dc,dc,dc), "
+        "torque (N*m), "
+        "velocity (rad/s), "
+        "position (rad), "
+        "pos_vel (rad,rad/s), "
+        "pos_ff (rad,ff[A]), "
+        "pwm (dc)",
+    )
+    parser.add_argument(
+        "actuations",
+        type=str,
+        help="Actuation amount in the units of the selected mode (if requires "
+        "multiple args, separate by comma)",
+    )
 
 
 # This should be placed in a try/catch to handle comms errors
