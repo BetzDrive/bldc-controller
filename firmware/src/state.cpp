@@ -1,5 +1,8 @@
 #include "state.hpp"
 
+#include <pb_decode.h>
+#include <pb_encode.h>
+
 #include <cstring>
 
 #include "flash.h"
@@ -89,36 +92,64 @@ void initState() {
   calibration_pb.enc_ang_corr_offset = 0.0f;
 }
 
+uint8_t calibration_buffer[1024];
+struct calibration_header_t {
+  uint16_t start_sequence;
+  uint16_t length;
+};
+
 void storeCalibration() {
+  // TODO(greg): Verify length of calibration is less than reserved space in
+  // linker file.
   uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
 
+  uint8_t offset = sizeof(calibration_header_t);
+  pb_ostream_t stream = pb_ostream_from_buffer(
+      calibration_buffer + offset, sizeof(calibration_buffer) - offset);
+  pb_encode(&stream, motor_calibration_t_fields, &calibration_pb);
+
+  calibration_header_t header;
+  header.start_sequence = consts::calib_ss_pb;
+  header.length = stream.bytes_written;
+
+  memcpy(calibration_buffer, &header, sizeof(header));
+
   struct IWDG_Values save = pauseIWDG();
-  flashErase(addr, sizeof(state::Calibration));
+  flashErase(addr, stream.bytes_written + offset);
   resumeIWDG(save);
 
-  flashWrite(addr, reinterpret_cast<char *>(&state::calibration),
-             sizeof(state::Calibration));
+  flashWrite(addr, reinterpret_cast<char *>(calibration_buffer),
+             stream.bytes_written + offset);
 }
 
 void loadCalibration() {
   uint32_t addr = reinterpret_cast<uintptr_t>(consts::calibration_ptr);
-  uint16_t start_sequence = 0;
+  calibration_header_t header;
   // Retry loading flash until successful load. This is critical to read.
-  while (!(flashRead(addr, reinterpret_cast<char *>(&start_sequence),
-                     sizeof(uint16_t)) == FLASH_RETURN_SUCCESS)) {
+  while (!(flashRead(addr, reinterpret_cast<char *>(&header), sizeof(header)) ==
+           FLASH_RETURN_SUCCESS)) {
   }
-  if (start_sequence == consts::calib_ss) {
+  if (header.start_sequence == consts::calib_ss_struct) {
+    // NOTE: The start sequence indicates the current calibration is stored in
+    // the old format (struct). We read as normal.
     while (!(flashRead(addr, reinterpret_cast<char *>(&state::calibration),
                        sizeof(state::Calibration)) == FLASH_RETURN_SUCCESS)) {
     }
     copyCalibrationToPb();
+  } else if (header.start_sequence == consts::calib_ss_pb) {
+    while (!(flashRead(addr, reinterpret_cast<char *>(calibration_buffer),
+                       header.length + sizeof(calibration_header_t)) ==
+             FLASH_RETURN_SUCCESS)) {
+    }
+    pb_istream_t stream = pb_istream_from_buffer(
+        calibration_buffer + sizeof(calibration_header_t), header.length);
+    pb_decode(&stream, motor_calibration_t_fields, &calibration_pb);
   }
 }
 
 void clearCalibration() {
   // Copy default values into calibration.
-  state::Calibration temp_calib;
-  std::memcpy(&state::calibration, &temp_calib, sizeof(state::Calibration));
+  initState();
 }
 
 } // namespace state

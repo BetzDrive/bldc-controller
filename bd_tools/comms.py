@@ -353,6 +353,22 @@ class BLDCControllerClient:
             [struct.pack("<H", val) for val in value],
         )
 
+    def setHfVelocityAlpha(self, server_ids, value):
+        return self.writeRegisters(
+            server_ids,
+            [0x1040 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
+
+    def setLfVelocityAlpha(self, server_ids, value):
+        return self.writeRegisters(
+            server_ids,
+            [0x1041 for sid in server_ids],
+            [1 for sid in server_ids],
+            [struct.pack("<f", val) for val in value],
+        )
+
     def setCurrentControlMode(self, server_ids):
         return self.writeRegisters(
             server_ids,

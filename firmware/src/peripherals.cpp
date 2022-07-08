@@ -88,6 +88,7 @@ adcsample_t ivsense_sample_buf[consts::ivsense_channel_count *
 static void ivsenseADCEndCallback(ADCDriver *adcp, adcsample_t *buffer,
                                   size_t n) {
   (void)adcp;
+  (void)n;
 
   chSysLockFromIsr();
   bool is_odd_sample = (buffer - ivsense_sample_buf) >> 1;

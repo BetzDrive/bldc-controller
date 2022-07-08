@@ -77,12 +77,14 @@ struct Results {
   // Temperature in degrees Celsius.
   float temperature = 0;
 
+  uint32_t estimation_loops = 0;
+
   Results() {}
 };
 
 struct Calibration {
   // Start sequence to determine whether this is a valid calibration.
-  uint16_t start_sequence = consts::calib_ss;
+  uint16_t start_sequence = consts::calib_ss_struct;
   // Encoder reading at the start of an electrical revolution.
   uint16_t erev_start = 0;
   // Electrical revolutions per mechanical revolution.

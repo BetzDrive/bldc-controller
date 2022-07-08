@@ -166,7 +166,6 @@ void estimateState() {
   /*
    * Get current encoder position and velocity
    */
-
   uint16_t raw_enc_value;
 
   chSysLock(); // Required for function calls with "I" suffix
@@ -187,27 +186,32 @@ void estimateState() {
   float enc_pos_diff = enc_pos - prev_enc_pos;
   if (enc_pos_diff < -consts::pi) {
     state::results.rotor_revs += 1;
-    enc_pos_diff += 2 * consts::pi; // Normalize to (-pi, pi) range
   } else if (enc_pos_diff > consts::pi) {
     state::results.rotor_revs -= 1;
-    enc_pos_diff -= 2 * consts::pi; // Normalize to (-pi, pi) range
   }
 
+  float prev_rotor_pos = state::results.rotor_pos;
   state::results.rotor_pos =
       (enc_pos + (state::results.rotor_revs * 2 * consts::pi) -
        state::calibration_pb.position_offset);
+  float rotor_pos_diff = state::results.rotor_pos - prev_rotor_pos;
 
-  float rotor_vel_update = enc_pos_diff * consts::current_control_freq;
+  // TODO(greg): Use system clock to calculate dt rather than loop freq.
+  // NOTE: The actual loop frequency is closer to 10kHz. The gains have been
+  // tuned to the current setup so it'll be easier to just fix them again once
+  // this code is switched to use the true dt rather than re-tune twice.
+  float dt_inverse = 10000; // consts::current_control_freq;
+  float rotor_vel_update = rotor_pos_diff * dt_inverse;
   // High frequency estimate used for on-board commutation
   float hf_alpha = state::calibration_pb.hf_velocity_filter_param;
   state::results.hf_rotor_vel =
-      (hf_alpha * rotor_vel_update +
-       (1.0f - hf_alpha) * state::results.hf_rotor_vel);
+      (hf_alpha * rotor_vel_update) +
+      ((1.0f - hf_alpha) * state::results.hf_rotor_vel);
   // Low frequency estimate sent to host
   float lf_alpha = state::calibration_pb.lf_velocity_filter_param;
   state::results.lf_rotor_vel =
-      (lf_alpha * rotor_vel_update +
-       (1.0f - lf_alpha) * state::results.lf_rotor_vel);
+      (lf_alpha * rotor_vel_update) +
+      ((1.0f - lf_alpha) * state::results.lf_rotor_vel);
 
   /*
    * Calculate average voltages and currents
@@ -299,6 +303,7 @@ void estimateState() {
 
     state::recorder.recordSample(recorder_new_data);
   }
+  state::results.estimation_loops++;
 }
 
 void runPositionControl() {
@@ -323,7 +328,7 @@ void runVelocityControl() {
       (state::parameters.control_mode ==
        consts::control_mode_position_velocity)) {
     pid_velocity.setGains(state::calibration_pb.velocity_kp, 0.0f,
-                          state::calibration_pb.velocity_kp);
+                          state::calibration_pb.velocity_kd);
     // float velocity_max = state::results.vin /
     // state::calibration_pb.motor_torque_const;
     pid_velocity.setLimits(-state::calibration_pb.torque_limit,

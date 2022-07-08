@@ -172,7 +172,8 @@ extern const void *firmware_ptr;
 constexpr size_t nvparams_len = 1u << 14;
 
 // Unique constant that identifies a valid calibration stored in memory.
-constexpr uint16_t calib_ss = 0x5454;
+constexpr uint16_t calib_ss_struct = 0x5454;
+constexpr uint16_t calib_ss_pb = 0x8383;
 
 } // namespace consts
 } // namespace motor_driver
