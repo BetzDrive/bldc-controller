@@ -73,11 +73,11 @@ endif
 PROJECT = firmware
 
 # Imported source files and paths
-CHIBIOS = ../chibios
+CHIBIOS = ../third_party/chibios
 COMMON = ../common
 include $(COMMON)/common.mk
 
-NANOPB = ../proto/nanopb
+NANOPB = ../third_party/nanopb
 PROTO_DIR = proto
 GEN_DIR = ${BUILDDIR}/gen
 PB_GEN_DIR = ${GEN_DIR}/proto
