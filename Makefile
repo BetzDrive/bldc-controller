@@ -13,11 +13,14 @@ lint_python:
 lint_cpp:
 	cpplint --recursive common/ bootloader/ firmware/
 
-format: format_python
+format: format_python format_bazel
 
 format_python:
 	isort tests bd_tools
 	black tests bd_tools
+
+format_bazel:
+	bazel run //:buildifier
 
 setup: init_submodules install_python_packages install_bd_tools
 
