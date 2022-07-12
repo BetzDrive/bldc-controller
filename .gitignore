@@ -13,3 +13,5 @@ firmware/.settings/
 bd_tools.egg-info/
 build/
 dist/
+
+bazel-*
