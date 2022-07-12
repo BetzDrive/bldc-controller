@@ -1,7 +1,7 @@
-name: arm-none-eabi-gcc
+name: arm-compilation
 on: [pull_request]
 jobs:
-  compile:
+  makefile:
     runs-on: ubuntu-latest
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -18,3 +18,12 @@ jobs:
       run: python3 -m pip install protobuf grpcio-tools
     - run: make -C bootloader/
     - run: make -C firmware/
+  bazel:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Install Bazelisk
+      uses: bazelbuild/setup-bazelisk@v2
+    - run: bazelisk build //bootloader
