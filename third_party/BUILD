@@ -1,5 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load(":variables.bzl", "chibios_inc_paths")
+load(":variables.bzl", "chibios_inc_paths", "project_inc_paths")
 
 chibios_stm32f4_port_srcs = [
     "chibios/os/ports/GCC/ARMCMx/crt0.c",
@@ -118,18 +118,26 @@ chibios_ext_stm32_srcs = [
 
 chibios_ext_stm32_incs = glob(["chibios/ext/stm32lib/inc/*.h"])
 
+chibios_various_srcs = [
+    "chibios/os/various/chprintf.c",
+]
+
+chibios_various_incs = glob(["chibios/os/various/*.h"])
+
 chibios_srcs = (
     chibios_kernel_srcs +
     chibios_stm32f4_port_srcs +
     chibios_stm32f4_platform_srcs +
-    chibios_ext_stm32_srcs
+    chibios_ext_stm32_srcs +
+    chibios_various_srcs
 )
 
 chibios_hdrs = (
     chibios_stm32f4_port_incs +
     chibios_stm32f4_platform_incs +
     chibios_kernel_incs +
-    chibios_ext_stm32_incs
+    chibios_ext_stm32_incs +
+    chibios_various_incs
 )
 
 cc_library(
@@ -163,11 +171,15 @@ cc_library(
             "//common:board_config_hdrs",
         ]
     ),
-    copts = [
+    copts = project_inc_paths + [
         "-DUSE_STDPERIPH_DRIVER",
-    ] + chibios_inc_paths,
-    visibility = ["//visibility:public"],
-    deps = [
-        "//bootloader:os_config",
     ],
+    includes = chibios_inc_paths,
+    visibility = ["//visibility:public"],
+    deps = select({
+        "//toolchains/programs:bootloader": ["//bootloader:os_config_lib"],
+        "//toolchains/programs:firmware": ["//firmware:os_config_lib"],
+        "//conditions:default": [],
+    }),
+    alwayslink = True,
 )

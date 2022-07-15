@@ -25,7 +25,10 @@ void pwmSetChannelOutputMode(PWMDriver *pwm_driver, pwmchannel_t channel,
 }
 
 // FIXME
-void *__dso_handle = 0;
+// NOTE: Commenting out this as I have no idea why it's actually in here. It
+// caused compiler issues when I started working on bazel firmware builds and
+// doesn't seem to cause any issues with the makefile builds.
+// void *__dso_handle = 0;
 void __cxa_pure_virtual(void) {
   while (1)
     ;

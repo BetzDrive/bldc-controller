@@ -1,4 +1,4 @@
-name: arm-compilation
+name: compile
 on: [pull_request]
 jobs:
   makefile:
@@ -18,7 +18,7 @@ jobs:
       run: python3 -m pip install protobuf grpcio-tools
     - run: make -C bootloader/
     - run: make -C firmware/
-  bazel:
+  bazel-bootloader:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -27,3 +27,12 @@ jobs:
     - name: Install Bazelisk
       uses: bazelbuild/setup-bazelisk@v2
     - run: bazelisk build //bootloader
+  bazel-firmware:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Install Bazelisk
+      uses: bazelbuild/setup-bazelisk@v2
+    - run: bazelisk build //firmware

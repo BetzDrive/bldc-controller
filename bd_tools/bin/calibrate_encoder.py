@@ -47,7 +47,12 @@ def action(args):
     # Data collection
     #
 
-    board_ids = [args.board_id]
+    board_ids = [int(bid) for bid in args.board_ids.split(",")]
+    if len(board_ids) > 1:
+        print("Only one motor controller calibrated at a time")
+        return
+
+    board_ids = [board_ids[0]]
 
     ser = serial.Serial(port=args.serial, baudrate=args.baud_rate, timeout=0.1)
     time.sleep(0.1)

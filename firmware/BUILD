@@ -1,21 +1,20 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//third_party:variables.bzl", "project_inc_paths")
-load("//toolchains:platforms.bzl", "bootloader_binary", "gen_binary")
+load("//toolchains:platforms.bzl", "firmware_binary", "gen_binary")
 load("//toolchains:os_config.bzl", "os_config")
 load("//toolchains:flash.bzl", "flash_remote")
+load(
+    "@com_github_nanopb_nanopb//extra/bazel:nanopb_cc_proto_library.bzl",
+    "cc_nanopb_proto_library",
+)
 load("@bazel_embedded//tools/openocd:defs.bzl", "openocd_flash")
 
-bootloader_binary(
-    name = "bootloader_raw",
+firmware_binary(
+    name = "firmware_raw",
     srcs = glob(["src/*.c"]) + glob(["src/*.cpp"]),
-    copts = project_inc_paths + [
-        "-DBOOTLOADER",
-    ],
+    copts = project_inc_paths,
     linkopts = [
         "-T $(location :link.ld)",
-    ],
-    target_compatible_with = [
-        "@platforms//cpu:armv7e-m",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -24,26 +23,32 @@ bootloader_binary(
     ],
 )
 
+cc_nanopb_proto_library(
+    name = "messages_nanopb",
+    protos = ["//firmware/proto:messages_proto"],
+    visibility = ["//visibility:private"],
+)
+
 cc_library(
     name = "main_libs",
     hdrs = glob(
-        ["include/*.h"],
+        [
+            "include/*.h",
+            "include/*.hpp",
+        ],
         exclude = [
             "include/stm32f4xx_conf.h",
             "include/chconf.h",
             "include/halconf.h",
             "include/mcuconf.h",
         ],
-    ) + glob(
-        ["include/*.hpp"],
-        exclude = [
-            "include/peripherals.hpp",
-        ],
     ),
     copts = project_inc_paths,
     includes = ["include"],
     deps = [
+        ":messages_nanopb",
         "//common",
+        "@com_github_nanopb_nanopb//:nanopb",
     ],
     alwayslink = True,
 )
@@ -56,18 +61,18 @@ filegroup(
 
 os_config(
     name = "os_config",
-    program = "bootloader",
+    program = "firmware",
 )
 
 gen_binary(
-    name = "bootloader",
-    src = ":bootloader_raw",
+    name = "firmware",
+    src = ":firmware_raw",
 )
 
 flash_remote(
     name = "upload",
-    image = ":bootloader.bin",
-    upload_type = "bootloader",
+    image = ":firmware.bin",
+    upload_type = "firmware",
 )
 
 openocd_flash(
@@ -75,7 +80,8 @@ openocd_flash(
     device_configs = [
         "target/stm32f4x.cfg",
     ],
-    image = ":bootloader.bin",
+    flash_offset = "0x8010000",
+    image = ":firmware.bin",
     interface_configs = [
         "interface/stlink-v2.cfg",
     ],
