@@ -3,9 +3,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 git_repository(
     name = "bazel_embedded",
-    commit = "d3cbe4eff9a63d3dee63067d61096d681daca33b",
+    commit = "a9a2be070b5d01dc54bcd3aaa29c991d589a5110",
     remote = "https://github.com/bazelembedded/bazel-embedded.git",
-    shallow_since = "1631752904 +0800",
+    shallow_since = "1660526864 -0600",
 )
 
 load("@bazel_embedded//:bazel_embedded_deps.bzl", "bazel_embedded_deps")
@@ -30,6 +30,25 @@ register_gcc_arm_none_toolchain()
 load("@bazel_embedded//tools/openocd:openocd_repository.bzl", "openocd_deps")
 
 openocd_deps()
+
+git_repository(
+    name = "com_github_nanopb_nanopb",
+    commit = "0b653303026cb14802913a9f43da125e7cf02579",
+    remote = "https://github.com/nanopb/nanopb.git",
+    shallow_since = "1658641713 +0300",
+)
+
+load("@com_github_nanopb_nanopb//extra/bazel:nanopb_deps.bzl", "nanopb_deps")
+
+nanopb_deps()
+
+load("@com_github_nanopb_nanopb//extra/bazel:python_deps.bzl", "nanopb_python_deps")
+
+nanopb_python_deps()
+
+load("@com_github_nanopb_nanopb//extra/bazel:nanopb_workspace.bzl", "nanopb_workspace")
+
+nanopb_workspace()
 
 git_repository(
     name = "rules_meta",

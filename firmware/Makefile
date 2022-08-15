@@ -80,7 +80,7 @@ include $(COMMON)/common.mk
 NANOPB = ../third_party/nanopb
 PROTO_DIR = proto
 GEN_DIR = ${BUILDDIR}/gen
-PB_GEN_DIR = ${GEN_DIR}/proto
+PB_GEN_DIR = ${GEN_DIR}/firmware/proto
 include $(NANOPB)/extra/nanopb.mk
 
 PB_GEN = ${PB_GEN_DIR}/messages.pb.c ${PB_GEN_DIR}/messages.pb.h

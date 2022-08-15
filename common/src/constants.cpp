@@ -30,8 +30,8 @@ const uint16_t led_gamma_table[] = {
     51355, 51926, 52500,
 };
 
-const uint8_t *board_id_ptr = (reinterpret_cast<const uint8_t *>(0x08004000));
 const void *calibration_ptr = (reinterpret_cast<const void *>(0x08008000));
+const uint8_t *board_id_ptr = (reinterpret_cast<const uint8_t *>(0x0800c000));
 const void *firmware_ptr = (reinterpret_cast<const void *>(0x08010000));
 
 } // namespace consts

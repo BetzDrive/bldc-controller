@@ -1,6 +1,7 @@
 #include "control.hpp"
 
 #include <cmath>
+#include <algorithm>
 
 #include "hal.h"
 
@@ -9,7 +10,7 @@
 #include "chprintf.h"
 #include "constants.hpp"
 #include "fast_math.hpp"
-#include "peripherals.hpp"
+#include "firmware_peripherals.hpp"
 #include "pid.hpp"
 #include "state.hpp"
 #include "transforms.hpp"
@@ -424,7 +425,7 @@ void runCurrentControl() {
 
     // Normalize the vectors
     float mag = Q_rsqrt(vd * vd + vq * vq);
-    float div = std::min(1.0 / state::results.vin, mag);
+    float div = std::min(1.0f / state::results.vin, mag);
     float vd_norm = vd * div;
     float vq_norm = vq * div;
 

@@ -1,3 +1,4 @@
+#include "firmware_peripherals.hpp"
 #include "peripherals.hpp"
 
 #include "constants.hpp"

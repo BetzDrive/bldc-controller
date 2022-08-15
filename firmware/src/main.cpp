@@ -11,6 +11,7 @@
 #include "control.hpp"
 #include "fast_math.hpp"
 #include "helper.h"
+#include "firmware_peripherals.hpp"
 #include "peripherals.hpp"
 #include "state.hpp"
 #include "stm32f4xx.h"

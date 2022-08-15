@@ -1,5 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("//third_party:variables.bzl", "chibios_inc_paths")
+load("//third_party:variables.bzl", "project_inc_paths")
 
 filegroup(
     name = "board_config_hdrs",
@@ -15,12 +15,24 @@ filegroup(
 
 cc_library(
     name = "common",
-    srcs = glob(["src/*.c"]) + glob(["src/*.cpp"]),
-    hdrs = glob(["include/*.h"]) + glob(["include/*.hpp"]),
-    copts = chibios_inc_paths,
-    strip_include_prefix = "include",
+    srcs = glob([
+        "src/*.c",
+        "src/*.cpp",
+    ]),
+    hdrs = (
+        glob([
+            "include/*.h",
+            "include/*.hpp",
+        ]) + select({
+            "//toolchains/programs:bootloader": ["//bootloader:peripheral_config"],
+            "//toolchains/programs:firmware": ["//firmware:peripheral_config"],
+            "//conditions:default": [],
+        })
+    ),
+    copts = project_inc_paths,
     visibility = ["//visibility:public"],
     deps = [
         "//third_party:chibios_hal",
     ],
+    alwayslink = True,
 )

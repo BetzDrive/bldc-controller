@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "proto/messages.pb.h"
+#include "firmware/proto/messages.pb.h"
 
 #include "Recorder.hpp"
 #include "ch.h"

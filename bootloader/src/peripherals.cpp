@@ -39,10 +39,12 @@ void setStatusLEDColor(uint32_t color) {
   setStatusLEDColor(color >> 16, color >> 8, color);
 }
 
-void setCommsActivityLED(bool on) { palWritePad(GPIOB, GPIOB_LED_Y, !on); }
+void setCommsActivityLED(bool on) {
+  palWritePad(GPIOB, GPIOB_LED_Y, static_cast<uint8_t>(!on));
+}
 
 void setRS485TransmitMode(bool transmit) {
-  palWritePad(GPIOD, GPIOD_RS485_DIR, transmit);
+  palWritePad(GPIOD, GPIOD_RS485_DIR, static_cast<uint8_t>(transmit));
 }
 
 } // namespace peripherals
