@@ -5,9 +5,8 @@ build --platforms=@bazel_embedded//platforms:cortex_m4_fpu
 # Never strip debug symbols
 build --strip=never
 
-build --copt=-Os
+build --copt=-O2
 build --copt=-ggdb
-build --copt=-fno-exceptions
 build --copt=-fomit-frame-pointer
 build --copt=-falign-functions=16
 build --cxxopt=-std=c++14
@@ -19,18 +18,10 @@ build --linkopt=-lnosys
 #build --copt=-ffat-lto-objects
 #build --linkopt=-ffat-lto-objects
 
-# FPU
-build --copt=-mthumb
+# Instructions
 build --copt=-fsingle-precision-constant
-build --linkopt=-mthumb
+build --copt=-mno-thumb-interwork
 
 # Code reduction options
-build --copt=-ffunction-sections
-build --copt=-fdata-sections
-build --copt=-fno-common
 build --linkopt=-Wl,--gc-sections
 #build --linkopt=-Wl,--print-gc-sections
-
-build --copt=-fsingle-precision-constant
-build --cxxopt=-fno-rtti
-build --copt=-mno-thumb-interwork
