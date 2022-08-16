@@ -171,8 +171,13 @@ cc_library(
             "//common:board_config_hdrs",
         ]
     ),
-    copts = project_inc_paths + [
-        "-DUSE_STDPERIPH_DRIVER",
+    copts = project_inc_paths,
+    defines = [
+        "USE_STDPERIPH_DRIVER",
+        "CORTEX_USE_FPU=TRUE",
+        "THUMB",
+        "THUMB_PRESENT",
+        "THUMB_NO_INTERWORKING",
     ],
     includes = chibios_inc_paths,
     visibility = ["//visibility:public"],

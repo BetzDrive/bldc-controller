@@ -83,6 +83,6 @@ openocd_flash(
     flash_offset = "0x8010000",
     image = ":firmware.bin",
     interface_configs = [
-        "interface/stlink-v2.cfg",
+        "interface/stlink.cfg",
     ],
 )

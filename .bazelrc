@@ -27,5 +27,10 @@ build --linkopt=-mthumb
 # Code reduction options
 build --copt=-ffunction-sections
 build --copt=-fdata-sections
+build --copt=-fno-common
 build --linkopt=-Wl,--gc-sections
 #build --linkopt=-Wl,--print-gc-sections
+
+build --copt=-fsingle-precision-constant
+build --cxxopt=-fno-rtti
+build --copt=-mno-thumb-interwork

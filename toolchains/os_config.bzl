@@ -11,6 +11,7 @@ def os_config(name, program, **kwargs):
         ],
         includes = ["include"],
         visibility = ["//visibility:public"],
+        **kwargs
     )
 
     program_select(

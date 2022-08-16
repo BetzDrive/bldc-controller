@@ -8,9 +8,7 @@ load("@bazel_embedded//tools/openocd:defs.bzl", "openocd_flash")
 bootloader_binary(
     name = "bootloader_raw",
     srcs = glob(["src/*.c"]) + glob(["src/*.cpp"]),
-    copts = project_inc_paths + [
-        "-DBOOTLOADER",
-    ],
+    copts = project_inc_paths,
     linkopts = [
         "-T $(location :link.ld)",
     ],
@@ -56,6 +54,8 @@ filegroup(
 
 os_config(
     name = "os_config",
+    # NOTE: This gets used by comms.cpp in common to enable the jump code path.
+    defines = ["BOOTLOADER"],
     program = "bootloader",
 )
 
@@ -77,6 +77,6 @@ openocd_flash(
     ],
     image = ":bootloader.bin",
     interface_configs = [
-        "interface/stlink-v2.cfg",
+        "interface/stlink.cfg",
     ],
 )
