@@ -2,6 +2,3 @@
 	path = third_party/chibios
 	url = https://github.com/berkeleyopenarms/ChibiOS.git
 	branch = stable_2.6.x
-[submodule "proto/nanopb"]
-	path = third_party/nanopb
-	url = https://github.com/nanopb/nanopb.git

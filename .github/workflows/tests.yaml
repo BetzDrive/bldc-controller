@@ -1,4 +1,4 @@
-name: Python package
+name: bd tools (install and tests)
 
 on: [pull_request]
 
