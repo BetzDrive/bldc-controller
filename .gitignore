@@ -14,4 +14,4 @@ bd_tools.egg-info/
 build/
 dist/
 
-bazel-*
+bazel-build/
