@@ -65,7 +65,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
         break;
       case 0x1001: // Electrical Revolutions Per Mechanical Revolution
         handleVarAccess(
-            reinterpret_cast<uint16_t &>(state::calibration_pb.erevs_per_mrev),
+            reinterpret_cast<uint8_t &>(state::calibration_pb.erevs_per_mrev),
             buf, index, buf_size, access_type, errors);
         break;
       case 0x1002: // Invert Phases
