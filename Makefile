@@ -31,4 +31,4 @@ install_python_packages:
 	python3 -m pip install -r requirements.txt
 
 install_bd_tools:
-	python3 setup.py install --user
+	python3 -m pip install bd_tools/ --user
