@@ -31,3 +31,4 @@ init_submodules:
 
 install_python_packages:
 	python3 -m pip install -r requirements.txt --user
+	python3 -m pip install -e bd_tools/ --user
