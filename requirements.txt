@@ -17,3 +17,6 @@ flake8 == 3.9.2
 flake8-black == 0.2.1
 pyproject-flake8 == 0.0.1a2
 cpplint <= 1.5.4
+
+# Install the bd_tools package
+bd_tools/

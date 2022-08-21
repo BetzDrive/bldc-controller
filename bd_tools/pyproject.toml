@@ -1,0 +1,48 @@
+[build-system]
+requires = [
+    "hatchling>=1.8.0",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "bd-tools"
+description = "Python API for BetzDrive"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.7"
+authors = [
+    { name = "Greg Balke", email = "gbalke@berkeley.edu" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+]
+dependencies = [
+    "crcmod",
+    "matplotlib",
+    "numpy",
+    "pyserial",
+    "scipy",
+]
+dynamic = [
+    "version",
+]
+
+[tool.black]
+line-length = 79
+
+[project.scripts]
+bdt = "bd_tools.__main__:main"
+
+[project.urls]
+Homepage = "http://github.com/betzdrive/bldc-controller"
+
+[tool.hatch.version]
+path = "src/bd_tools/__about__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src/bd_tools",
+]
