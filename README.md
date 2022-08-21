@@ -3,8 +3,7 @@
 cd ~
 git clone https://github.com/BetzDrive/bldc-controller.git
 cd bldc-controller
-sudo apt-get install gcc-arm-none-eabi gdb-multiarch python3-pip
-python3 -m pip install -r requirements.txt
+sudo apt-get install gdb-multiarch python3-pip
 make setup
 ```
 
@@ -13,39 +12,35 @@ A quick way of running the full test suite is to use `make test`. This will lint
 
 ### Compiling
 ```bash
-cd ~/bldc_controller/<firmware or bootloader>
-make
+bazel build //<bootloader or firmware>
+```
+
+### Uploading via ST-LINK
+```bash
+bazel run //<bootloader or firmware>:flash
 ```
 
 ### Debugging via ST-LINK
 To debug during execution, you can attach the debugger at any time using the following code. Keep in mind this is done with a direct connection to the hardware via an ST-Link.
 ```bash
-cd ~/bldc_controller/<firmware or bootloader>
-openocd
-----
-cd ~/bldc_controller/<firmware or bootloader>/build
-arm-none-eabi-gdb or gdb-multiarch <compiled file>.elf
-(gdb) target extended-remote :3333
-```
-
-This functionality is also built into the make files as `make debug`.
-
-### Uploading via ST-LINK
-```bash
-cd ~/bldc_controller/<firmware or bootloader>
-make upload
+# First terminal (flash latest and start gdb multiarch)
+bazel run //<bootloader or firmware>:flash
+bazel run //<bootloader or firmware>:gdb
+# Second terminal (start openocd server)
+bazel run //<bootloader or firmware>:debug
 ```
 
 ### Upload firmware via RS485
 ```bash
-cd ~/bldc_controller/tools
-python upload_firmware.py <serial_port> <board_ids> ~/bldc_controller/firmware/build/firmware.bin
+bazel run //firmware:upload
 ```
 
 ### Upload bootloader via RS485
 Use this with caution. If this fails and a power cycle or reboot occurs, the board will have to be programmed directly. In the case of a failed upload, disable the enumeration procedure and try again with the same board ID. To be safe, first upload and test on an easy-to-remove link such as the gripper or base which are not as difficult to access in case of a failure.
 
-`upload_bootloader.py <serial_port> <board_id> <path_to_file>`
+```bash
+bazel run //bootloader:upload
+```
 
 ### Serial Transmission Speed Limits
 USB Serial device drivers only permit at most one transmission per millisecond. By default, this is set to 16 milliseconds on our usb to RS485 converters. To change this execute the following terminal commands:
@@ -59,40 +54,40 @@ cat /sys/bus/usb-serial/devices/ttyUSB<id_num>/latency_timer
 (when running the arm, this is done automatically by the ROS control stack)
 
 # Python Scripts
-These scripts are made to remotely interface with the boards. They can debug, program, and run the boards. They interface using our custom communications protocol. Most scripts have been fitted with argparse which will give a description of the arguments when given the '-h' option. (i.e. `read_sensor.py -h`)
+These scripts are made to remotely interface with the boards. They can debug, program, and run the boards. They interface using our custom communications protocol. The scripts are grouped under the base command `bdt`. Read more with `bdt -h`.
 
 ### Motor Calibration
 To calibrate the motor board, a motor must first be attached without a load for optimal calibration. The results of calibration are based on the properties of the given motor.
 
-* `calibrate_encoder.py <serial_port> <board_id> <duty_cycle>`
-* `upload_calibration.py <serial_port> <board_id>`
+* `bdt calibrate_encoder <serial_port> <board_id> <duty_cycle>`
+* `bdt upload_calibration <serial_port> <board_id>`
 
-1. Run _calibrate_encoder.py_: for 24V Power Supplies the duty cycle used in testing is 0.3 and for 48V or 50V supplies use half (0.15). This will generate a file called calibrations.json
-2. Run _upload_calibration.py_ with the updated calibrations.json and the generated file will be loaded onto the board.
+1. Run _calibrate_encoder_: for 24V Power Supplies the duty cycle used in testing is 0.3 and for 48V or 50V supplies use half (0.15). This will generate a file called calibrations.json
+2. Run _upload_calibration_ with the updated calibrations.json and the generated file will be loaded onto the board.
 
 After completing these steps, the motor should be controllable.
 
 ### Update Motor Calibration Constants (PID and Limits)
 Run this script after there's a calibration on the board. Modify the contents of the script to adjust tunings!
 
-`update_calibration.py <serial_port> <board_id>`
+`bdt update_calibration <serial_port> <board_id>`
 
 ### Motor Control
 Use this script to spin a motor with a given current command. A substantial starting point is 0.5 and increase above this with proper supervision! A negative command will reverse the direction. Description of what arguments each mode takes can be found with the '-h' option.
 
-`control_motor.py <serial_port> <board_id> <mode> <command>`
+`bdt control_motor <serial_port> <board_id> <mode> <command>`
 
 To control multiple motors,
 
 ```
-control_motor.py <serial_port> 1,2,3 torque 0.5,0.25,0
-control_motor.py <serial_port> 1,2,3 current [0,0.5],[0,0.25],[0,0]
+bdt control_motor <serial_port> 1,2,3 torque 0.5,0.25,0
+bdt control_motor <serial_port> 1,2,3 current [0,0.5],[0,0.25],[0,0]
 ```
 
 ### Read Sensor
 This script lets a user read from any of the sensors on-board the device.
 
-`read_sensor.py <serial_port> <board_ids> <sensor>`
+`bdt read_sensor <serial_port> <board_ids> <sensor>`
 
 ### View Control Loop
 Plots the control target and the resulting quadrature/direct current commands. This is low frequency so use the recorder to get a better sense of the internal state of the motor driver.

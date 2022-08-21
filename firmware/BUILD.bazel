@@ -1,5 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//third_party:variables.bzl", "project_inc_paths")
+load("//toolchains:debug.bzl", "debug_gdb")
 load("//toolchains:platforms.bzl", "firmware_binary", "gen_binary")
 load("//toolchains:os_config.bzl", "os_config")
 load("//toolchains:flash.bzl", "flash_remote")
@@ -7,7 +8,7 @@ load(
     "@com_github_nanopb_nanopb//extra/bazel:nanopb_cc_proto_library.bzl",
     "cc_nanopb_proto_library",
 )
-load("@bazel_embedded//tools/openocd:defs.bzl", "openocd_flash")
+load("@bazel_embedded//tools/openocd:defs.bzl", "openocd_debug_server", "openocd_flash")
 
 firmware_binary(
     name = "firmware_raw",
@@ -85,4 +86,20 @@ openocd_flash(
     interface_configs = [
         "interface/stlink.cfg",
     ],
+)
+
+openocd_debug_server(
+    name = "debug",
+    device_configs = [
+        "target/stm32f4x.cfg",
+    ],
+    interface_configs = [
+        "interface/stlink.cfg",
+    ],
+    transport = "hla_swd",
+)
+
+debug_gdb(
+    name = "gdb",
+    elf = ":firmware.elf",
 )
