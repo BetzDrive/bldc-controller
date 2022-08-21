@@ -49,6 +49,10 @@ cc_library(
     deps = [
         ":messages_nanopb",
         "//common",
+        "//drivers/accel:iis328dq",
+        "//drivers/encoder:as5047d",
+        "//drivers/gate_driver:drv8312",
+        "//drivers/temperature:mcp9808",
         "@com_github_nanopb_nanopb//:nanopb",
     ],
     alwayslink = True,

@@ -1,0 +1,14 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//third_party:variables.bzl", "project_inc_paths")
+
+cc_library(
+    name = "mcp9808",
+    srcs = ["mcp9808.cpp"],
+    hdrs = ["mcp9808.hpp"],
+    copts = project_inc_paths,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common",
+    ],
+    alwayslink = True,
+)

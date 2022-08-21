@@ -1,5 +1,4 @@
-#ifndef DRV8312_HPP_
-#define DRV8312_HPP_
+#pragma once
 
 #include <algorithm>
 #include <cmath>
@@ -45,5 +44,3 @@ private:
 
 } // namespace peripherals
 } // namespace motor_driver
-
-#endif // DRV8312_HPP_

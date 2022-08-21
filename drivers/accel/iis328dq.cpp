@@ -1,6 +1,6 @@
 // Datasheet: https://www.st.com/resource/en/datasheet/iis328dq.pdf
 
-#include "IIS328DQ.hpp"
+#include "drivers/accel/iis328dq.hpp"
 
 namespace motor_driver {
 namespace peripherals {
