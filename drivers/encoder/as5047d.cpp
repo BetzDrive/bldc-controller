@@ -1,4 +1,4 @@
-#include "AS5047D.hpp"
+#include "drivers/encoder/as5047d.hpp"
 
 static int hasEvenParity(uint8_t *buf, size_t len) {
   uint8_t acc = 0;

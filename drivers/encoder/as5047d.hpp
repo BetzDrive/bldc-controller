@@ -1,5 +1,4 @@
-#ifndef AS5047D_HPP_
-#define AS5047D_HPP_
+#pragma once
 
 #include "hal.h"
 
@@ -46,5 +45,3 @@ private:
 
 } // namespace peripherals
 } // namespace motor_driver
-
-#endif // AS5047D_HPP_

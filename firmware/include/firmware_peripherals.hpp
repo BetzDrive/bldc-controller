@@ -4,10 +4,10 @@
 
 #include "hal.h"
 
-#include "AS5047D.hpp"
-#include "DRV8312.hpp"
-#include "IIS328DQ.hpp"
-#include "MCP9808.hpp"
+#include "drivers/encoder/as5047d.hpp"
+#include "drivers/gate_driver/drv8312.hpp"
+#include "drivers/accel/iis328dq.hpp"
+#include "drivers/temperature/mcp9808.hpp"
 #include "constants.hpp"
 
 namespace motor_driver {

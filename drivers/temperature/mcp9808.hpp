@@ -1,5 +1,4 @@
-#ifndef MCP9808_HPP_
-#define MCP9808_HPP_
+#pragma once
 
 #include "hal.h"
 
@@ -28,5 +27,3 @@ private:
 
 } // namespace peripherals
 } // namespace motor_driver
-
-#endif // MCP9808_HPP_

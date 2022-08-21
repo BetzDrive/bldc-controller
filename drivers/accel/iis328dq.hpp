@@ -1,5 +1,4 @@
-#ifndef IIS328DQ_HPP_
-#define IIS328DQ_HPP_
+#pragma once
 
 #include "hal.h"
 
@@ -43,5 +42,3 @@ private:
 
 } // namespace peripherals
 } // namespace motor_driver
-
-#endif // IIS328DQ_HPP_

@@ -1,4 +1,4 @@
-#include "MCP9808.hpp"
+#include "drivers/temperature/mcp9808.hpp"
 
 namespace motor_driver {
 namespace peripherals {

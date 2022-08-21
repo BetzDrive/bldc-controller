@@ -1,4 +1,4 @@
-#include "DRV8312.hpp"
+#include "drivers/gate_driver/drv8312.hpp"
 
 namespace motor_driver {
 namespace peripherals {

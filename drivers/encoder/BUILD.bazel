@@ -1,0 +1,14 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//third_party:variables.bzl", "project_inc_paths")
+
+cc_library(
+    name = "as5047d",
+    srcs = ["as5047d.cpp"],
+    hdrs = ["as5047d.hpp"],
+    copts = project_inc_paths,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common",
+    ],
+    alwayslink = True,
+)

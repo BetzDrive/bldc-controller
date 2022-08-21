@@ -1,0 +1,14 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//third_party:variables.bzl", "project_inc_paths")
+
+cc_library(
+    name = "drv8312",
+    srcs = ["drv8312.cpp"],
+    hdrs = ["drv8312.hpp"],
+    copts = project_inc_paths,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common",
+    ],
+    alwayslink = True,
+)
