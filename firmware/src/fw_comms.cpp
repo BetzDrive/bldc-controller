@@ -6,6 +6,7 @@
 #include "comms.hpp"
 #include "peripherals.hpp"
 #include "state.hpp"
+#include "util/time/usec.h"
 
 namespace motor_driver {
 namespace comms {
@@ -16,6 +17,7 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
   size_t index = 0;
 
   float *recordings = nullptr;
+  float cur_time;
 
   if (start_addr >= 0x8000) { // Recordings address
     recordings = state::recorder.read();
@@ -56,6 +58,10 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
         break;
       case 0x0005: // Clear Motor Calibration from Memory
         state::clearCalibration();
+        break;
+      case 0x0006: // System time
+        cur_time = time::usecToSeconds(time::usecISR());
+        handleVarAccess(cur_time, buf, index, buf_size, access_type, errors);
         break;
 
       case 0x1000: // Electrical Revolution Start

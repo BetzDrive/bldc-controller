@@ -1,0 +1,13 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//third_party:variables.bzl", "project_inc_paths")
+
+cc_library(
+    name = "usec",
+    hdrs = ["usec.h"],
+    copts = project_inc_paths,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common",
+    ],
+    alwayslink = True,
+)

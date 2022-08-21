@@ -149,6 +149,17 @@ class BLDCControllerClient:
             [b"" for sid in server_ids],
         )
 
+    def getTime(self, server_ids):
+        angles = [
+            struct.unpack("<f", data)[0]
+            for data in self.readRegisters(
+                server_ids,
+                [0x0006 for sid in server_ids],
+                [1 for sid in server_ids],
+            )
+        ]
+        return angles
+
     def getRotorPosition(self, server_ids):
         angles = [
             struct.unpack("<f", data)[0]

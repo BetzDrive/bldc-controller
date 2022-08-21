@@ -8,3 +8,4 @@ import bd_tools.bin.upload_bootloader
 import bd_tools.bin.upload_calibration
 import bd_tools.bin.upload_firmware
 import bd_tools.bin.view_control_loop  # noqa: F401
+import bd_tools.bin.view_time  # noqa: F401
