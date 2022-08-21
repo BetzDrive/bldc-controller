@@ -15,7 +15,7 @@ bool LM75B::getTemperature(float *temp) {
   bool success = LM75B::receive(0x48, data, 2);
   if (success) {
     int16_t bits = (data[0] << 8) + data[1];
-    *temp = (float)(bits >> 5) * 0.125f;
+    *temp = static_cast<float>(bits >> 5) * 0.125f;
   }
 
   return success;

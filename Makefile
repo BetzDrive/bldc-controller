@@ -12,7 +12,7 @@ lint_python:
 	pflake8 bd_tools tests
 
 lint_cpp:
-	cpplint --recursive common/ bootloader/ firmware/
+	cpplint --recursive common/ bootloader/ firmware/ drivers/
 
 format: format_python format_bazel
 
