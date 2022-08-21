@@ -37,7 +37,7 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include "LSM6DS3_ACC_GYRO_driver.h"
+#include "drivers/imu/lsm6ds3_ll_driver.h"
 
 /* Private typedef -----------------------------------------------------------*/
 

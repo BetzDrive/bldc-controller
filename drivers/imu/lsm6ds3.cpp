@@ -39,8 +39,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-#include "LSM6DS3Sensor.h"
-#include "LSM6DS3_ACC_GYRO_driver.h"
+#include "drivers/imu/lsm6ds3.h"
+#include "drivers/imu/lsm6ds3_ll_driver.h"
 #include "ch.h"
 #include "hal.h"
 #include "string.h"
@@ -138,7 +138,7 @@ void LSM6DS3Sensor::start() {
   G_Last_ODR = 104.0f;
 
   G_isEnabled = 0;
-};
+}
 
 /**
  * @brief  Enable LSM6DS3 Accelerator

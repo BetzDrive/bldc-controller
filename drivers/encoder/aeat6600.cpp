@@ -1,4 +1,4 @@
-#include "AEAT6600.h"
+#include "drivers/encoder/aeat6600.h"
 
 static uint16_t getResultFromRxbuf(uint8_t *rxbuf) {
   return ((uint16_t)(rxbuf[0] & 0x3f) << 8) | (uint16_t)rxbuf[1];
@@ -29,7 +29,8 @@ uint16_t AEAT6600::getPipelinedResultI() {
 }
 
 void AEAT6600::spiEndCallbackStatic(SPIDriver *spi_driver) {
-  AEAT6600SPIConfig *spi_config = (AEAT6600SPIConfig *)spi_driver->config;
+  AEAT6600SPIConfig *spi_config =
+      reinterpret_cast<AEAT6600SPIConfig *>(spi_driver->config);
   spi_config->aeat6600->spiEndCallback(spi_driver);
 }
 

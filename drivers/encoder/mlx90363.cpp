@@ -1,7 +1,8 @@
-#include "MLX90363.h"
+#include "drivers/encoder/mlx90363.h"
+
+#include <algorithm>
 
 #include "crc_mlx.h"
-#include <algorithm>
 
 namespace motor_driver {
 
@@ -187,7 +188,8 @@ uint8_t MLX90363::computeMessageCRC(const uint8_t *buf) {
 }
 
 void MLX90363::spiEndCallbackStatic(SPIDriver *spi_driver) {
-  MLX90363SPIConfig *spi_config = (MLX90363SPIConfig *)spi_driver->config;
+  MLX90363SPIConfig *spi_config =
+      reinterpret_cast<MLX90363SPIConfig *>(spi_driver->config);
   spi_config->mlx90363->spiEndCallback(spi_driver);
 }
 
