@@ -6,8 +6,8 @@ profile = "black"
 
 [tool.flake8]
 exclude = """
-bd_tools/recorder,
-bd_tools/dev,
+bd_tools/src/bd_tools/recorder,
+bd_tools/src/bd_tools/dev,
 bd_tools/bd_tools.egg-info,
 bd_tools/build,
 """

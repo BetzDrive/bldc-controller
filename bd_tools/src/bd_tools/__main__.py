@@ -3,6 +3,8 @@ import argparse
 import sys
 from pathlib import Path
 
+import bd_tools
+
 BIN_PATH = Path(__file__).parent / "bin"
 
 
@@ -21,17 +23,16 @@ def parser_args(tools):
 
 def action(args):
     file_name = BIN_PATH / (args.tool + ".py")
-    with open(file_name) as f:
-        # NOTE(greg): Shifts argv down one (and deletes the 0th arg) so the
-        # sub-tool does not see its own name as the 1st arg.
-        sys.argv = sys.argv[1:]
-        # Correctly make arg0 the path to the file we're executing.
-        sys.argv[0] = str(file_name)
-        code = compile(f.read(), file_name.name, "exec")
-        exec(code, globals())
+    # NOTE(greg): Shifts argv down one (and deletes the 0th arg) so the
+    # sub-tool does not see its own name as the 1st arg.
+    sys.argv = sys.argv[1:]
+    # Correctly make arg0 the path to the file we're executing.
+    sys.argv[0] = str(file_name)
+    tool = getattr(bd_tools.bin, args.tool)
+    tool.action(tool.parser_args())
 
 
-if __name__ == "__main__":
+def main():
     # NOTE(greg): We have to hack the help to make sure it only operates on
     # this argparser if its the first arg.
     tool_help = False
@@ -60,3 +61,7 @@ if __name__ == "__main__":
         sys.argv.append("--help")
 
     action(args)
+
+
+if __name__ == "__main__":
+    main()
