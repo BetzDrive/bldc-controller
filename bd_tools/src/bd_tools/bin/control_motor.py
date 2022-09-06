@@ -53,15 +53,18 @@ def action(args):
 
     boards.initMotor(client, board_ids)
 
-    def callback() -> bool:
+    def callback() -> int:
         boards.clearWDGRST(client)
 
         try:
             boards.driveMotor(client, board_ids, actuations, mode)
-        except (comms.ProtocolError, comms.MalformedPacketError):
-            return False
+        except (comms.ProtocolError, comms.MalformedPacketError) as e:
+            if "id: " in str(e):
+                return int(str(e).split("id: ")[1][0])
+            else:
+                return -1
 
-        return True
+        return 0
 
     loop = utils.DebugLoop(callback, args.num_iters, iters_per_print=1000)
 
