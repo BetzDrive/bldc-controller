@@ -16,9 +16,13 @@ def get_tools():
 def parser_args(tools):
     parser = argparse.ArgumentParser(description="BetzDrive Tools Package")
     parser.add_argument(
-        "tool", type=str, choices=tools, help="Name of the tool to use."
+        "tool",
+        type=str,
+        choices=tools,
+        help="Tool from the following: %(choices)s",
+        metavar="tool",
     )
-    return parser.parse_args()
+    return parser
 
 
 def action(args):
@@ -51,7 +55,7 @@ def main():
         cache_args = sys.argv[2:]
         sys.argv = sys.argv[:2]
 
-    args = parser_args(get_tools())
+    args = parser_args(get_tools()).parse_args()
 
     sys.argv.extend(cache_args)
 
