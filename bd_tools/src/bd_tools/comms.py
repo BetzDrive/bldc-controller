@@ -798,7 +798,13 @@ class BLDCControllerClient:
         if DEBUG:
             print("Proper Protocol")
 
-        (flags,) = struct.unpack("<B", self._ser.read())
+        flag_bytes = self._ser.read()
+        if flag_bytes is None or len(flag_bytes) != 1:
+            raise MalformedPacketError(
+                f"id: {server_id} - Missing flag bytes."
+            )
+
+        (flags,) = struct.unpack("<B", flag_bytes)
 
         length = self._ser.read(2)
         if length is None or len(length) != 2:
