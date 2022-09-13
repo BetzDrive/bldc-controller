@@ -457,9 +457,17 @@ class BLDCControllerClient:
     # Bootloader only
     def enumerateBoards(self, server_id):
         response = []
-        response = self.doTransaction(
-            [0], [COMM_FC_ENUMERATE], [struct.pack("<B", server_id)]
-        )
+        # Temporarily increase timeout to 1 second for this operation as it
+        # involves a flash erase & write.
+        save_timeout = self._ser.timeout
+        self._ser.timeout = 1
+        try:
+            response = self.doTransaction(
+                [0], [COMM_FC_ENUMERATE], [struct.pack("<B", server_id)]
+            )
+        finally:
+            self._ser.timeout = save_timeout
+
         success = response[0][0]
         if success:
             data = struct.unpack("<B", response[0][1])[0]
