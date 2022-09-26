@@ -81,7 +81,7 @@ def action(args):
 
     num_boards = len(board_ids)
 
-    def callback() -> bool:
+    def callback() -> int:
         boards.clearWDGRST(client)
 
         try:
@@ -98,8 +98,12 @@ def action(args):
                 print("Board:", bid, message.format(args.sensor, val))
 
         except (comms.MalformedPacketError, comms.ProtocolError) as e:
-            print(e)
-            return False
+            if "id: " in str(e):
+                return int(str(e).split("id: ")[1][0])
+            else:
+                return -1
+
+        return 0
 
     loop = utils.DebugLoop(
         callback=callback, num_iters=args.num_iters, iters_per_print=1000
