@@ -1,7 +1,11 @@
 from __future__ import print_function
 
+import dataclasses
 import struct
 import time
+from typing import List, Literal, Tuple, Union
+
+import dcargs
 
 from bd_tools import comms
 
@@ -16,6 +20,45 @@ COMM_ROR_ACC_X = 0x3006
 COMM_ROR_ACC_Y = 0x3007
 COMM_ROR_ACC_Z = 0x3008
 COMM_ROR_ROTOR_POS_RAW = 0x3010
+
+
+@dataclasses.dataclass
+class Serial:
+    """Serial args.
+
+    Args:
+        serial: Serial port that the motor controller is connected to.
+        board_ids: List of motor controllers to talk with.
+        baud_rate: communication frequency over serial connection.
+    """
+
+    serial: dcargs.conf.Positional[str]
+    board_ids: dcargs.conf.Positional[List[int]]
+    baud_rate: int = comms.COMM_DEFAULT_BAUD_RATE
+
+
+@dataclasses.dataclass
+class Motor:
+    """Motor args.
+
+    Args:
+        actuation: Methods to actuate the motor.
+            current (Id[A], Iq[A])
+            phase (dc,dc,dc)
+            torque (N*m)
+            velocity (rad/s)
+            position (rad)
+            pos_vel (rad,rad/s)
+            pos_ff (rad,ff[A])
+            pwm (dc)
+        values: list of values for per-motor actuation. Should match the number 
+            of args listed under the method of actuation.
+    """
+
+    actuation: dcargs.conf.Positional[Literal["current", "phase",
+                                              "torque", "velocity", "position", 
+                                              "pos_vel", "pos_ff", "pwm"]]
+    values: dcargs.conf.Positional[List[Tuple[float, float, float]]]
 
 
 def addBoardArgs(parser):
@@ -96,7 +139,7 @@ def loadCalibrationFromJSON(client, board_id, calibration_obj):
             eac_table_len = len(calibration_obj["eac_table"])
             slice_len = 64
             for i in range(0, eac_table_len, slice_len):
-                table_slice = calibration_obj["eac_table"][i : i + slice_len]
+                table_slice = calibration_obj["eac_table"][i: i + slice_len]
                 client.writeRegisters(
                     [board_id],
                     [0x1200 + i],

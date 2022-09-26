@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-import argparse
+import dataclasses
 import json
 import struct
 import time
 
+import dcargs
 import matplotlib.pyplot as plt
 import numpy as np
 import serial
@@ -21,6 +22,24 @@ phase_state_list = [
     (0, 0, 1),
     (1, 0, 1),
 ]
+
+
+@dataclasses.dataclass
+class Calibrate:
+    """Calibrate the encoder on a motor controller board.
+
+    Args:
+        duty_cycle: fixed duty cycle through the motor for feed forward control
+            during calibration.
+        max_steps: maximum number of steps before giving up (should be greater
+            than or equal to erevs/mrev * 6).
+        delay: time between stepping phases.
+    """
+
+    serial: boards.Serial
+    duty_cycle: dcargs.conf.Positional[float]
+    max_steps: int = 126
+    delay: float = 0.05
 
 
 def parser_args():
