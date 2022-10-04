@@ -3,10 +3,27 @@ from __future__ import print_function
 
 import argparse
 import ast
+import dataclasses
 
 import serial
 
 from bd_tools import boards, comms, utils
+
+
+@dataclasses.dataclass
+class Control:
+    """Drive motor module(s) with a given control mode.
+
+    Args:
+        num_iters: Number of iterations to loop (default to infinity).
+    """
+
+    serial: boards.Serial
+    motor: boards.Motor
+    num_iters: int = 0
+
+    def main(self):
+        action(self)
 
 
 def parser_args():
@@ -35,7 +52,9 @@ def action(args):
     def make_type(x, to_type):
         return [to_type(y) for y in x]
 
-    board_ids = make_type(make_list(ast.literal_eval(args.board_ids)), int)
+    board_ids = make_type(
+        make_list(ast.literal_eval(args.motor.board_ids)), int
+    )
     actuations = make_list(ast.literal_eval(args.actuations))
 
     mode = args.mode
