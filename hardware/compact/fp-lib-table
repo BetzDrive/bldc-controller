@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "rp2350")(type "KiCad")(uri "${KIPRJMOD}/../libs/RP2350_KiCad/")(options "")(descr ""))
+)

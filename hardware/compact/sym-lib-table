@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "bd_compact")(type "KiCad")(uri "${KIPRJMOD}/bd_compact.kicad_sym")(options "")(descr ""))
+  (lib (name "rp2350")(type "KiCad")(uri "${KIPRJMOD}/../libs/RP2350_KiCad/rp2350a-qfn60.kicad_sym")(options "")(descr ""))
+)

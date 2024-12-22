@@ -2,3 +2,6 @@
 	path = third_party/chibios
 	url = https://github.com/berkeleyopenarms/ChibiOS.git
 	branch = stable_2.6.x
+[submodule "hardware/libs/RP2350_KiCad"]
+	path = hardware/libs/RP2350_KiCad
+	url = git@github.com:HDR/RP2350_KiCad.git
