@@ -32,7 +32,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/drv8328.pdf"
-			(at 0 -27.432 0)
+			(at 0 -29.972 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -61,21 +61,11 @@
 					(type background)
 				)
 			)
-			(pin input line
-				(at -11.43 15.24 0)
-				(length 2.54)
-				(name "INLA"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number ""
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
+			(text "DRV8328A/B"
+				(at 10.922 -23.368 0)
+				(effects
+					(font
+						(size 1.27 1.27)
 					)
 				)
 			)
@@ -98,7 +88,7 @@
 				)
 			)
 			(pin input line
-				(at 11.43 3.81 180)
+				(at 11.43 1.27 180)
 				(length 2.54)
 				(name "SHB"
 					(effects
@@ -116,7 +106,7 @@
 				)
 			)
 			(pin input line
-				(at 11.43 1.27 180)
+				(at 11.43 3.81 180)
 				(length 2.54)
 				(name "GHB"
 					(effects
@@ -170,7 +160,7 @@
 				)
 			)
 			(pin input line
-				(at 11.43 -7.62 180)
+				(at 11.43 -10.16 180)
 				(length 2.54)
 				(name "SHC"
 					(effects
@@ -188,7 +178,7 @@
 				)
 			)
 			(pin input line
-				(at 11.43 -10.16 180)
+				(at 11.43 -7.62 180)
 				(length 2.54)
 				(name "GHC"
 					(effects
@@ -216,6 +206,24 @@
 					)
 				)
 				(number "16"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at 11.43 -17.78 180)
+				(length 2.54)
+				(name "LSS"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "17"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -324,6 +332,24 @@
 					)
 				)
 				(number "22"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -11.43 15.24 0)
+				(length 2.54)
+				(name "INLA"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "23"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -476,7 +502,7 @@
 				)
 			)
 			(pin input line
-				(at 11.43 15.24 180)
+				(at 11.43 12.7 180)
 				(length 2.54)
 				(name "SHA"
 					(effects
@@ -494,7 +520,7 @@
 				)
 			)
 			(pin input line
-				(at 11.43 12.7 180)
+				(at 11.43 15.24 180)
 				(length 2.54)
 				(name "GHA"
 					(effects
