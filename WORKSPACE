@@ -45,9 +45,9 @@ http_archive(
 ### EMBEDDED TOOLCHAIN SUPPORT ###
 git_repository(
     name = "bazel_embedded",
-    commit = "a9a2be070b5d01dc54bcd3aaa29c991d589a5110",
+    commit = "cf5b240d510313b3383e0cdb550eb9f32be7244e",
     remote = "https://github.com/bazelembedded/bazel-embedded.git",
-    shallow_since = "1660526864 -0600",
+    shallow_since = "1695770083 +0800",
 )
 
 load("@bazel_embedded//:bazel_embedded_deps.bzl", "bazel_embedded_deps")
