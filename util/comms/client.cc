@@ -1,6 +1,7 @@
-#include "util/comm/client.h"
+#include "util/comms/client.h" // Use the actual filename
 
 #include <cstring> // For memcpy
+#include <iomanip> // For std::setprecision in debug output
 #include <iostream> // For basic debugging output (consider replacing with a logging library)
 #include <stdexcept>    // For standard exceptions
 #include <system_error> // For std::error_code comparison
@@ -28,9 +29,6 @@ uint16_t ComputeCRC16(const ByteVector &data) {
 }
 
 // --- Packing/Unpacking Helpers (Little-Endian) ---
-// Assumes little-endian, matching Python struct '<' format specifier.
-// Add checks for buffer sizes in unpack functions for safety.
-
 ByteVector BLDCControllerClient::PackU8(uint8_t val) { return {val}; }
 ByteVector BLDCControllerClient::PackU16(uint16_t val) {
   ByteVector bytes(2);
@@ -48,20 +46,18 @@ ByteVector BLDCControllerClient::PackU32(uint32_t val) {
 }
 ByteVector BLDCControllerClient::PackF32(float val) {
   ByteVector bytes(4);
+
   static_assert(sizeof(float) == 4, "Float size must be 4 bytes");
-  // Use memcpy for type-punning safely
   std::memcpy(bytes.data(), &val, 4);
   return bytes;
 }
 
 uint8_t BLDCControllerClient::UnpackU8(const ByteVector &data, size_t offset) {
   if (offset >= data.size()) {
-
     throw std::out_of_range("UnpackU8 offset out of range");
   }
   return data[offset];
 }
-
 uint16_t BLDCControllerClient::UnpackU16(const ByteVector &data,
                                          size_t offset) {
   if (offset + 1 >= data.size()) {
@@ -86,7 +82,6 @@ float BLDCControllerClient::UnpackF32(const ByteVector &data, size_t offset) {
   }
   static_assert(sizeof(float) == 4, "Float size must be 4 bytes");
   float val;
-  // Use memcpy for type-punning safely
   std::memcpy(&val, data.data() + offset, 4);
   return val;
 }
@@ -96,10 +91,9 @@ float BLDCControllerClient::UnpackF32(const ByteVector &data, size_t offset) {
 BLDCControllerClient::BLDCControllerClient(const std::string &port_name,
                                            unsigned int baud_rate)
     : io_context_(), serial_port_(io_context_),
-      work_guard_(
-          boost::asio::make_work_guard(io_context_)), // Keep io_context alive
+      work_guard_(boost::asio::make_work_guard(io_context_)),
       incoming_data_buffer_(2 *
-                            kReadBufferSize), // Set circular buffer capacity
+                            kReadBufferSize), // Adjust buffer size as needed
       stop_threads_(false) {
   try {
     serial_port_.open(port_name);
@@ -116,25 +110,25 @@ BLDCControllerClient::BLDCControllerClient(const std::string &port_name,
     std::cout << "Serial port " << port_name << " opened successfully."
               << std::endl;
 
-    // Start the I/O thread using std::thread and a lambda
     io_thread_ = std::thread([this]() {
       std::cout << "IO thread started." << std::endl;
-      this->io_context_.run(); // Blocks until stopped or out of work
+      try {
+        this->io_context_.run(); // Blocks until stopped or out of work
+      } catch (const std::exception &e) {
+        std::cerr << "Exception in IO thread: " << e.what() << std::endl;
+      }
       std::cout << "IO thread finished." << std::endl;
     });
 
-    // Start the background data processing thread
     processing_thread_ =
         std::thread(&BLDCControllerClient::ProcessIncomingData, this);
 
-    // Start the first asynchronous read
     StartReceive();
 
-  } catch (const std::system_error &e) { // Catch specific Asio/system errors
+  } catch (const std::system_error &e) {
     std::cerr << "Error opening or configuring serial port " << port_name
               << ": " << e.what() << std::endl;
-    // Ensure threads aren't left running if port opening fails
-    stop_threads_ = true; // Signal threads (though they might not have started)
+    stop_threads_ = true;
     if (io_thread_.joinable())
       io_thread_.join();
     if (processing_thread_.joinable())
@@ -146,56 +140,44 @@ BLDCControllerClient::BLDCControllerClient(const std::string &port_name,
 
 BLDCControllerClient::~BLDCControllerClient() {
   std::cout << "Shutting down BLDCControllerClient..." << std::endl;
-  stop_threads_ = true; // Signal threads to stop
+  if (!stop_threads_.exchange(true)) { // Ensure stop signal is sent only once
 
-  // Post task to io_context to safely stop it and close the port from its own
-  // thread.
-  boost::asio::post(io_context_, [this]() {
-    this->work_guard_
-        .reset();      // Allow io_context::run() to exit when work is done
-    this->ClosePort(); // Close the port safely
-  });
+    boost::asio::post(io_context_, [this]() {
+      this->work_guard_.reset();
+      this->ClosePort();
+    });
 
-  // Wait for threads to finish
-  if (io_thread_.joinable()) {
-    io_thread_.join();
-    std::cout << "IO thread joined." << std::endl;
-  }
-
-  // No explicit interrupt needed for std::thread, joining handles it if
-  // possible. If ProcessIncomingData blocks indefinitely on buffer access, it
-  // might need a condition variable.
-  if (processing_thread_.joinable()) {
-    processing_thread_.join();
-    std::cout << "Processing thread joined." << std::endl;
-  }
-
-  // Propagate exceptions for any promises that were not fulfilled due to
-  // shutdown
-  {
-    std::lock_guard<std::mutex> lock(response_map_mutex_);
-    for (auto &pair : pending_responses_) {
-      try {
-        pair.second.set_exception(std::make_exception_ptr(CommunicationError(
-            "Client shutting down before response received.")));
-      } catch (...) { /* Ignore if promise already set or future destroyed */
-      }
+    if (io_thread_.joinable()) {
+      io_thread_.join();
+      std::cout << "IO thread joined." << std::endl;
     }
-    pending_responses_.clear();
-  }
 
-  std::cout << "BLDCControllerClient shutdown complete." << std::endl;
+    if (processing_thread_.joinable()) {
+      processing_thread_.join();
+      std::cout << "Processing thread joined." << std::endl;
+    }
+
+    {
+      std::lock_guard<std::mutex> lock(response_map_mutex_);
+      for (auto &pair : pending_responses_) {
+        try {
+          pair.second.set_exception(std::make_exception_ptr(CommunicationError(
+              "Client shutting down before response received.")));
+        } catch (...) { /* Ignore */
+        }
+      }
+      pending_responses_.clear();
+    }
+    std::cout << "BLDCControllerClient shutdown complete." << std::endl;
+  } else {
+    std::cout << "BLDCControllerClient already shutting down." << std::endl;
+  }
 }
 
 void BLDCControllerClient::ClosePort() {
-  // This should be called from the io_context thread via post()
   if (serial_port_.is_open()) {
-    std::error_code ec;      // Use std::error_code
-    serial_port_.cancel(ec); // Cancel pending async operations
-    if (ec) {
-      std::cerr << "Warning: Error cancelling serial port operations: "
-                << ec.message() << std::endl;
-    }
+    boost::system::error_code ec;
+    serial_port_.cancel(ec);
     serial_port_.close(ec);
     if (ec) {
       std::cerr << "Error closing serial port: " << ec.message() << std::endl;
@@ -206,8 +188,9 @@ void BLDCControllerClient::ClosePort() {
 }
 
 void BLDCControllerClient::StartReceive() {
-  // Asynchronously read data into the raw buffer
-  // Use a lambda for the completion handler for cleaner syntax
+  if (stop_threads_ || !serial_port_.is_open())
+    return;
+
   serial_port_.async_read_some(
       boost::asio::buffer(raw_read_buffer_),
       [this](const boost::system::error_code &error, size_t bytes_transferred) {
@@ -218,45 +201,50 @@ void BLDCControllerClient::StartReceive() {
 void BLDCControllerClient::HandleReceive(const boost::system::error_code &error,
                                          size_t bytes_transferred) {
   if (stop_threads_)
-    return; // Stop if requested
+    return;
 
   if (!error) {
-    { // Lock scope for buffer access
+    {
       std::lock_guard<std::mutex> lock(buffer_mutex_);
-      // Add received data to the circular buffer
       incoming_data_buffer_.insert(
           incoming_data_buffer_.end(), raw_read_buffer_.begin(),
           raw_read_buffer_.begin() + bytes_transferred);
-    } // Mutex released
-
-    // std::cout << "Received " << bytes_transferred << " bytes. Buffer size: "
-    // << incoming_data_buffer_.size() << std::endl; // Debug
-
-    // Start the next read operation
+    }
     StartReceive();
-  } else if (error != boost::asio::error::operation_aborted) {
+  } else if (error != boost::asio::error::operation_aborted &&
+             error != boost::asio::error::eof) {
     std::cerr << "Serial read error: " << error.message() << std::endl;
-    // Close port and notify pending futures about the error
-    ClosePort(); // Close on error (safe to call again if already closed)
+    ClosePort();
     {
       std::lock_guard<std::mutex> lock(response_map_mutex_);
+
       for (auto &pair : pending_responses_) {
         try {
-          pair.second.set_exception(std::make_exception_ptr(CommunicationError(
-              "Serial port read error: " + error.message())));
+          pair.second.set_exception(std::make_exception_ptr(
+
+              CommunicationError("Serial port read error: " +
+                                 error.message())));
         } catch (...) { /* Ignore */
         }
       }
       pending_responses_.clear();
     }
+  } else if (error == boost::asio::error::eof) {
+    std::cerr << "Serial port connection closed (EOF)." << std::endl;
+    ClosePort();
   }
-  // If operation_aborted, it means we're shutting down, so do nothing.
 }
 
 void BLDCControllerClient::DoWrite(const ByteVector &data) {
-  // Post the write operation to the io_context to ensure thread safety
+  if (stop_threads_ || !serial_port_.is_open()) {
+    std::cerr
+        << "Warning: Write attempted while client stopping or port closed."
+        << std::endl;
+    return;
+  }
   boost::asio::post(io_context_, [this, data]() {
-    // Use lambda for completion handler
+    if (stop_threads_ || !serial_port_.is_open())
+      return;
     boost::asio::async_write(serial_port_, boost::asio::buffer(data),
                              [this](const boost::system::error_code &error,
                                     size_t bytes_transferred) {
@@ -272,8 +260,7 @@ void BLDCControllerClient::HandleWrite(const boost::system::error_code &error,
 
   if (error && error != boost::asio::error::operation_aborted) {
     std::cerr << "Serial write error: " << error.message() << std::endl;
-    ClosePort(); // Close on error
-    // Notify pending futures about the write error
+    ClosePort();
     {
       std::lock_guard<std::mutex> lock(response_map_mutex_);
       for (auto &pair : pending_responses_) {
@@ -286,243 +273,344 @@ void BLDCControllerClient::HandleWrite(const boost::system::error_code &error,
       pending_responses_.clear();
     }
   }
-  // else: Write successful or aborted during shutdown
 }
 
-// This function runs in its own thread (processing_thread_)
+// --- ProcessIncomingData (Index-Based Robust Parsing Logic) ---
 void BLDCControllerClient::ProcessIncomingData() {
-  std::cout << "Processing thread started." << std::endl;
-  ByteVector
-      current_packet_buffer; // Temporarily store bytes for potential packet
+  std::cout << "Processing thread started (Index-Based Robust Parsing)."
+            << std::endl;
+
+  // State persists across iterations of the outer loop
   enum class State {
-    SYNC,
-    VERSION,
-    FLAGS,
-    LEN_H,
-    LEN_L,
-    MESSAGE,
-    CRC_H,
-    CRC_L
+    SEEK_SYNC,
+    CHECK_VERSION,
+    READ_FLAGS,
+    READ_LEN_L,
+    READ_LEN_H,
+    READ_MESSAGE,
+    READ_CRC_L,
+    READ_CRC_H
   };
-  State state = State::SYNC;
-  uint16_t expected_len = 0;
+  State current_state = State::SEEK_SYNC;
+  uint16_t expected_payload_len = 0;
   uint16_t received_crc = 0;
+  size_t working_index =
+      0; // Current byte being examined relative to buffer start (index 0)
 
   while (!stop_threads_) {
     try {
-      uint8_t byte;
-      bool byte_read = false;
-      { // Lock scope for reading from circular buffer
+      size_t buffer_size;
+      { // Lock scope to check buffer size
         std::lock_guard<std::mutex> lock(buffer_mutex_);
-        if (!incoming_data_buffer_.empty()) {
-          byte = incoming_data_buffer_.front();
-          incoming_data_buffer_.pop_front();
-          byte_read = true;
-        }
-      } // Mutex released
+        buffer_size = incoming_data_buffer_.size();
+      } // Lock released
 
-      if (!byte_read) {
-        // No data, wait briefly before checking again to avoid busy-waiting
-        // Consider using a condition variable for more efficient waiting if CPU
-        // usage is high.
+      if (buffer_size == 0) {
+        // No data, wait briefly
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        continue;
+        continue; // Go back to checking buffer size
       }
 
-      // --- State Machine for Packet Parsing ---
-      switch (state) {
-      case State::SYNC:
-        if (byte == CommConstants::START_BYTE) {
-          current_packet_buffer.clear();
-          current_packet_buffer.push_back(byte); // Start byte
-          state = State::VERSION;
-        } // else: Keep searching for SYNC
-        break;
+      // --- Attempt to parse one packet from the start of the buffer ---
+      current_state = State::SEEK_SYNC;
+      working_index = 0; // Start check from the beginning of the current buffer
+      bool packet_found = false;
+      bool parse_error = false;
+      size_t packet_len = 0; // Length of successfully parsed packet
 
-      case State::VERSION:
-        if (byte == CommConstants::COMM_VERSION) {
-          current_packet_buffer.push_back(byte); // Version byte
-          state = State::FLAGS;
-        } else {
-          std::cerr << "Malformed Packet: Invalid version "
-                    << static_cast<int>(byte) << std::endl;
-          state = State::SYNC; // Reset
-        }
-        break;
+      // Inner loop: Process bytes using working_index as long as data is
+      // available
+      while (working_index < buffer_size) {
+        uint8_t current_byte;
+        { // Lock scope to read byte at working_index
+          std::lock_guard<std::mutex> lock(buffer_mutex_);
+          // Re-check size in case buffer changed or was popped by error
+          // handling
+          buffer_size = incoming_data_buffer_.size();
+          if (working_index >= buffer_size) {
 
-      case State::FLAGS:
-        current_packet_buffer.push_back(byte); // Flags byte
-        state = State::LEN_L; // Read low byte of length first (little-endian)
-        break;
+            break; // Not enough data currently available for this index
+          }
+          /*
+          std::cout << "Parsing state = " << (int)current_state << ": ";
+          for (uint8_t byte : incoming_data_buffer_) {
+            std::cout << "0x" << std::hex << static_cast<int>(byte) << " ";
+          }
+          std::cout << std::endl;
+          */
+          current_byte = incoming_data_buffer_[working_index];
+        } // Lock released
 
-      case State::LEN_L:
-        current_packet_buffer.push_back(byte); // Length low byte
-        expected_len = byte;                   // Store low byte
-        state = State::LEN_H;
-        break;
+        // --- State Machine ---
+        switch (current_state) {
+        case State::SEEK_SYNC:
+          // Should always be at index 0 when seeking sync in this design
+          if (working_index != 0) {
+            // Should not happen with this logic, indicates an error
+            std::cerr << "Parser Internal Error: SEEK_SYNC state at index > 0. "
+                         "Resetting."
+                      << std::endl;
+            parse_error = true;
+            goto handle_parse_result;
+          }
+          if (current_byte == CommConstants::START_BYTE) {
+            current_state = State::CHECK_VERSION;
+          } else {
+            // Invalid start byte at index 0
+            parse_error = true;
+            std::cerr << "Parser: Skipping non-sync byte 0x" << std::hex
+                      << static_cast<int>(current_byte) << std::dec
+                      << " at buffer start." << std::endl;
+          }
+          break; // End SEEK_SYNC
 
-      case State::LEN_H:
-        current_packet_buffer.push_back(byte); // Length high byte
-        expected_len |=
-            (static_cast<uint16_t>(byte) << 8); // Combine with high byte
-        // Sanity check length - adjust max length as needed
-        if (expected_len == 0 || expected_len > kReadBufferSize * 4) {
-          std::cerr << "Malformed Packet: Invalid length " << expected_len
-                    << std::endl;
-          state = State::SYNC; // Reset
-        } else {
-          state = State::MESSAGE;
-          // Reserve space for efficiency if message sizes are predictable
-          // current_packet_buffer.reserve(expected_len + 5 + 2); // Header +
-          // Message + CRC
-        }
-        break;
+        case State::CHECK_VERSION:
+          if (current_byte == CommConstants::COMM_VERSION) {
+            current_state = State::READ_FLAGS;
+          } else {
+            // std::cerr << "Parser: Invalid version byte 0x" << std::hex
+            //           << static_cast<int>(current_byte) << ". Resetting."
+            //           << std::dec << std::endl;
+            parse_error = true;
+          }
+          break; // End CHECK_VERSION
 
-      case State::MESSAGE:
-        current_packet_buffer.push_back(byte);
-        // Check if we have received the full message payload
-        // Header size = SYNC(1) + VER(1) + FLAGS(1) + LEN(2) = 5
-        if (current_packet_buffer.size() == (expected_len + 5)) {
-          state = State::CRC_L; // Read low byte of CRC first
-        }
-        break;
+        case State::READ_FLAGS:
+          current_state = State::READ_LEN_L;
+          break; // End READ_FLAGS
 
-      case State::CRC_L:
-        received_crc = byte; // Store low byte
-        state = State::CRC_H;
-        break;
+        case State::READ_LEN_L:
+          expected_payload_len = current_byte;
+          current_state = State::READ_LEN_H;
 
-      case State::CRC_H: { // New scope for processing complete packet
-        received_crc |=
-            (static_cast<uint16_t>(byte) << 8); // Combine with high byte
+          break; // End READ_LEN_L
 
-        // --- Packet Complete - Verify CRC and Process ---
-        // Extract the message part for CRC calculation (from Flags up to end of
-        // message data) Message part starts at index 2 (Flags) and has length
-        // expected_len Ensure expected_len doesn't cause out-of-bounds access
-        if (2 + expected_len > current_packet_buffer.size()) {
-          std::cerr << "Malformed Packet: Internal length mismatch during CRC "
-                       "calculation."
-                    << std::endl;
-          state = State::SYNC; // Reset
-          break;               // Break from case CRC_H
-        }
-        ByteVector message_part(current_packet_buffer.begin() + 2,
-                                current_packet_buffer.begin() + 2 +
-                                    expected_len);
-        uint16_t calculated_crc = ComputeCRC16(message_part);
+        case State::READ_LEN_H:
+          expected_payload_len |= (static_cast<uint16_t>(current_byte) << 8);
+          if (expected_payload_len == 0 ||
+              expected_payload_len >
+                  kReadBufferSize * 4) { // Sanity check length
+            std::cerr << "Parser: Invalid payload length "
+                      << expected_payload_len << ". Resetting." << std::endl;
+            parse_error = true;
+          } else {
+            current_state = State::READ_MESSAGE;
+          }
+          break; // End READ_LEN_H
 
-        if (calculated_crc == received_crc) {
-          // CRC OK - Parse the message content
-          try {
-            // Message Header: MsgLen(2), ServerID(1), FuncCode(1), Errors(2) =
-            // 6 bytes minimum Indices are relative to the start of message_part
-            if (message_part.size() < 6) {
-              throw MalformedPacketError(
-                  "Message part too short (less than 6 bytes)");
+        case State::READ_MESSAGE:
+          // Check if this is the last byte of the expected payload
+          // Header=5 bytes. Payload starts at index 5. Last payload byte is
+          // index 5 + len - 1.
+          if (working_index == (5 + expected_payload_len - 1)) {
+            current_state = State::READ_CRC_L;
+          } else if (working_index > (5 + expected_payload_len - 1)) {
+            // Should not happen if length check was correct
+            std::cerr << "Parser: Overshot expected message length. Resetting."
+                      << std::endl;
+            parse_error = true;
+          }
+          break; // End READ_MESSAGE
+
+        case State::READ_CRC_L:
+          received_crc = current_byte;
+          current_state = State::READ_CRC_H;
+          break; // End READ_CRC_L
+
+        case State::READ_CRC_H: { // Scope for CRC check and final processing
+          received_crc |= (static_cast<uint16_t>(current_byte) << 8);
+          packet_len =
+              working_index + 1; // Total bytes from SYNC to CRC_H inclusive
+
+          // --- Verify CRC ---
+          // Need the full packet bytes for CRC check and parsing
+          ByteVector received_packet_bytes;
+          { // Lock scope to copy packet bytes
+            std::lock_guard<std::mutex> lock(buffer_mutex_);
+            // Re-check size and packet_len consistency
+            buffer_size = incoming_data_buffer_.size();
+            if (packet_len > buffer_size) {
+              std::cerr << "Parser: Buffer size (" << buffer_size
+                        << ") changed during CRC check, less than packet len ("
+                        << packet_len << "). Resetting." << std::endl;
+              parse_error = true; // Treat as error, pop first byte
+
+              goto handle_parse_result; // Exit switch and inner loop
             }
-
-            ReceivedPacket packet;
-            packet.server_id = UnpackU8(message_part, 2);
-            packet.function_code = UnpackU8(message_part, 3);
-            packet.errors = UnpackU16(message_part, 4);
-            packet.crash_flag = (UnpackU8(current_packet_buffer, 2) &
-                                 CommConstants::COMM_FLAG_CRASH) !=
-                                0; // Flags from overall header
-            if (message_part.size() > 6) {
-              packet.data.assign(message_part.begin() + 6, message_part.end());
+            // Copy the bytes corresponding to the potential packet
+            received_packet_bytes.reserve(packet_len);
+            for (size_t i = 0; i < packet_len; ++i) {
+              received_packet_bytes.push_back(incoming_data_buffer_[i]);
             }
+          } // Lock released
 
-            // --- Match response to a waiting promise ---
-            ResponseMapKey key = {packet.server_id, packet.function_code};
-            ResponsePromise
-                promise; // Use a temporary to hold the promise outside the lock
-            bool promise_found = false;
-            { // Lock scope for response map
-              std::lock_guard<std::mutex> lock(response_map_mutex_);
-              auto it = pending_responses_.find(key);
-              if (it != pending_responses_.end()) {
-                promise = std::move(it->second); // Move promise out
-                pending_responses_.erase(it);    // Remove from map
-                promise_found = true;
+          // CRC is calculated on the *inner* message structure
+          // Inner message starts at index 5 of received_packet_bytes
+          const size_t inner_msg_start_index = 5;
+          const size_t crc_calc_start_index =
+              inner_msg_start_index; // CRC starts from inner length field
+          const size_t crc_calc_len =
+              expected_payload_len; // CRC covers inner length up to end of data
+
+          // Check bounds before creating sub-vector for CRC
+          if (crc_calc_start_index + crc_calc_len >
+              received_packet_bytes.size() - 2) { // -2 for CRC bytes themselves
+            std::cerr
+                << "Parser: Internal length/CRC bounds mismatch. Resetting."
+                << std::endl;
+            parse_error = true;
+            goto handle_parse_result; // Exit switch and inner loop
+          }
+
+          ByteVector message_part_for_crc(
+              received_packet_bytes.begin() + crc_calc_start_index,
+
+              received_packet_bytes.begin() + crc_calc_start_index +
+                  crc_calc_len);
+          uint16_t calculated_crc = ComputeCRC16(message_part_for_crc);
+
+          if (calculated_crc == received_crc) {
+            // --- CRC OK: Parse and Fulfill Promise ---
+            try {
+              // Inner message structure: MsgLen(2), ServerID(1), FuncCode(1),
+              // Errors(2), Data(...) Indices relative to message_part_for_crc
+              // start (index 5 of full packet)
+              if (message_part_for_crc.size() < 6) {
+                throw MalformedPacketError(
+                    "Message part too short (less than 6 bytes)");
+              }
+              ReceivedPacket packet;
+              packet.server_id = UnpackU8(message_part_for_crc, 2);
+              packet.function_code = UnpackU8(message_part_for_crc, 3);
+              packet.errors = UnpackU16(message_part_for_crc, 4);
+              packet.crash_flag = (UnpackU8(received_packet_bytes, 2) &
+                                   CommConstants::COMM_FLAG_CRASH) !=
+                                  0; // Flags byte is at index 2
+              if (message_part_for_crc.size() > 6) {
+                packet.data.assign(message_part_for_crc.begin() + 6,
+                                   message_part_for_crc.end());
+              }
+
+              // Match response (same logic as before)
+              ResponseMapKey key = {packet.server_id, packet.function_code};
+              ResponsePromise promise;
+              bool promise_found = false;
+              {
+                std::lock_guard<std::mutex> lock(response_map_mutex_);
+                auto it = pending_responses_.find(key);
+                if (it != pending_responses_.end()) {
+                  promise = std::move(it->second);
+                  pending_responses_.erase(it);
+                  promise_found = true;
+                }
+              }
+              if (promise_found) {
+                try {
+                  promise.set_value(std::move(packet));
+                } catch (const std::future_error &) {
+                }
               } else {
-                // Handle unsolicited messages if necessary (e.g., log them)
-                std::cout << "Warning: Received unsolicited packet for ID="
+                std::cout << "Parser: Received unsolicited packet ID="
                           << static_cast<int>(key.first)
                           << ", FC=" << static_cast<int>(key.second)
                           << std::endl;
+                std::cout << "Outstanding packets: " << std::endl;
+                for (const auto &entry : pending_responses_) {
+                  std::cout << "  ID=" << static_cast<int>(entry.first.first)
+                            << ", FC=" << static_cast<int>(entry.first.second)
+                            << std::endl;
+                }
               }
-            } // Mutex released
 
-            if (promise_found) {
-              try {
-                promise.set_value(std::move(
-                    packet)); // Fulfill the promise (move packet data)
-              } catch (const std::future_error &e) {
-                // Future was likely destroyed (e.g., timeout before response
-                // arrived)
-                std::cerr << "Warning: Could not set promise value (maybe "
-                             "already timed out?): "
-                          << e.what() << std::endl;
-              }
+            } catch (const std::exception &e) {
+              std::cerr << "Parser: Error parsing valid packet content: "
+                        << e.what() << ". Treating as error." << std::endl;
+              parse_error = true; // Treat parsing failure as error, pop 1 byte
+              goto handle_parse_result; // Exit switch and inner loop
             }
+            // --- Packet Parsed Successfully ---
+            packet_found = true; // Signal success to pop packet_len bytes
 
-          } catch (const std::out_of_range &e) {
-            std::cerr << "Error parsing message content (out_of_range): "
-                      << e.what() << std::endl;
-          } catch (const MalformedPacketError &e) {
-            std::cerr << "Error parsing message content (malformed): "
-                      << e.what() << std::endl;
-          } catch (const std::exception &e) {
-            std::cerr << "Error parsing message content (general): " << e.what()
-                      << std::endl;
+          } else {
+            // --- CRC Mismatch ---
+            std::cerr << "Parser: CRC mismatch. Expected 0x" << std::hex
+                      << calculated_crc << ", Got 0x" << received_crc
+                      << ". Resetting." << std::dec << std::endl;
+            parse_error = true; // Signal error to pop 1 byte
           }
+        } // End scope for CRC check
+          goto handle_parse_result; // Exit switch and inner loop after CRC
+                                    // state
+          break;                    // End READ_CRC_H (unreachable due to goto)
 
-        } else {
-          std::cerr << "Malformed Packet: CRC mismatch. Expected "
-                    << calculated_crc << ", Got " << received_crc << std::endl;
-          // Reset state machine as the packet framing is likely wrong
-          state = State::SYNC;
-          break; // Break from case CRC_H
+        } // End switch(current_state)
+
+        if (parse_error) {
+          goto handle_parse_result; // Exit inner loop if error detected
         }
 
-        // Packet processed (successfully or not), reset state machine for next
-        // packet
-        state = State::SYNC;
-      } // End scope for processing complete packet
-      break;
+        working_index++; // Move to next byte for next iteration
 
-      } // End switch(state)
+      } // End inner while loop (parsing attempt)
+
+    handle_parse_result:; // Label to jump to after finishing or erroring in
+                          // inner loop
+
+      // --- Post-Parsing Action ---
+      { // Lock scope for buffer modification
+        std::lock_guard<std::mutex> lock(buffer_mutex_);
+        if (packet_found) {
+          // Pop the successfully parsed packet
+          // Ensure packet_len doesn't exceed current buffer size (could happen
+          // with race conditions)
+          size_t current_buf_size = incoming_data_buffer_.size();
+          size_t pop_count = std::min(packet_len, current_buf_size);
+          if (pop_count < packet_len) {
+
+            std::cerr
+                << "Parser Warning: Buffer size (" << current_buf_size
+                << ") shrunk unexpectedly before popping packet of length "
+                << packet_len << ". Popping available bytes." << std::endl;
+          }
+          for (size_t i = 0; i < pop_count; ++i) {
+            incoming_data_buffer_.pop_front();
+          }
+          // Optional: Log successful packet pop
+          // std::cout << "Parser: Popped valid packet (" << pop_count << "
+          // bytes)." << std::endl;
+        } else if (parse_error) {
+          // Pop only the first byte that started the failed parse attempt
+          if (!incoming_data_buffer_.empty()) {
+            incoming_data_buffer_.pop_front();
+          }
+        }
+        // If neither packet_found nor parse_error, it means we ran out of
+        // data mid-packet (inner loop exited because working_index >=
+        // buffer_size), so we don't pop anything and wait for more data in the
+        // next outer loop iteration.
+      } // Lock released
 
     } catch (const std::exception &e) {
-      // Catch potential exceptions from buffer access or state machine logic
-      std::cerr << "Exception in processing thread: " << e.what() << std::endl;
-      state = State::SYNC; // Reset state on general exceptions
+      std::cerr << "Exception in processing thread outer loop: " << e.what()
+                << std::endl;
     } catch (...) {
-      std::cerr << "Unknown exception in processing thread." << std::endl;
-      state = State::SYNC; // Reset state
+      std::cerr << "Unknown exception in processing thread outer loop."
+                << std::endl;
     }
-  } // End while(!stop_threads_)
+    // Loop continues to check buffer size again
+  } // End outer while(!stop_threads_)
   std::cout << "Processing thread finished." << std::endl;
 }
 
-// --- Public API Method Implementations ---
+// --- Public API Method Implementations (Unchanged from previous version) ---
 
 void BLDCControllerClient::WriteRequest(uint8_t server_id, uint8_t func_code,
                                         const ByteVector &data) {
-  // Wire format based on Python code analysis:
-  // Header: START(1), VER(1), FLAGS(1), TotalMsgLen(2)
-  // Message: [SubMsgLen(2), SubMsgData(ID(1), FC(1), Data(...))] (Only one
-  // sub-message in this implementation) Footer: CRC(2) (Calculated on Message
-  // part)
-
-  // 1. Create Sub-Message Data
   ByteVector sub_message_data;
   sub_message_data.push_back(server_id);
   sub_message_data.push_back(func_code);
   sub_message_data.insert(sub_message_data.end(), data.begin(), data.end());
 
-  // 2. Create Message Part (SubMsgLen + SubMsgData)
   ByteVector message;
   ByteVector sub_msg_len_bytes =
       PackU16(static_cast<uint16_t>(sub_message_data.size()));
@@ -531,25 +619,20 @@ void BLDCControllerClient::WriteRequest(uint8_t server_id, uint8_t func_code,
   message.insert(message.end(), sub_message_data.begin(),
                  sub_message_data.end());
 
-  // 3. Create Full Packet
   ByteVector packet;
-  packet.push_back(CommConstants::START_BYTE);     // Sync
-  packet.push_back(CommConstants::COMM_VERSION);   // Version
-  packet.push_back(CommConstants::COMM_FLAG_SEND); // Flags
-  // Add total message length (length of 'message' part)
+  packet.push_back(CommConstants::START_BYTE);
+  packet.push_back(CommConstants::COMM_VERSION);
+  packet.push_back(CommConstants::COMM_FLAG_SEND);
   ByteVector total_msg_len_bytes =
       PackU16(static_cast<uint16_t>(message.size()));
   packet.insert(packet.end(), total_msg_len_bytes.begin(),
                 total_msg_len_bytes.end());
-  // Add the message itself
   packet.insert(packet.end(), message.begin(), message.end());
 
-  // 4. Calculate CRC on the 'message' part
   uint16_t crc = ComputeCRC16(message);
   ByteVector crc_bytes = PackU16(crc);
   packet.insert(packet.end(), crc_bytes.begin(), crc_bytes.end());
 
-  // 5. Send the packet asynchronously
   DoWrite(packet);
 }
 
@@ -561,149 +644,102 @@ BLDCControllerClient::DoTransaction(uint8_t server_id, uint8_t func_code,
   ResponsePromise promise;
   ResponseFuture future = promise.get_future();
 
-  { // Lock scope for response map access
+  {
     std::lock_guard<std::mutex> lock(response_map_mutex_);
-    // Check if a request for this ID/FC is already pending
     auto [it, inserted] =
         pending_responses_.try_emplace(key, std::move(promise));
     if (!inserted) {
-      // Handle error: Already waiting for a response for this key.
-      // Option: Throw immediately.
       throw ProtocolError(
           "Transaction already pending for ID=" + std::to_string(server_id) +
           ", FC=" + std::to_string(func_code));
-      // Option 2: Replace the old promise (caller of old future might hang or
-      // timeout) it->second = std::move(promise); // Overwrite existing promise
     }
-  } // Mutex released
+  }
 
-  // Send the request packet
   WriteRequest(server_id, func_code, data);
 
-  // Return the future. The caller will wait on this future.
-  // Timeout handling happens when the caller waits on the future.
   return future;
 }
-
-// --- Example Public Method Implementations ---
 
 ByteVector BLDCControllerClient::ReadRegisters(uint8_t server_id,
                                                uint16_t start_addr,
                                                uint8_t count) {
-  // Pack arguments: start_addr (uint16_t), count (uint8_t)
   ByteVector args;
-  ByteVector addr_bytes = PackU16(start_addr);
-  ByteVector count_byte = PackU8(count);
-  args.insert(args.end(), addr_bytes.begin(), addr_bytes.end());
-  args.insert(args.end(), count_byte.begin(), count_byte.end());
+  args.insert(args.end(), PackU16(start_addr).begin(),
+              PackU16(start_addr).end());
+  args.insert(args.end(), PackU8(count).begin(), PackU8(count).end());
 
   ResponseFuture future =
-      DoTransaction(server_id, CommConstants::COMM_FC_REG_READ, args);
-
-  // Wait for the response with timeout
+      DoTransaction(server_id, CommConstants::COMM_FC_REG_READ, args,
+                    CommConstants::DEFAULT_RESPONSE_TIMEOUT);
   std::future_status status =
       future.wait_for(CommConstants::DEFAULT_RESPONSE_TIMEOUT);
 
   if (status == std::future_status::timeout) {
-    // Timeout occurred - attempt to remove the pending promise to prevent late
-    // fulfillment
     ResponseMapKey key = {server_id, CommConstants::COMM_FC_REG_READ};
-    bool erased = false;
     {
       std::lock_guard<std::mutex> lock(response_map_mutex_);
-      if (pending_responses_.count(key)) {
-        // Check if the promise is still there before erasing
-        // (it might have been fulfilled just after the timeout check)
-
-        pending_responses_.erase(key);
-        erased = true;
-      }
-    }
-    if (erased) {
-      std::cerr << "Timeout: Erased pending promise for ID="
-                << static_cast<int>(server_id)
-                << ", FC=" << static_cast<int>(CommConstants::COMM_FC_REG_READ)
-                << std::endl;
+      pending_responses_.erase(key);
     }
     throw TimeoutError("Timeout waiting for ReadRegisters response from ID=" +
                        std::to_string(server_id));
   } else if (status == std::future_status::deferred) {
-    // Should not happen with std::promise unless async policy was used
-    // differently
     throw CommunicationError("ReadRegisters future was deferred.");
   }
-  // else: status == std::future_status::ready
 
-  // Get the result (or exception if one occurred during processing/IO)
   ReceivedPacket response = future.get();
 
-  // Check for device-reported errors
   if (response.errors != CommConstants::COMM_ERRORS_NONE) {
-
-    // You could create more specific error messages based on flags
     throw ProtocolError("Device reported error during ReadRegisters (ID=" +
                             std::to_string(server_id) + ")",
                         response.errors);
   }
   if (response.crash_flag) {
-    // Log or handle crash flag if needed
-    std::cerr << "Warning: Crash flag set in response from ID="
+    std::cerr << "Warning: Crash flag set in ReadRegisters response from ID="
               << static_cast<int>(server_id) << std::endl;
   }
-
   return response.data;
 }
 
 bool BLDCControllerClient::WriteRegisters(uint8_t server_id,
                                           uint16_t start_addr,
                                           const ByteVector &data) {
-  // Pack arguments: start_addr (uint16_t), count (uint8_t), data
   if (data.size() > 255) {
     throw std::invalid_argument(
         "WriteRegisters data size exceeds maximum (255 bytes)");
   }
   ByteVector args;
-  ByteVector addr_bytes = PackU16(start_addr);
-  // The count here refers to the number of registers, matching Python's
-  // `struct.pack("<HB", addr, ct)` Assuming the device protocol expects the
-  // *number* of registers being written, not byte length. If it expects byte
-  // length, change this. Let's assume register count for now.
-  // **CRITICAL**: Verify the protocol spec for COMM_FC_REG_WRITE arguments!
 
-  // If `count` should be byte length: PackU8(static_cast<uint8_t>(data.size()))
-  // If `count` should be register count (assuming fixed size regs): Need
-  // register size info. Let's *assume* the Python code's `ct` meant register
-  // count and the device figures out bytes. This is ambiguous without the
-  // device spec. Using byte count seems safer if unsure.
-  ByteVector count_byte = PackU8(static_cast<uint8_t>(
-      data.size())); // **ASSUMPTION: Count is byte length**
+  try {
+    // Store packed data temporarily
+    ByteVector addr_bytes = PackU16(start_addr);
+    ByteVector count_byte =
+        PackU8(static_cast<uint8_t>(data.size())); // Assuming byte count
 
-  args.insert(args.end(), addr_bytes.begin(), addr_bytes.end());
-  args.insert(args.end(), count_byte.begin(),
-              count_byte.end());                     // Add count byte
-  args.insert(args.end(), data.begin(), data.end()); // Add actual data
+    args.insert(args.end(), addr_bytes.begin(), addr_bytes.end());
+    args.insert(args.end(), count_byte.begin(), count_byte.end());
+    args.insert(args.end(), data.begin(), data.end());
+
+  } catch (const std::exception &e) {
+    std::cerr << "!!! Exception caught during args.insert in WriteRegisters !!!"
+              << std::endl;
+    std::cerr << "    Error: " << e.what() << std::endl;
+    std::cerr << "    Current args size: " << args.size() << std::endl;
+    std::cerr << "    Input data size: " << data.size() << std::endl;
+    // Re-throw the exception so the caller knows about the failure
+    throw;
+  }
 
   ResponseFuture future =
-      DoTransaction(server_id, CommConstants::COMM_FC_REG_WRITE, args);
-
+      DoTransaction(server_id, CommConstants::COMM_FC_REG_WRITE, args,
+                    CommConstants::DEFAULT_RESPONSE_TIMEOUT);
   std::future_status status =
       future.wait_for(CommConstants::DEFAULT_RESPONSE_TIMEOUT);
 
   if (status == std::future_status::timeout) {
     ResponseMapKey key = {server_id, CommConstants::COMM_FC_REG_WRITE};
-    bool erased = false;
     {
       std::lock_guard<std::mutex> lock(response_map_mutex_);
-      if (pending_responses_.count(key)) {
-        pending_responses_.erase(key);
-        erased = true;
-      }
-    }
-    if (erased) {
-      std::cerr << "Timeout: Erased pending promise for ID="
-                << static_cast<int>(server_id)
-                << ", FC=" << static_cast<int>(CommConstants::COMM_FC_REG_WRITE)
-                << std::endl;
+      pending_responses_.erase(key);
     }
     throw TimeoutError("Timeout waiting for WriteRegisters response from ID=" +
                        std::to_string(server_id));
@@ -715,16 +751,14 @@ bool BLDCControllerClient::WriteRegisters(uint8_t server_id,
 
   if (response.errors != CommConstants::COMM_ERRORS_NONE) {
     throw ProtocolError("Device reported error during WriteRegisters (ID=" +
-                            std::to_string(server_id) + ")",
+                            std::to_string(server_id) +
+                            ", EC=" + std::to_string(response.errors) + ")",
                         response.errors);
   }
   if (response.crash_flag) {
-    std::cerr << "Warning: Crash flag set in response from ID="
+    std::cerr << "Warning: Crash flag set in WriteRegisters response from ID="
               << static_cast<int>(server_id) << std::endl;
   }
-
-  // Success is indicated by no errors (response.data might be empty or contain
-  // status)
   return true;
 }
 
@@ -735,43 +769,30 @@ ByteVector BLDCControllerClient::ReadWriteRegisters(
     throw std::invalid_argument(
         "ReadWriteRegisters write_data size exceeds maximum (255 bytes)");
   }
-  // Pack arguments: read_start(u16), read_count(u8), write_start(u16),
-  // write_count(u8), write_data(...) Again, assuming 'count' refers to byte
-  // length for write_count. **VERIFY PROTOCOL**
   ByteVector args;
   args.insert(args.end(), PackU16(read_start_addr).begin(),
               PackU16(read_start_addr).end());
   args.insert(args.end(), PackU8(read_count).begin(),
-              PackU8(read_count).end()); // Read count (likely register count)
+              PackU8(read_count).end()); // Read count
   args.insert(args.end(), PackU16(write_start_addr).begin(),
               PackU16(write_start_addr).end());
   args.insert(args.end(),
               PackU8(static_cast<uint8_t>(write_data.size())).begin(),
               PackU8(static_cast<uint8_t>(write_data.size()))
-                  .end()); // Write count (assuming bytes)
+                  .end()); // Write count (bytes)
   args.insert(args.end(), write_data.begin(), write_data.end());
 
   ResponseFuture future =
-      DoTransaction(server_id, CommConstants::COMM_FC_REG_READ_WRITE, args);
-
+      DoTransaction(server_id, CommConstants::COMM_FC_REG_READ_WRITE, args,
+                    CommConstants::DEFAULT_RESPONSE_TIMEOUT);
   std::future_status status =
       future.wait_for(CommConstants::DEFAULT_RESPONSE_TIMEOUT);
 
   if (status == std::future_status::timeout) {
     ResponseMapKey key = {server_id, CommConstants::COMM_FC_REG_READ_WRITE};
-    bool erased = false;
     {
       std::lock_guard<std::mutex> lock(response_map_mutex_);
-      if (pending_responses_.count(key)) {
-        pending_responses_.erase(key);
-        erased = true;
-      }
-    }
-    if (erased) {
-      std::cerr << "Timeout: Erased pending promise for ID="
-                << static_cast<int>(server_id) << ", FC="
-                << static_cast<int>(CommConstants::COMM_FC_REG_READ_WRITE)
-                << std::endl;
+      pending_responses_.erase(key);
     }
     throw TimeoutError(
         "Timeout waiting for ReadWriteRegisters response from ID=" +
@@ -788,37 +809,139 @@ ByteVector BLDCControllerClient::ReadWriteRegisters(
                         response.errors);
   }
   if (response.crash_flag) {
-    std::cerr << "Warning: Crash flag set in response from ID="
-              << static_cast<int>(server_id) << std::endl;
+    std::cerr
+        << "Warning: Crash flag set in ReadWriteRegisters response from ID="
+        << static_cast<int>(server_id) << std::endl;
   }
-
-  return response.data; // Return the read data
+  return response.data;
 }
 
 bool BLDCControllerClient::ResetSystem(uint8_t server_id) {
-  // This function likely doesn't expect a response as the device resets.
-  // Use WriteRequest for fire-and-forget.
   WriteRequest(server_id, CommConstants::COMM_FC_SYSTEM_RESET);
-  // Add a small delay to allow the device to potentially start resetting.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  return true; // Assume success unless an error occurs during write itself
-               // (handled in HandleWrite)
+  return true;
+}
+
+void BLDCControllerClient::EnterBootloader(uint8_t server_id) {
+  ResetSystem(server_id);
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(100)); // Allow time to reset
+}
+
+void BLDCControllerClient::LeaveBootloader(uint8_t server_id,
+                                           uint32_t jump_addr) {
+  JumpToAddress(server_id, jump_addr);
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(100)); // Allow time to jump
+  ResetInputBuffer();                  // Clear stale data after jump
 }
 
 bool BLDCControllerClient::JumpToAddress(uint8_t server_id,
                                          uint32_t jump_addr) {
-  // Similar to reset, might not get a response.
   ByteVector args = PackU32(jump_addr);
   WriteRequest(server_id, CommConstants::COMM_FC_JUMP_TO_ADDR, args);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   return true;
 }
 
-// --- Implement other public methods here ---
-// (e.g., GetFlashSectorCount, EraseFlashSector, ProgramFlash, etc.)
-// Each will involve:
-// 1. Packing arguments into a ByteVector according to the device protocol.
-// 2. Calling DoTransaction (if a response is expected) or WriteRequest.
-// 3. Waiting on the future (if using DoTransaction) and handling
-// timeouts/errors.
-// 4. Unpacking the response data (if any) or checking for errors.
+uint8_t
+BLDCControllerClient::EnumerateBoard(uint8_t target_id,
+                                     std::chrono::milliseconds timeout) {
+  ByteVector args = PackU8(target_id);
+  ResponseMapKey response_key = {0, CommConstants::COMM_FC_ENUMERATE};
+
+  ResponsePromise promise;
+  ResponseFuture future = promise.get_future();
+
+  {
+    std::lock_guard<std::mutex> lock(response_map_mutex_);
+    auto [it, inserted] =
+        pending_responses_.try_emplace(response_key, std::move(promise));
+    if (!inserted) {
+      throw ProtocolError("Enumeration already pending for target ID=" +
+                          std::to_string(target_id));
+    }
+  }
+
+  WriteRequest(0, CommConstants::COMM_FC_ENUMERATE, args); // Send TO ID 0
+
+  std::future_status status = future.wait_for(timeout);
+
+  if (status == std::future_status::timeout) {
+    {
+      std::lock_guard<std::mutex> lock(response_map_mutex_);
+      pending_responses_.erase(response_key);
+    }
+    throw TimeoutError(
+        "Timeout waiting for Enumerate response from target ID=" +
+        std::to_string(target_id));
+  } else if (status == std::future_status::deferred) {
+    throw CommunicationError("EnumerateBoard future was deferred.");
+  }
+
+  ReceivedPacket response = future.get();
+
+  if (response.errors != CommConstants::COMM_ERRORS_NONE) {
+    throw ProtocolError("Device reported error during Enumerate (target ID=" +
+                            std::to_string(target_id) + ")",
+                        response.errors);
+  }
+  if (response.crash_flag) {
+    std::cerr << "Warning: Crash flag set in Enumerate response from ID="
+              << static_cast<int>(response.server_id) << std::endl;
+  }
+
+  if (response.data.empty()) {
+    throw ProtocolError("Enumerate response from target ID=" +
+                        std::to_string(target_id) + " has no data.");
+  }
+  uint8_t response_payload_id = UnpackU8(response.data, 0);
+  if (response_payload_id != target_id) {
+    throw ProtocolError("Enumerate response payload ID mismatch. Expected " +
+                        std::to_string(target_id) + ", Got " +
+                        std::to_string(response_payload_id));
+  }
+  if (response.server_id != target_id) {
+    std::cerr << "Warning: Enumerate response header ID ("
+              << static_cast<int>(response.server_id)
+              << ") differs from target ID (" << static_cast<int>(target_id)
+              << ")" << std::endl;
+  }
+
+  return response_payload_id;
+}
+
+bool BLDCControllerClient::ConfirmBoard(uint8_t board_id,
+                                        std::chrono::milliseconds timeout) {
+  ResponseFuture future =
+      DoTransaction(board_id, CommConstants::COMM_FC_CONFIRM_ID, {}, timeout);
+  std::future_status status = future.wait_for(timeout);
+
+  if (status == std::future_status::timeout) {
+    ResponseMapKey key = {board_id, CommConstants::COMM_FC_CONFIRM_ID};
+    {
+      std::lock_guard<std::mutex> lock(response_map_mutex_);
+      pending_responses_.erase(key);
+    }
+    throw TimeoutError("Timeout waiting for Confirm response from ID=" +
+                       std::to_string(board_id));
+  } else if (status == std::future_status::deferred) {
+    throw CommunicationError("ConfirmBoard future was deferred.");
+  }
+
+  ReceivedPacket response = future.get();
+
+  if (response.errors != CommConstants::COMM_ERRORS_NONE) {
+    throw ProtocolError("Device reported error during Confirm (ID=" +
+                            std::to_string(board_id) + ")",
+                        response.errors);
+  }
+  if (response.crash_flag) {
+    std::cerr << "Warning: Crash flag set in Confirm response from ID="
+              << static_cast<int>(board_id) << std::endl;
+  }
+  return true;
+}
+
+void BLDCControllerClient::ResetInputBuffer() {
+  std::lock_guard<std::mutex> lock(buffer_mutex_);
+  incoming_data_buffer_.clear();
+}

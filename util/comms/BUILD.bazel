@@ -9,6 +9,8 @@ cc_library(
     hdrs = ["client.h"],
     copts = ["-std=c++17"],
     deps = [
+        "@boost//:asio",
+        "@boost//:circular_buffer",
         "@boost//:system",
         "@boost//:thread",
     ],

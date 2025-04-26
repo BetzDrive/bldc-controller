@@ -1,13 +1,16 @@
 #include "util/comms/board_manager.h"
+#include <atomic> // ** ADDED for std::atomic used in signal handler **
 #include <boost/program_options.hpp>
 #include <chrono>
 #include <csignal> // For signal handling (Ctrl+C)
 #include <cstdint>
+#include <cstdlib> // ** ADDED for std::exit **
 #include <exception>
+#include <iomanip> // ** ADDED for std::setprecision and std::fixed **
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <thread> // For std::this_thread::sleep_for (Only used for error pause now, removed from main loop)
+#include <thread> // For std::this_thread::sleep_for
 #include <vector>
 
 namespace po = boost::program_options;
@@ -22,7 +25,7 @@ void SignalHandler(int signal) {
     // Already trying to exit, force exit on second signal
     std::cerr << "\nCaught second signal " << signal << ", forcing exit."
               << std::endl;
-    std::exit(2);
+    std::exit(2); // Use std::exit from <cstdlib>
   }
   g_signal_status = signal;
   std::cerr << "\nCaught signal " << signal
@@ -31,7 +34,6 @@ void SignalHandler(int signal) {
 
 // --- Helper Function to Parse Comma-Separated Strings ---
 template <typename T> std::vector<T> ParseCommaSeparated(const std::string &s) {
-
   std::vector<T> result;
   std::stringstream ss(s);
   std::string item_str;
@@ -210,7 +212,8 @@ int main(int argc, char *argv[]) {
 
   while (g_signal_status == 0 &&
          (num_iters <= 0 || iteration_count < num_iters)) {
-
+    // sleep for 5ms.
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
     try {
       // Send torque commands to all specified boards. DriveMotor uses
       // DoTransaction internally, which waits for responses or timeouts for
@@ -234,7 +237,11 @@ int main(int argc, char *argv[]) {
         auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                               now - loop_start_time)
                               .count();
-        double rate = static_cast<double>(print_interval) * 1000.0 / elapsed_ms;
+        // Avoid division by zero if loop is extremely fast
+        double rate =
+            (elapsed_ms > 0)
+                ? (static_cast<double>(print_interval) * 1000.0 / elapsed_ms)
+                : 0.0;
         std::cout << "Iteration: " << iteration_count
                   << " (Rate: " << std::fixed << std::setprecision(1) << rate
                   << " Hz)" << std::endl;
@@ -268,14 +275,14 @@ int main(int argc, char *argv[]) {
     std::cout << "Loop finished after " << iteration_count << " iterations."
               << std::endl;
   } else {
-    // Should not happen if loop condition is correct, but handle defensively
-    std::cout << "Loop finished (unexpectedly)." << std::endl;
+    // This case means the loop exited without signal and without reaching
+    // num_iters (if num_iters > 0) which implies an error broke the loop.
+    std::cout << "Loop exited prematurely." << std::endl;
   }
 
   std::cout << "Setting torques to zero..." << std::endl;
   try {
     // Create zero torque data for all originally requested boards
-
     std::vector<std::vector<float>> zero_actuation_data(board_ids.size(),
                                                         {0.0f});
     // Attempt to drive even uninitialized boards to zero, DriveMotor will skip
@@ -285,7 +292,6 @@ int main(int argc, char *argv[]) {
                    "during shutdown."
                 << std::endl;
     }
-
     // No sleep needed, DriveMotor waits for responses/timeouts
   } catch (const std::exception
                &e) { // Catch potential exceptions during shutdown drive

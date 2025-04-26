@@ -1,7 +1,7 @@
 #ifndef BOARD_MANAGER_H
 #define BOARD_MANAGER_H
 
-#include "uti/comms/client.h" // Include the client definition
+#include "util/comms/client.h" // Include the client definition
 #include <cstdint>
 #include <map>
 #include <memory> // For std::unique_ptr

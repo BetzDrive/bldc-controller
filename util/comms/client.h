@@ -1,11 +1,10 @@
-#ifndef BLDC_CONTROLLER_CLIENT_H
-#define BLDC_CONTROLLER_CLIENT_H
+#ifndef CLIENT_H // Use the actual filename
+#define CLIENT_H
 
 // C++ Standard Library Headers
 #include <array>
 #include <atomic>
 #include <chrono>
-
 #include <cstdint>
 #include <deque>
 #include <future>
@@ -62,7 +61,14 @@ const uint8_t COMM_FLAG_SEND = 0x00;
 const uint8_t COMM_FLAG_CRASH =
     0x02; // Indicates a crash occurred on the device
 
-const std::chrono::milliseconds DEFAULT_RESPONSE_TIMEOUT{500};
+// Timeouts
+const std::chrono::milliseconds DEFAULT_RESPONSE_TIMEOUT{10};
+const std::chrono::milliseconds ENUMERATE_RESPONSE_TIMEOUT{
+    1000}; // Longer timeout for enumerate
+
+// Addresses (Add others as needed)
+const uint32_t COMM_FIRMWARE_OFFSET =
+    0x08010000; // Default firmware start address
 
 } // namespace CommConstants
 
@@ -76,7 +82,6 @@ public:
 class ProtocolError : public CommunicationError {
 public:
   ProtocolError(const std::string &message, uint16_t error_flags = 0)
-
       : CommunicationError(message), error_flags_(error_flags) {}
 
   uint16_t GetErrorFlags() const { return error_flags_; }
@@ -97,22 +102,21 @@ public:
       : CommunicationError(message) {}
 };
 
+// --- Type Definitions ---
+using ByteVector = std::vector<uint8_t>;
+
 // --- Packet Structure ---
 struct ReceivedPacket {
-  uint8_t server_id;
-  uint8_t function_code;
-  uint16_t errors;
-  std::vector<uint8_t> data;
-  bool crash_flag;
+  uint8_t server_id;     // ID from the packet header
+  uint8_t function_code; // Function code from the packet header
+  uint16_t errors;       // Error flags from the packet header
+  ByteVector data;       // Payload data
+  bool crash_flag;       // Crash flag from the packet header
 };
 
-// --- Type Definitions ---
-
-using ByteVector = std::vector<uint8_t>;
+// --- More Type Definitions ---
 using ResponseFuture = std::future<ReceivedPacket>;
-
 using ResponsePromise = std::promise<ReceivedPacket>;
-
 using ResponseMapKey = std::pair<uint8_t, uint8_t>; // server_id, function_code
 
 // --- CRC Calculation ---
@@ -135,9 +139,32 @@ public:
                                 uint8_t read_count, uint16_t write_start_addr,
                                 const ByteVector &write_data);
 
-  bool ResetSystem(uint8_t server_id);
+  bool ResetSystem(uint8_t server_id); // Sends reset command
+  // ** ADDED ** Enters bootloader (typically by resetting the system)
+  void EnterBootloader(uint8_t server_id = 0); // Often targets ID 0 or all
+  // ** ADDED ** Leaves bootloader by jumping to firmware address
+  void
+  LeaveBootloader(uint8_t server_id,
+                  uint32_t jump_addr = CommConstants::COMM_FIRMWARE_OFFSET);
+  // Jumps to an arbitrary address (used by LeaveBootloader)
   bool JumpToAddress(uint8_t server_id, uint32_t jump_addr);
-  // ... Add other public API methods as needed ...
+
+  // --- Bootloader Specific ---
+  // ** ADDED ** Sends enumerate command to ID 0, expecting response from
+  // target_id
+  uint8_t EnumerateBoard(uint8_t target_id,
+                         std::chrono::milliseconds timeout =
+                             CommConstants::ENUMERATE_RESPONSE_TIMEOUT);
+  // ** ADDED ** Confirms the ID of a specific board
+  bool ConfirmBoard(uint8_t board_id,
+                    std::chrono::milliseconds timeout =
+                        CommConstants::DEFAULT_RESPONSE_TIMEOUT);
+
+  // --- Utility ---
+  // ** ADDED ** Clears the internal circular buffer
+  void ResetInputBuffer();
+
+  // ... Add other public API methods as needed (Flash operations, etc.) ...
 
   // --- Lower Level Communication ---
   // Sends request without waiting for a specific response.
@@ -145,6 +172,8 @@ public:
                     const ByteVector &data = {});
 
   // Sends request and returns a future for the response.
+  // Note: Response matching is based on server_id and func_code in the
+  // *response header*.
   ResponseFuture DoTransaction(uint8_t server_id, uint8_t func_code,
                                const ByteVector &data = {},
                                std::chrono::milliseconds timeout =
@@ -160,7 +189,6 @@ private:
   boost::asio::serial_port serial_port_;
   std::thread io_thread_;         // Runs io_context_.run()
   std::thread processing_thread_; // Runs ProcessIncomingData()
-  // Keep work_guard as it's specific to Asio's io_context model.
   boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
       work_guard_; // Keeps io_context active
 
@@ -169,8 +197,8 @@ private:
   std::array<uint8_t, kReadBufferSize>
       raw_read_buffer_; // Buffer for raw Asio reads
   boost::circular_buffer<uint8_t>
-      incoming_data_buffer_; // Thread-safe buffer for parsed data
-  std::mutex buffer_mutex_;  // Protects incoming_data_buffer_
+      incoming_data_buffer_{}; // Thread-safe buffer for parsed data
+  std::mutex buffer_mutex_;    // Protects incoming_data_buffer_
 
   std::atomic<bool> stop_threads_; // Signals threads to stop
 
@@ -186,11 +214,14 @@ private:
   void DoWrite(const ByteVector &data);         // Performs asynchronous write
   void HandleWrite(const boost::system::error_code &error,
                    size_t bytes_transferred); // Write completion callback
+
   void ProcessIncomingData(); // Parses packets from incoming_data_buffer_
   void ClosePort();           // Closes the serial port
 
+public:
   // --- Static Packing/Unpacking Helpers (Little-Endian) ---
   static ByteVector PackU8(uint8_t val);
+
   static ByteVector PackU16(uint16_t val);
   static ByteVector PackU32(uint32_t val);
   static ByteVector PackF32(float val);
@@ -204,4 +235,4 @@ private:
 
 }; // class BLDCControllerClient
 
-#endif // BLDC_CONTROLLER_CLIENT_H
+#endif // CLIENT_H

@@ -37,7 +37,6 @@ bool BoardManager::InitializeBoards(int max_retries_per_board) {
   initialized_board_ids_.clear();
 
   try {
-    // Resetting system with ID 0 might put all boards into bootloader
     std::cout << "Resetting system (ID 0) to enter bootloader mode..."
               << std::endl;
     client_->EnterBootloader(0); // Resets and adds delay
@@ -47,6 +46,7 @@ bool BoardManager::InitializeBoards(int max_retries_per_board) {
       std::cout << "--- Initializing Board ID: " << static_cast<int>(target_id)
                 << " ---" << std::endl;
       bool enumerated = false;
+
       bool confirmed = false;
 
       // 1. Enumerate Board
@@ -60,8 +60,6 @@ bool BoardManager::InitializeBoards(int max_retries_per_board) {
                       << static_cast<int>(response_id) << ")" << std::endl;
             enumerated = true;
           } else {
-            // This case should ideally be caught by exceptions within
-            // EnumerateBoard
             std::cerr << "  Enumeration response mismatch (Expected "
                       << static_cast<int>(target_id)
                       << ", Got: " << static_cast<int>(response_id) << ")"
@@ -70,15 +68,14 @@ bool BoardManager::InitializeBoards(int max_retries_per_board) {
         } catch (const TimeoutError &e) {
           std::cerr << "  Enumeration attempt " << attempt
                     << " timed out: " << e.what() << std::endl;
-          client_->ResetInputBuffer(); // Clear buffer on timeout
+          client_->ResetInputBuffer();
         } catch (const CommunicationError &e) {
           std::cerr << "  Enumeration attempt " << attempt
                     << " failed: " << e.what() << std::endl;
-          client_->ResetInputBuffer(); // Clear buffer on comms error
+          client_->ResetInputBuffer();
         }
         if (!enumerated) {
-          std::this_thread::sleep_for(
-              std::chrono::milliseconds(100)); // Wait before retrying
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
       }
 
@@ -86,7 +83,7 @@ bool BoardManager::InitializeBoards(int max_retries_per_board) {
         std::cerr << "Failed to enumerate Board ID: "
                   << static_cast<int>(target_id) << " after "
                   << max_retries_per_board << " attempts." << std::endl;
-        continue; // Try next board
+        continue;
       }
 
       // 2. Confirm Board
@@ -98,8 +95,6 @@ bool BoardManager::InitializeBoards(int max_retries_per_board) {
             std::cout << "  Confirmation successful." << std::endl;
             confirmed = true;
           } else {
-            // ConfirmBoard should throw on error, so this else might not be
-            // reached
             std::cerr << "  Confirmation attempt " << attempt
                       << " reported failure." << std::endl;
           }
@@ -126,27 +121,20 @@ bool BoardManager::InitializeBoards(int max_retries_per_board) {
                   << static_cast<int>(target_id) << " after "
                   << max_retries_per_board << " attempts." << std::endl;
       }
-      std::this_thread::sleep_for(
-          std::chrono::milliseconds(50)); // Small delay between boards
-    } // End loop through target_board_ids
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
 
-    // 3. Leave Bootloader (for initialized boards)
     if (!initialized_board_ids_.empty()) {
       std::cout << "Leaving bootloader for initialized boards: ";
       for (uint8_t id : initialized_board_ids_)
         std::cout << static_cast<int>(id) << " ";
       std::cout << std::endl;
-      // Send jump command to all initialized boards simultaneously
-      // Note: Python code leaves bootloader one by one. Sending all at once
-      // might be okay. If issues arise, loop and call LeaveBootloader
-      // individually.
       for (uint8_t id : initialized_board_ids_) {
-        client_->LeaveBootloader(id); // Jumps and adds delay
+        client_->LeaveBootloader(id);
       }
       std::cout << "Jump commands sent." << std::endl;
-      // Extra delay after all jumps initiated
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      client_->ResetInputBuffer(); // Clear buffer after jumps
+      client_->ResetInputBuffer();
     } else {
       std::cout << "No boards were successfully initialized." << std::endl;
     }
@@ -172,7 +160,6 @@ bool BoardManager::InitializeBoards(int max_retries_per_board) {
   }
   std::cout << std::endl;
 
-  // Return true only if all target boards were initialized
   return initialized_board_ids_.size() == target_board_ids_.size();
 }
 
@@ -181,49 +168,32 @@ bool BoardManager::LoadCalibration(uint8_t board_id,
   if (!client_)
     return false;
 
-  // Check if board_id is among the initialized ones (optional but good
-  // practice)
   if (std::find(initialized_board_ids_.begin(), initialized_board_ids_.end(),
                 board_id) == initialized_board_ids_.end()) {
     std::cerr << "Warning: Attempting to load calibration on board ID "
               << static_cast<int>(board_id)
               << " which was not successfully initialized." << std::endl;
-    // Decide whether to proceed or return false
-    // return false;
   }
 
   std::cout << "Loading calibration for Board ID: "
             << static_cast<int>(board_id) << std::endl;
 
   try {
-    // Set parameters based on CalibrationData struct
-    // Note: The Python code uses single-element lists. C++ methods take single
-    // values.
+    client_->WriteRegisters(board_id, 0x1000,
+                            BLDCControllerClient::PackU16(calib_data.angle));
+    client_->WriteRegisters(
+        board_id, 0x1002, BLDCControllerClient::PackU8(calib_data.inv ? 1 : 0));
+    client_->WriteRegisters(board_id, 0x1001,
+                            BLDCControllerClient::PackU8(calib_data.epm));
+    client_->WriteRegisters(board_id, 0x1022,
+                            BLDCControllerClient::PackF32(calib_data.torque));
+    client_->WriteRegisters(board_id, 0x1015,
+                            BLDCControllerClient::PackF32(calib_data.zero));
 
-    client_->WriteRegisters(
-        board_id, 0x1000,
-        BLDCControllerClient::PackU16(calib_data.angle)); // Zero Angle
-    client_->WriteRegisters(
-        board_id, 0x1002,
-        BLDCControllerClient::PackU8(calib_data.inv ? 1 : 0)); // Invert Phases
-    client_->WriteRegisters(
-        board_id, 0x1001,
-        BLDCControllerClient::PackU8(calib_data.epm)); // E-Revs per M-Rev
-    client_->WriteRegisters(
-        board_id, 0x1022,
-        BLDCControllerClient::PackF32(calib_data.torque)); // Torque Constant
-    client_->WriteRegisters(
-        board_id, 0x1015,
-        BLDCControllerClient::PackF32(calib_data.zero)); // Position Offset
-
-    // Current Offsets (ia, ib, ic are consecutive registers 0x1050, 0x1051,
-    // 0x1052)
     ByteVector offset_data =
         PackFloats({calib_data.ia_off, calib_data.ib_off, calib_data.ic_off});
-    client_->WriteRegisters(board_id, 0x1050,
-                            offset_data); // Write all 3 offsets
+    client_->WriteRegisters(board_id, 0x1050, offset_data);
 
-    // Optional EAC parameters
     if (calib_data.eac_scale.has_value()) {
       std::cout << "  Writing EAC scale..." << std::endl;
       client_->WriteRegisters(
@@ -240,34 +210,26 @@ bool BoardManager::LoadCalibration(uint8_t board_id,
       std::cout << "  Writing EAC table..." << std::endl;
       const auto &table = calib_data.eac_table.value();
       size_t table_len = table.size();
-      const size_t slice_len =
-          64; // Max write size per transaction (adjust if needed)
+      const size_t slice_len = 64;
 
       for (size_t i = 0; i < table_len; i += slice_len) {
         size_t current_slice_size = std::min(slice_len, table_len - i);
         ByteVector table_slice_bytes;
         table_slice_bytes.reserve(current_slice_size);
         for (size_t j = 0; j < current_slice_size; ++j) {
-          // Pack int8_t - needs explicit cast to uint8_t for vector
           table_slice_bytes.push_back(static_cast<uint8_t>(table[i + j]));
         }
-        // Address starts at 0x1200
         client_->WriteRegisters(board_id, static_cast<uint16_t>(0x1200 + i),
                                 table_slice_bytes);
       }
       std::cout << "  EAC table written." << std::endl;
     }
 
-    // Set default control mode after calibration (e.g., current control)
-    // client_->WriteRegisters(board_id, 0x2000,
-    // BLDCControllerClient::PackU8(kControlModes.at("current")));
-
     std::cout << "Calibration loaded successfully for Board ID: "
               << static_cast<int>(board_id) << std::endl;
     return true;
 
   } catch (const ProtocolError &e) {
-    // Catch specific protocol errors, e.g., if EAC registers don't exist
     std::cerr << "Protocol error loading calibration for Board ID "
               << static_cast<int>(board_id) << ": " << e.what()
               << " (Error Flags: " << e.GetErrorFlags() << ")" << std::endl;
@@ -284,7 +246,7 @@ bool BoardManager::LoadCalibration(uint8_t board_id,
     std::cerr << "Unexpected error loading calibration for Board ID "
               << static_cast<int>(board_id) << ": " << e.what() << std::endl;
   }
-  return false; // Return false if any error occurred
+  return false;
 }
 
 bool BoardManager::InitializeMotorParameters(
@@ -298,7 +260,7 @@ bool BoardManager::InitializeMotorParameters(
   if (ids_to_init.empty()) {
     std::cout << "No boards specified or initialized to set parameters for."
               << std::endl;
-    return true; // Nothing to do
+    return true;
   }
 
   std::cout << "Initializing motor parameters for Board IDs: ";
@@ -310,7 +272,6 @@ bool BoardManager::InitializeMotorParameters(
 
   bool all_success = true;
   for (uint8_t board_id : ids_to_init) {
-    // Check if board_id is among the initialized ones
     if (std::find(initialized_board_ids_.begin(), initialized_board_ids_.end(),
                   board_id) == initialized_board_ids_.end()) {
       std::cerr
@@ -328,16 +289,8 @@ bool BoardManager::InitializeMotorParameters(
 
     while (!success_this_board && retry_count < max_retries) {
       try {
-
-        // Set Watchdog (Register 0x1030, type uint16_t)
         client_->WriteRegisters(
-            board_id, 0x1030,
-            BLDCControllerClient::PackU16(1000)); // 1000ms timeout
-
-        // Set Gains (Registers 0x1003-0x1006, type float)
-        // Note: Writing individually for simplicity, could potentially combine
-        // if registers are contiguous and WriteRegisters handles multi-register
-        // writes correctly based on byte count.
+            board_id, 0x1030, BLDCControllerClient::PackU16(1000)); // Watchdog
         client_->WriteRegisters(
             board_id, 0x1003,
             BLDCControllerClient::PackF32(0.5f)); // Direct Current Kp
@@ -351,8 +304,7 @@ bool BoardManager::InitializeMotorParameters(
             board_id, 0x1006,
             BLDCControllerClient::PackF32(0.2f)); // Quadrature Current Ki
 
-        success_this_board =
-            true; // All writes succeeded for this board on this attempt
+        success_this_board = true;
 
       } catch (const CommunicationError &e) {
         retry_count++;
@@ -365,34 +317,140 @@ bool BoardManager::InitializeMotorParameters(
                     << static_cast<int>(board_id) << " after " << max_retries
                     << " attempts." << std::endl;
         } else {
-          std::this_thread::sleep_for(
-              std::chrono::milliseconds(100)); // Wait before retry
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
       } catch (const std::exception &e) {
         std::cerr << "  Unexpected error setting parameters for Board ID "
                   << static_cast<int>(board_id) << ": " << e.what()
                   << std::endl;
         all_success = false;
-        break; // Don't retry on unexpected errors
+        break;
       }
-    } // End retry loop
-  } // End loop through board IDs
+    }
+  }
 
   std::cout << "Finished setting motor parameters." << std::endl;
   return all_success;
 }
 
-bool BoardManager::DriveMotor(uint8_t board_id,
-
-                              const std::string &mode,
+bool BoardManager::DriveMotor(uint8_t board_id, const std::string &mode,
                               const std::vector<float> &actuation_values) {
-  // Call the multi-board version with single elements
-  return DriveMotor({board_id}, mode, {actuation_values});
+  // **FIX**: Implement logic directly instead of recursive call pattern
+  if (!client_)
+    return false;
+
+  if (kControlModes.find(mode) == kControlModes.end()) {
+    throw std::invalid_argument("Invalid control mode specified: " + mode);
+  }
+  uint8_t control_mode_id = kControlModes.at(mode);
+
+  // Check if board_id is among the initialized ones
+  if (std::find(initialized_board_ids_.begin(), initialized_board_ids_.end(),
+                board_id) == initialized_board_ids_.end()) {
+    std::cerr << "Skipping drive command for uninitialized Board ID: "
+              << static_cast<int>(board_id) << std::endl;
+    return false; // Indicate failure for this board
+  }
+
+  std::cout << "Driving motor ID: " << static_cast<int>(board_id)
+            << " Mode: " << mode << std::endl;
+
+  try {
+    // 1. Set Control Mode
+    client_->WriteRegisters(board_id, 0x2000,
+                            BLDCControllerClient::PackU8(control_mode_id));
+
+    // 2. Write Actuation Values
+    ByteVector packed_actuation;
+    uint16_t actuation_reg_addr = 0;
+
+    // Logic copied and adapted from the multi-board version
+    switch (control_mode_id) {
+    case 0: // current (Id, Iq)
+      if (actuation_values.size() != 2)
+        throw std::invalid_argument(
+            "Mode 'current' requires 2 actuation values (Id, Iq).");
+      actuation_reg_addr = 0x2001;
+      packed_actuation = PackFloats(actuation_values);
+      break;
+    case 1: // phase (Va, Vb, Vc)
+      if (actuation_values.size() != 3)
+        throw std::invalid_argument(
+            "Mode 'phase' requires 3 actuation values (Va, Vb, Vc).");
+      actuation_reg_addr = 0x2003;
+      packed_actuation = PackFloats(actuation_values);
+      break;
+    case 2: // torque (N*m)
+      if (actuation_values.size() != 1)
+        throw std::invalid_argument(
+            "Mode 'torque' requires 1 actuation value.");
+      actuation_reg_addr = 0x2006;
+      packed_actuation = PackFloats(actuation_values);
+      break;
+    case 3: // velocity (rad/s)
+      if (actuation_values.size() != 1)
+        throw std::invalid_argument(
+            "Mode 'velocity' requires 1 actuation value.");
+      actuation_reg_addr = 0x2007;
+      packed_actuation = PackFloats(actuation_values);
+      break;
+    case 4: // position (rad)
+      if (actuation_values.size() != 1)
+        throw std::invalid_argument(
+            "Mode 'position' requires 1 actuation value.");
+      actuation_reg_addr = 0x2008;
+      packed_actuation = PackFloats(actuation_values);
+      break;
+    case 5: // pos_vel (rad, rad/s)
+
+      if (actuation_values.size() != 2)
+        throw std::invalid_argument(
+            "Mode 'pos_vel' requires 2 actuation values (pos, vel).");
+      actuation_reg_addr = 0x2008;
+      packed_actuation = PackFloats(actuation_values);
+      break;
+    case 6: // pos_ff (rad, ff[A])
+      if (actuation_values.size() != 2)
+        throw std::invalid_argument(
+            "Mode 'pos_ff' requires 2 actuation values (pos, ff).");
+      actuation_reg_addr = 0x2008;
+      packed_actuation = PackFloats(actuation_values);
+      break;
+    case 7: // pwm (dc)
+      if (actuation_values.size() != 1)
+        throw std::invalid_argument("Mode 'pwm' requires 1 actuation value.");
+      actuation_reg_addr = 0x200A;
+      packed_actuation = PackFloats(actuation_values);
+      break;
+    default:
+      throw std::logic_error("Unhandled control mode ID in switch statement.");
+    }
+
+    if (!packed_actuation.empty()) {
+      client_->WriteRegisters(board_id, actuation_reg_addr, packed_actuation);
+    } else {
+      std::cerr << "Warning: No actuation data generated for mode " << mode
+                << std::endl;
+    }
+    return true; // Success
+
+  } catch (const CommunicationError &e) {
+    // std::cerr << "Communication error driving motor ID "
+    //           << static_cast<int>(board_id) << ": " << e.what() << std::endl;
+  } catch (const std::invalid_argument &e) {
+    // std::cerr << "Invalid argument driving motor ID "
+    //           << static_cast<int>(board_id) << ": " << e.what() << std::endl;
+  } catch (const std::exception &e) {
+    // std::cerr << "Unexpected error driving motor ID "
+    //           << static_cast<int>(board_id) << ": " << e.what() << std::endl;
+  } //
+  return false; // Failure
 }
 
 bool BoardManager::DriveMotor(
     const std::vector<uint8_t> &board_ids, const std::string &mode,
     const std::vector<std::vector<float>> &actuation_values) {
+
   if (!client_)
     return false;
 
@@ -420,73 +478,70 @@ bool BoardManager::DriveMotor(
       continue;
     }
 
-    std::cout << "Driving motor ID: " << static_cast<int>(board_id)
-              << " Mode: " << mode << std::endl;
+    // Avoid excessive logging in the multi-board version if called frequently
+    // std::cout << "Driving motor ID: " << static_cast<int>(board_id) << "
+    // Mode: " << mode << std::endl;
 
     try {
-      // 1. Set Control Mode (Register 0x2000, type uint8_t)
+      // 1. Set Control Mode
       client_->WriteRegisters(board_id, 0x2000,
                               BLDCControllerClient::PackU8(control_mode_id));
 
-      // 2. Write Actuation Values based on mode
-      //    Register addresses based on Python example comments
+      // 2. Write Actuation Values
       ByteVector packed_actuation;
       uint16_t actuation_reg_addr = 0;
 
       switch (control_mode_id) {
-      case 0: // current (Id, Iq) - Registers 0x2001, 0x2002 (2 floats)
+      case 0: // current
         if (actuation.size() != 2)
           throw std::invalid_argument(
               "Mode 'current' requires 2 actuation values (Id, Iq).");
         actuation_reg_addr = 0x2001;
         packed_actuation = PackFloats(actuation);
         break;
-      case 1: // phase (Va, Vb, Vc) - Registers 0x2003, 0x2004, 0x2005 (3
-              // floats) - **NOT FULLY IMPLEMENTED IN PYTHON EXAMPLE**
+      case 1: // phase
         if (actuation.size() != 3)
           throw std::invalid_argument(
               "Mode 'phase' requires 3 actuation values (Va, Vb, Vc).");
         actuation_reg_addr = 0x2003;
         packed_actuation = PackFloats(actuation);
         break;
-      case 2: // torque (N*m) - Register 0x2006 (1 float)
+      case 2: // torque
         if (actuation.size() != 1)
           throw std::invalid_argument(
               "Mode 'torque' requires 1 actuation value.");
         actuation_reg_addr = 0x2006;
         packed_actuation = PackFloats(actuation);
         break;
-      case 3: // velocity (rad/s) - Register 0x2007 (1 float)
+      case 3: // velocity
         if (actuation.size() != 1)
           throw std::invalid_argument(
               "Mode 'velocity' requires 1 actuation value.");
         actuation_reg_addr = 0x2007;
         packed_actuation = PackFloats(actuation);
         break;
-      case 4: // position (rad) - Register 0x2008 (1 float)
+      case 4: // position
         if (actuation.size() != 1)
           throw std::invalid_argument(
               "Mode 'position' requires 1 actuation value.");
         actuation_reg_addr = 0x2008;
         packed_actuation = PackFloats(actuation);
         break;
-      case 5: // pos_vel (rad, rad/s) - Registers 0x2008, 0x2009 (2 floats) -
-              // **NOT FULLY IMPLEMENTED IN PYTHON EXAMPLE**
+      case 5: // pos_vel
         if (actuation.size() != 2)
           throw std::invalid_argument(
               "Mode 'pos_vel' requires 2 actuation values (pos, vel).");
         actuation_reg_addr = 0x2008;
         packed_actuation = PackFloats(actuation);
         break;
-      case 6: // pos_ff (rad, ff[A]) - Registers 0x2008, 0x2009 (2 floats) -
-              // Python uses 0x2008/9
+      case 6: // pos_ff
         if (actuation.size() != 2)
           throw std::invalid_argument(
               "Mode 'pos_ff' requires 2 actuation values (pos, ff).");
         actuation_reg_addr = 0x2008;
         packed_actuation = PackFloats(actuation);
         break;
-      case 7: // pwm (dc) - Register 0x200A (1 float)
+      case 7: // pwm
         if (actuation.size() != 1)
           throw std::invalid_argument("Mode 'pwm' requires 1 actuation value.");
         actuation_reg_addr = 0x200A;
@@ -494,11 +549,9 @@ bool BoardManager::DriveMotor(
         break;
       default:
         throw std::logic_error(
-            "Unhandled control mode ID in switch statement."); // Should not
-                                                               // happen
+            "Unhandled control mode ID in switch statement.");
       }
 
-      // Write the packed actuation data
       if (!packed_actuation.empty()) {
         client_->WriteRegisters(board_id, actuation_reg_addr, packed_actuation);
       } else {
@@ -513,7 +566,7 @@ bool BoardManager::DriveMotor(
     } catch (const std::invalid_argument &e) {
       std::cerr << "Invalid argument driving motor ID "
                 << static_cast<int>(board_id) << ": " << e.what() << std::endl;
-      all_success = false; // Error in arguments for this board
+      all_success = false;
     } catch (const std::exception &e) {
       std::cerr << "Unexpected error driving motor ID "
                 << static_cast<int>(board_id) << ": " << e.what() << std::endl;
@@ -524,10 +577,8 @@ bool BoardManager::DriveMotor(
   return all_success;
 }
 
-BLDCControllerClient *BoardManager::GetClient() {
-  return client_.get(); // Return raw pointer from unique_ptr
-}
+BLDCControllerClient *BoardManager::GetClient() { return client_.get(); }
 
 const std::vector<uint8_t> &BoardManager::GetManagedBoardIDs() const {
-  return initialized_board_ids_; // Return successfully initialized boards
+  return initialized_board_ids_;
 }
