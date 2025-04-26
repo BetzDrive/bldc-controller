@@ -1,0 +1,207 @@
+#ifndef BLDC_CONTROLLER_CLIENT_H
+#define BLDC_CONTROLLER_CLIENT_H
+
+// C++ Standard Library Headers
+#include <array>
+#include <atomic>
+#include <chrono>
+
+#include <cstdint>
+#include <deque>
+#include <future>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional> // requires C++17
+#include <stdexcept>
+#include <string>
+#include <system_error>
+#include <thread>
+#include <utility>
+#include <vector>
+
+// Other Library Headers (Boost)
+#include <boost/asio.hpp>
+#include <boost/asio/serial_port.hpp>
+#include <boost/circular_buffer.hpp>
+
+// --- Constants ---
+namespace CommConstants {
+const uint8_t COMM_VERSION = 0xFE;
+const uint8_t START_BYTE = 0xFF;
+
+// Error Flags
+const uint16_t COMM_ERRORS_NONE = 0;
+const uint16_t COMM_ERRORS_OP_FAILED = 1;
+const uint16_t COMM_ERRORS_MALFORMED = 2;
+const uint16_t COMM_ERRORS_INVALID_FC = 4;
+const uint16_t COMM_ERRORS_INVALID_ARGS = 8;
+const uint16_t COMM_ERRORS_BUF_LEN_MISMATCH = 16;
+
+// Function Codes
+const uint8_t COMM_FC_NOP = 0x00;
+const uint8_t COMM_FC_REG_READ = 0x01;
+const uint8_t COMM_FC_REG_WRITE = 0x02;
+const uint8_t COMM_FC_REG_READ_WRITE = 0x03;
+const uint8_t COMM_FC_CLEAR_IWDGRST = 0x10;
+const uint8_t COMM_FC_SYSTEM_RESET = 0x80;
+const uint8_t COMM_FC_JUMP_TO_ADDR = 0x81;
+const uint8_t COMM_FC_FLASH_SECTOR_COUNT = 0x82;
+const uint8_t COMM_FC_FLASH_SECTOR_START = 0x83;
+const uint8_t COMM_FC_FLASH_SECTOR_SIZE = 0x84;
+const uint8_t COMM_FC_FLASH_SECTOR_ERASE = 0x85;
+const uint8_t COMM_FC_FLASH_PROGRAM = 0x86;
+const uint8_t COMM_FC_FLASH_READ = 0x87;
+const uint8_t COMM_FC_FLASH_VERIFY = 0x88;
+const uint8_t COMM_FC_FLASH_VERIFY_ERASED = 0x89;
+const uint8_t COMM_FC_CONFIRM_ID = 0xFE;
+const uint8_t COMM_FC_ENUMERATE = 0xFF;
+
+// Flags
+const uint8_t COMM_FLAG_SEND = 0x00;
+const uint8_t COMM_FLAG_CRASH =
+    0x02; // Indicates a crash occurred on the device
+
+const std::chrono::milliseconds DEFAULT_RESPONSE_TIMEOUT{500};
+
+} // namespace CommConstants
+
+// --- Custom Exception Classes ---
+class CommunicationError : public std::runtime_error {
+public:
+  explicit CommunicationError(const std::string &message)
+      : std::runtime_error(message) {}
+};
+
+class ProtocolError : public CommunicationError {
+public:
+  ProtocolError(const std::string &message, uint16_t error_flags = 0)
+
+      : CommunicationError(message), error_flags_(error_flags) {}
+
+  uint16_t GetErrorFlags() const { return error_flags_; }
+
+private:
+  uint16_t error_flags_;
+};
+
+class MalformedPacketError : public CommunicationError {
+public:
+  explicit MalformedPacketError(const std::string &message)
+      : CommunicationError(message) {}
+};
+
+class TimeoutError : public CommunicationError {
+public:
+  explicit TimeoutError(const std::string &message)
+      : CommunicationError(message) {}
+};
+
+// --- Packet Structure ---
+struct ReceivedPacket {
+  uint8_t server_id;
+  uint8_t function_code;
+  uint16_t errors;
+  std::vector<uint8_t> data;
+  bool crash_flag;
+};
+
+// --- Type Definitions ---
+
+using ByteVector = std::vector<uint8_t>;
+using ResponseFuture = std::future<ReceivedPacket>;
+
+using ResponsePromise = std::promise<ReceivedPacket>;
+
+using ResponseMapKey = std::pair<uint8_t, uint8_t>; // server_id, function_code
+
+// --- CRC Calculation ---
+// CRC-16-IBM: Poly=0x8005, Init=0x0000, RefIn=true, RefOut=true, XorOut=0x0000
+uint16_t ComputeCRC16(const uint8_t *data, size_t length);
+uint16_t ComputeCRC16(const ByteVector &data);
+
+// --- Main Client Class ---
+class BLDCControllerClient {
+public:
+  BLDCControllerClient(const std::string &port_name, unsigned int baud_rate);
+  ~BLDCControllerClient();
+
+  // --- Public API Methods ---
+  ByteVector ReadRegisters(uint8_t server_id, uint16_t start_addr,
+                           uint8_t count);
+  bool WriteRegisters(uint8_t server_id, uint16_t start_addr,
+                      const ByteVector &data);
+  ByteVector ReadWriteRegisters(uint8_t server_id, uint16_t read_start_addr,
+                                uint8_t read_count, uint16_t write_start_addr,
+                                const ByteVector &write_data);
+
+  bool ResetSystem(uint8_t server_id);
+  bool JumpToAddress(uint8_t server_id, uint32_t jump_addr);
+  // ... Add other public API methods as needed ...
+
+  // --- Lower Level Communication ---
+  // Sends request without waiting for a specific response.
+  void WriteRequest(uint8_t server_id, uint8_t func_code,
+                    const ByteVector &data = {});
+
+  // Sends request and returns a future for the response.
+  ResponseFuture DoTransaction(uint8_t server_id, uint8_t func_code,
+                               const ByteVector &data = {},
+                               std::chrono::milliseconds timeout =
+                                   CommConstants::DEFAULT_RESPONSE_TIMEOUT);
+
+  // --- Deleted Copy Operations ---
+  BLDCControllerClient(const BLDCControllerClient &) = delete;
+  BLDCControllerClient &operator=(const BLDCControllerClient &) = delete;
+
+private:
+  // --- Asio and Threading Members ---
+  boost::asio::io_context io_context_;
+  boost::asio::serial_port serial_port_;
+  std::thread io_thread_;         // Runs io_context_.run()
+  std::thread processing_thread_; // Runs ProcessIncomingData()
+  // Keep work_guard as it's specific to Asio's io_context model.
+  boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
+      work_guard_; // Keeps io_context active
+
+  // --- Buffering and State ---
+  static constexpr size_t kReadBufferSize = 1024;
+  std::array<uint8_t, kReadBufferSize>
+      raw_read_buffer_; // Buffer for raw Asio reads
+  boost::circular_buffer<uint8_t>
+      incoming_data_buffer_; // Thread-safe buffer for parsed data
+  std::mutex buffer_mutex_;  // Protects incoming_data_buffer_
+
+  std::atomic<bool> stop_threads_; // Signals threads to stop
+
+  // --- Request/Response Matching ---
+  std::mutex response_map_mutex_; // Protects pending_responses_
+  // Maps (server_id, function_code) -> promise for the expected response
+  std::map<ResponseMapKey, ResponsePromise> pending_responses_;
+
+  // --- Private Helper Methods ---
+  void StartReceive(); // Initiates an asynchronous read
+  void HandleReceive(const boost::system::error_code &error,
+                     size_t bytes_transferred); // Read completion callback
+  void DoWrite(const ByteVector &data);         // Performs asynchronous write
+  void HandleWrite(const boost::system::error_code &error,
+                   size_t bytes_transferred); // Write completion callback
+  void ProcessIncomingData(); // Parses packets from incoming_data_buffer_
+  void ClosePort();           // Closes the serial port
+
+  // --- Static Packing/Unpacking Helpers (Little-Endian) ---
+  static ByteVector PackU8(uint8_t val);
+  static ByteVector PackU16(uint16_t val);
+  static ByteVector PackU32(uint32_t val);
+  static ByteVector PackF32(float val);
+  // ... add more pack helpers as needed ...
+
+  static uint8_t UnpackU8(const ByteVector &data, size_t offset = 0);
+  static uint16_t UnpackU16(const ByteVector &data, size_t offset = 0);
+  static uint32_t UnpackU32(const ByteVector &data, size_t offset = 0);
+  static float UnpackF32(const ByteVector &data, size_t offset = 0);
+  // ... add more unpack helpers as needed ...
+
+}; // class BLDCControllerClient
+
+#endif // BLDC_CONTROLLER_CLIENT_H

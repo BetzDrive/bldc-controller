@@ -1,0 +1,40 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_binary") # If needed
+
+package(default_visibility = ["//visibility:public"])
+
+# Core BLDC Client Library
+cc_library(
+    name = "bldc_client_lib",
+    srcs = ["client.cc"],
+    hdrs = ["client.h"],
+    copts = ["-std=c++17"],
+    deps = [
+        "@boost//:system",
+        "@boost//:thread",
+    ],
+)
+
+# Board Manager Library (depends on the client library)
+cc_library(
+    name = "board_manager_lib",
+    srcs = ["board_manager.cc"],
+    hdrs = ["board_manager.h"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":bldc_client_lib",
+    ],
+)
+
+# Executable for controlling motors (depends on the board manager)
+cc_binary(
+    name = "control_motor",
+    srcs = ["executables/control_motor.cc"],
+    copts = ["-std=c++17"],
+    linkopts = ["-lpthread"],
+    deps = [
+        ":board_manager_lib",
+        # Add dependency for Boost program_options used in the executable
+        "@boost//:program_options",
+    ],
+)
+

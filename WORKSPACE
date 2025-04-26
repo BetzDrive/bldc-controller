@@ -113,3 +113,13 @@ git_repository(
     remote = "https://github.com/fmeum/rules_meta.git",
     shallow_since = "1647421183 +0100",
 )
+
+git_repository(
+    name = "com_github_nelhage_rules_boost",
+    commit = "ec53a3b510be6a9fb41508cf884fe62d4098c5eb",
+    remote = "https://github.com/nelhage/rules_boost.git",
+    shallow_since = "1744204224 +0200",
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()
