@@ -133,47 +133,38 @@ public:
   // --- Public API Methods ---
   ByteVector ReadRegisters(uint8_t server_id, uint16_t start_addr,
                            uint8_t count);
+  // ** UPDATED: Takes register_count explicitly **
   bool WriteRegisters(uint8_t server_id, uint16_t start_addr,
-                      const ByteVector &data);
+                      uint8_t register_count, const ByteVector &data);
+  // ** UPDATED: Takes write_register_count explicitly **
   ByteVector ReadWriteRegisters(uint8_t server_id, uint16_t read_start_addr,
                                 uint8_t read_count, uint16_t write_start_addr,
+                                uint8_t write_register_count,
                                 const ByteVector &write_data);
 
-  bool ResetSystem(uint8_t server_id); // Sends reset command
-  // ** ADDED ** Enters bootloader (typically by resetting the system)
+  bool ResetSystem(uint8_t server_id);         // Sends reset command
   void EnterBootloader(uint8_t server_id = 0); // Often targets ID 0 or all
-  // ** ADDED ** Leaves bootloader by jumping to firmware address
   void
   LeaveBootloader(uint8_t server_id,
                   uint32_t jump_addr = CommConstants::COMM_FIRMWARE_OFFSET);
-  // Jumps to an arbitrary address (used by LeaveBootloader)
   bool JumpToAddress(uint8_t server_id, uint32_t jump_addr);
 
   // --- Bootloader Specific ---
-  // ** ADDED ** Sends enumerate command to ID 0, expecting response from
-  // target_id
   uint8_t EnumerateBoard(uint8_t target_id,
                          std::chrono::milliseconds timeout =
                              CommConstants::ENUMERATE_RESPONSE_TIMEOUT);
-  // ** ADDED ** Confirms the ID of a specific board
   bool ConfirmBoard(uint8_t board_id,
                     std::chrono::milliseconds timeout =
                         CommConstants::DEFAULT_RESPONSE_TIMEOUT);
 
   // --- Utility ---
-  // ** ADDED ** Clears the internal circular buffer
   void ResetInputBuffer();
 
   // ... Add other public API methods as needed (Flash operations, etc.) ...
 
   // --- Lower Level Communication ---
-  // Sends request without waiting for a specific response.
   void WriteRequest(uint8_t server_id, uint8_t func_code,
                     const ByteVector &data = {});
-
-  // Sends request and returns a future for the response.
-  // Note: Response matching is based on server_id and func_code in the
-  // *response header*.
   ResponseFuture DoTransaction(uint8_t server_id, uint8_t func_code,
                                const ByteVector &data = {},
                                std::chrono::milliseconds timeout =
@@ -187,41 +178,37 @@ private:
   // --- Asio and Threading Members ---
   boost::asio::io_context io_context_;
   boost::asio::serial_port serial_port_;
-  std::thread io_thread_;         // Runs io_context_.run()
-  std::thread processing_thread_; // Runs ProcessIncomingData()
+  std::thread io_thread_;
+  std::thread processing_thread_;
   boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
-      work_guard_; // Keeps io_context active
+      work_guard_;
 
   // --- Buffering and State ---
   static constexpr size_t kReadBufferSize = 1024;
-  std::array<uint8_t, kReadBufferSize>
-      raw_read_buffer_; // Buffer for raw Asio reads
-  boost::circular_buffer<uint8_t>
-      incoming_data_buffer_{}; // Thread-safe buffer for parsed data
-  std::mutex buffer_mutex_;    // Protects incoming_data_buffer_
 
-  std::atomic<bool> stop_threads_; // Signals threads to stop
+  std::array<uint8_t, kReadBufferSize> raw_read_buffer_;
+  boost::circular_buffer<uint8_t> incoming_data_buffer_;
+  std::mutex buffer_mutex_;
+
+  std::atomic<bool> stop_threads_;
 
   // --- Request/Response Matching ---
-  std::mutex response_map_mutex_; // Protects pending_responses_
-  // Maps (server_id, function_code) -> promise for the expected response
+  std::mutex response_map_mutex_;
   std::map<ResponseMapKey, ResponsePromise> pending_responses_;
 
   // --- Private Helper Methods ---
-  void StartReceive(); // Initiates an asynchronous read
+  void StartReceive();
   void HandleReceive(const boost::system::error_code &error,
-                     size_t bytes_transferred); // Read completion callback
-  void DoWrite(const ByteVector &data);         // Performs asynchronous write
+                     size_t bytes_transferred);
+  void DoWrite(const ByteVector &data);
   void HandleWrite(const boost::system::error_code &error,
-                   size_t bytes_transferred); // Write completion callback
-
-  void ProcessIncomingData(); // Parses packets from incoming_data_buffer_
-  void ClosePort();           // Closes the serial port
+                   size_t bytes_transferred);
+  void ProcessIncomingData();
+  void ClosePort();
 
 public:
   // --- Static Packing/Unpacking Helpers (Little-Endian) ---
   static ByteVector PackU8(uint8_t val);
-
   static ByteVector PackU16(uint16_t val);
   static ByteVector PackU32(uint32_t val);
   static ByteVector PackF32(float val);

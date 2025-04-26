@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
   while (g_signal_status == 0 &&
          (num_iters <= 0 || iteration_count < num_iters)) {
     // sleep for 5ms.
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5));
     try {
       // Send torque commands to all specified boards. DriveMotor uses
       // DoTransaction internally, which waits for responses or timeouts for
