@@ -2,31 +2,31 @@
 build --symlink_prefix=bazel-build/
 
 # Enable toolchain resolution with cc
-build --incompatible_enable_cc_toolchain_resolution
+#build --incompatible_enable_cc_toolchain_resolution
 # This line breaks gazelle but hacks around generating the elf files with the
 # correct toolchain... Need to figure out how to better do this.
-build --platforms=@bazel_embedded//platforms:cortex_m4_fpu
+#build --platforms=@bazel_embedded//platforms:cortex_m4_fpu
 
 # Never strip debug symbols
-build --strip=never
-
-build --copt=-O2
-build --copt=-ggdb
-build --copt=-fomit-frame-pointer
-build --copt=-falign-functions=16
-build --cxxopt=-std=c++14
-build --linkopt=-lc
-build --linkopt=-lm
-build --linkopt=-lnosys
-
-# LTO Builds (Do not work with chibios 2.6)
-#build --copt=-ffat-lto-objects
-#build --linkopt=-ffat-lto-objects
-
-# Instructions
-build --copt=-fsingle-precision-constant
-build --copt=-mno-thumb-interwork
-
-# Code reduction options
-build --linkopt=-Wl,--gc-sections
+#build --strip=never
+#
+#build --copt=-O2
+#build --copt=-ggdb
+#build --copt=-fomit-frame-pointer
+#build --copt=-falign-functions=16
+#build --cxxopt=-std=c++14
+#build --linkopt=-lc
+#build --linkopt=-lm
+#build --linkopt=-lnosys
+#
+## LTO Builds (Do not work with chibios 2.6)
+##build --copt=-ffat-lto-objects
+##build --linkopt=-ffat-lto-objects
+#
+## Instructions
+#build --copt=-fsingle-precision-constant
+#build --copt=-mno-thumb-interwork
+#
+## Code reduction options
+#build --linkopt=-Wl,--gc-sections
 #build --linkopt=-Wl,--print-gc-sections
