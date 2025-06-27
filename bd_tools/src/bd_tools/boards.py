@@ -27,7 +27,6 @@ def addBoardArgs(parser):
 
 
 def initBoards(client, board_ids):
-
     if type(board_ids) == int:
         board_ids = [board_ids]
 
@@ -125,20 +124,23 @@ def loadCalibrationFromJSON(client, board_id, calibration_obj):
 
 
 def initMotor(client, board_ids):
-    success = False
+    success = {bid: False for bid in board_ids}
     while not success:
-        try:
-            client.setWatchdogTimeout(board_ids, [1000] * len(board_ids))
+        for bid in board_ids:
+            try:
+                client.setWatchdogTimeout([bid], [1000])
 
-            # Setting gains for motor
-            client.setDirectCurrentKp(board_ids, [0.5] * len(board_ids))
-            client.setDirectCurrentKi(board_ids, [0.1] * len(board_ids))
-            client.setQuadratureCurrentKp(board_ids, [1.0] * len(board_ids))
-            client.setQuadratureCurrentKi(board_ids, [0.2] * len(board_ids))
-
-            success = True
-        except (comms.MalformedPacketError, comms.ProtocolError):
-            print("Failed to calibrate board, retrying...")
+                # Setting gains for motor
+                client.setDirectCurrentKp([bid], [0.5])
+                client.setDirectCurrentKi([bid], [0.1])
+                client.setQuadratureCurrentKp([bid], [1.0])
+                client.setQuadratureCurrentKi([bid], [0.2])
+                success[bid] = True
+            except (comms.MalformedPacketError, comms.ProtocolError):
+                print("Failed to set current control mode for board:", bid)
+                # Back off for 100ms
+                time.sleep(0.1)
+                client.resetInputBuffer()
     print("Finished calibration of boards:", board_ids)
 
 

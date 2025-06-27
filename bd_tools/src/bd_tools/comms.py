@@ -643,7 +643,6 @@ class BLDCControllerClient:
 
     def verifyFlash(self, server_id, dest_addr, data):
         for i in range(0, len(data), COMM_SINGLE_VERIFY_LENGTH):
-
             success = False
             while not success:
                 try:
@@ -788,7 +787,7 @@ class BLDCControllerClient:
 
         if len(sync) != 1 or sync != b"\xff":
             # Reached maximum number of tries
-            # self._ser.flushInput()
+            self._ser.flushInput()
             raise MalformedPacketError(
                 f"id: {server_id} - Unfound start byte."
             )
@@ -798,7 +797,7 @@ class BLDCControllerClient:
 
         version = self._ser.read()
         if len(version) != 1 or version != b"\xfe":
-            # self._ser.flushInput()
+            self._ser.flushInput()
             raise MalformedPacketError(
                 f"id: {server_id} - Incorrect version number."
             )

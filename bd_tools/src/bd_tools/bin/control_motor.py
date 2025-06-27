@@ -37,11 +37,12 @@ def action(args):
 
     board_ids = make_type(make_list(ast.literal_eval(args.board_ids)), int)
     actuations = make_list(ast.literal_eval(args.actuations))
+    print(board_ids, actuations)
 
     mode = args.mode
 
     ser = serial.Serial(
-        port=args.serial, baudrate=args.baud_rate, timeout=0.001
+        port=args.serial, baudrate=args.baud_rate, timeout=0.04
     )
 
     client = comms.BLDCControllerClient(ser)
@@ -53,14 +54,21 @@ def action(args):
 
     boards.initMotor(client, board_ids)
 
+    errors = {bid: {} for bid in board_ids}
+    count = 0
+
     def callback() -> int:
         boards.clearWDGRST(client)
 
         try:
             boards.driveMotor(client, board_ids, actuations, mode)
         except (comms.ProtocolError, comms.MalformedPacketError) as e:
+            # Group by the error message type
             if "id: " in str(e):
-                return int(str(e).split("id: ")[1][0])
+                bid = int(str(e).split("id: ")[1][0])
+                errors[bid][str(e)] = errors[bid].get(str(e), 0) + 1
+                print(errors)
+                return bid
             else:
                 return -1
 

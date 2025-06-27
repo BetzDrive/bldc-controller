@@ -50,8 +50,7 @@ def action(args):
 
     boards.initBoards(client, board_ids)
 
-    for bid in board_ids:
-        client.leaveBootloader([bid])
+    client.leaveBootloader(board_ids)
 
     sen = args.sensor
     address = ReadOnlyRegs[sen]
