@@ -105,13 +105,26 @@ public:
 // --- Type Definitions ---
 using ByteVector = std::vector<uint8_t>;
 
-// --- Packet Structure ---
+// --- Sub-Message Structure (for building requests) ---
+struct SubMessage {
+  uint8_t server_id;
+  uint8_t func_code;
+  ByteVector data;
+};
+
+// --- Packet Structure (for received data) ---
 struct ReceivedPacket {
-  uint8_t server_id;     // ID from the packet header
-  uint8_t function_code; // Function code from the packet header
-  uint16_t errors;       // Error flags from the packet header
-  ByteVector data;       // Payload data
-  bool crash_flag;       // Crash flag from the packet header
+  // --- Header Fields ---
+  uint8_t flags; // Raw flags byte from the response header
+  uint16_t packet_length; // Packet length from the response header
+  // --- Sub-Message Fields (assuming one per response packet) ---
+  uint16_t sub_len;       // Sub-message length from the response body
+  uint8_t server_id;     // Board ID from the response body
+  uint8_t function_code; // Function code from the response body
+  uint16_t errors;       // Error flags from the response body
+  ByteVector data;       // Payload data from the response body
+  // --- Derived Flags ---
+  bool crash_flag; // Derived from the header flags byte
 };
 
 // --- More Type Definitions ---
@@ -165,6 +178,10 @@ public:
   // --- Lower Level Communication ---
   void WriteRequest(uint8_t server_id, uint8_t func_code,
                     const ByteVector &data = {});
+  // Sends a packet containing potentially multiple sub-messages.
+  // Does not wait for or handle responses directly. Suitable for
+  // fire-and-forget commands or broadcasts.
+  void WriteMultipleRequests(const std::vector<SubMessage> &sub_messages);
   ResponseFuture DoTransaction(uint8_t server_id, uint8_t func_code,
                                const ByteVector &data = {},
                                std::chrono::milliseconds timeout =
@@ -205,6 +222,9 @@ private:
                    size_t bytes_transferred);
   void ProcessIncomingData();
   void ClosePort();
+
+  // Helper to build the full packet bytes for sending
+  ByteVector BuildPacket(const std::vector<SubMessage> &sub_messages);
 
 public:
   // --- Static Packing/Unpacking Helpers (Little-Endian) ---
