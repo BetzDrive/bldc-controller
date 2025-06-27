@@ -1,5 +1,6 @@
 load("@rules_meta//meta:defs.bzl", "meta")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
+load("//toolchains:transitions.bzl", "switch_to_cortex_m4")
 
 firmware_binary = meta.wrap_with_transition(
     native.cc_binary,
@@ -58,11 +59,17 @@ gen_binary = rule(
     attrs = {
         "_cc_toolchain": attr.label(
             default = Label("@rules_cc//cc:current_cc_toolchain"),
+          cfg=switch_to_cortex_m4,
         ),
         "src": attr.label(allow_single_file = True),
+        "_allowlist_function_transition": attr.label(
+             default = "@bazel_tools//tools/allowlists/function_transition_allowlist"
+        ),
     },
     outputs = {
         "elf": "%{name}.elf",
         "bin": "%{name}.bin",
     },
+    # We set the config to transition to the cortex m4 platform
+    incompatible_use_toolchain_transition = True,
 )
