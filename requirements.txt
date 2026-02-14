@@ -4,6 +4,8 @@ matplotlib
 numpy
 scipy
 pyserial
+streamlit
+protobuf < 4.0
 
 # Testing requirements.
 pytest

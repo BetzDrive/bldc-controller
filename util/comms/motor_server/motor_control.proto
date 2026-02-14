@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package motor;
+
+message MotorCommand {
+  uint32 board_id = 1;
+  string mode = 2; // e.g., "torque", "velocity", etc.
+  repeated float values = 3; // Actuation values
+  uint64 timestamp = 4; // Optional: for ordering/debug
+}
+
+message MotorStatus {
+  uint32 board_id = 1;
+  bool success = 2;
+  string error_message = 3;
+  uint64 timestamp = 4; // Optional: for ordering/debug
+}
+
+// Optionally, for batch commands/status:
+message MotorCommandBatch {
+  repeated MotorCommand commands = 1;
+}
+
+message MotorStatusBatch {
+  repeated MotorStatus statuses = 1;
+} 

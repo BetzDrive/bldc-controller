@@ -1,0 +1,42 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_binary")
+
+#genrule(
+#    name = "motor_control_py_gen",
+#    srcs = ["motor_control.proto"],
+#    outs = ["motor_control_pb2.py"],
+#    cmd = "protoc --python_out=. $(SRCS)",
+#)
+#
+#genrule(
+#    name = "motor_control_cc_gen",
+#    srcs = ["motor_control.proto"],
+#    outs = ["motor_control.pb.cc", "motor_control.pb.h"],
+#    cmd = "protoc --cpp_out=. $(SRCS)",
+#)
+
+cc_library(
+    name = "cc_protoc_lib",
+    hdrs = ["motor_control.pb.h"],
+)
+
+cc_library(
+    name = "circular_buffer",
+    hdrs = ["circular_buffer.h"],
+)
+
+cc_binary(
+    name = "motor_server",
+    srcs = ["motor_server.cc", "motor_control.pb.cc"],
+    copts = ["-std=c++17"],
+    linkopts = ["-lpthread"],
+    deps = [
+        "//util/comms:board_manager_lib",
+        ":cc_protoc_lib",
+        ":circular_buffer",
+    ],
+)
+
+py_binary(
+    name = "test_motor_shm_client",
+    srcs = ["test_motor_shm_client.py", "py_shm_circular_buffer.py", "motor_control_pb2.py"],
+) 
