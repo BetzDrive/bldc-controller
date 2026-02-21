@@ -140,6 +140,37 @@ chibios_hdrs = (
     chibios_various_incs
 )
 
+# ── STM32 HAL configuration header ─────────────────────────────────
+# Application-specific HAL module selection, consumed by the
+# stm32f4xx_hal_driver external repo.
+cc_library(
+    name = "stm32f4xx_hal_conf",
+    hdrs = ["stm32_hal_conf/stm32f4xx_hal_conf.h"],
+    includes = ["stm32_hal_conf"],
+    visibility = ["//visibility:public"],
+)
+
+# CMSIS core + STM32F4 register definitions only.
+# No ChibiOS kernel, HAL, or drivers - just the header-only register map.
+# Used by the baremetal firmware for direct register access.
+cc_library(
+    name = "cmsis_stm32f4",
+    hdrs = (
+        glob(["chibios/os/ports/common/ARMCMx/CMSIS/include/*.h"]) +
+        glob(["chibios/ext/stm32lib/inc/*.h"]) +
+        glob(["chibios/os/hal/platforms/STM32F4xx/*.h"])
+    ),
+    defines = [
+        "STM32F40_41xxx",
+    ],
+    includes = [
+        "chibios/os/ports/common/ARMCMx/CMSIS/include",
+        "chibios/ext/stm32lib/inc",
+        "chibios/os/hal/platforms/STM32F4xx",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "chibios_hal",
     srcs = [

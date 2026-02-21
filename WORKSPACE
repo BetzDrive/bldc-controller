@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 ### BUILDIFIER DEPENDENCIES ###
@@ -40,6 +40,28 @@ http_archive(
     urls = [
         "https://github.com/bazelbuild/buildtools/archive/refs/tags/4.2.2.tar.gz",
     ],
+)
+
+### STM32 HAL (standard CMSIS + HAL driver from ST) ###
+new_git_repository(
+    name = "cmsis_5",
+    remote = "https://github.com/ARM-software/CMSIS_5.git",
+    tag = "5.9.0",
+    build_file = "//third_party:cmsis_5.BUILD",
+)
+
+new_git_repository(
+    name = "cmsis_device_f4",
+    remote = "https://github.com/STMicroelectronics/cmsis-device-f4.git",
+    tag = "v2.6.11",
+    build_file = "//third_party:cmsis_device_f4.BUILD",
+)
+
+new_git_repository(
+    name = "stm32f4xx_hal_driver",
+    remote = "https://github.com/STMicroelectronics/stm32f4xx-hal-driver.git",
+    tag = "v1.8.5",
+    build_file = "//third_party:stm32f4xx_hal_driver.BUILD",
 )
 
 ### EMBEDDED TOOLCHAIN SUPPORT ###

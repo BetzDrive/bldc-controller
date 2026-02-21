@@ -1,11 +1,9 @@
 # Place all bazel build artifacts under this directory
 build --symlink_prefix=bazel-build/
 
-# Enable toolchain resolution with cc
-#build --incompatible_enable_cc_toolchain_resolution
-# This line breaks gazelle but hacks around generating the elf files with the
-# correct toolchain... Need to figure out how to better do this.
-#build --platforms=@bazel_embedded//platforms:cortex_m4_fpu
+# Enable platform-based CC toolchain resolution so that the firmware_binary
+# platform transition actually selects the ARM cross-compiler.
+build --incompatible_enable_cc_toolchain_resolution
 
 # Never strip debug symbols
 #build --strip=never

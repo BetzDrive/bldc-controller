@@ -1,0 +1,212 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("//third_party:variables.bzl", "project_inc_paths")
+load("//toolchains:platforms.bzl", "firmware_binary", "gen_binary")
+load("//toolchains:flash.bzl", "flash_remote")
+load("@bazel_embedded//tools/openocd:defs.bzl", "openocd_debug_server", "openocd_flash")
+load("//toolchains:debug.bzl", "debug_gdb")
+
+# ── Common copts shared across targets ──────────────────────────────
+BAREMETAL_COPTS = [
+    "-Ifirmware_baremetal/include",
+    "-Icommon/include",
+    "-Ifirmware/include",
+    "-DBAREMETAL",
+    "-fno-exceptions",
+    "-fno-rtti",
+]
+
+STM32_COPTS = BAREMETAL_COPTS + [
+    # CMSIS + HAL include paths and STM32F405xx define come from deps
+]
+
+# ── HAL Interface ───────────────────────────────────────────────────
+# Abstract interfaces for all hardware. Logic depends only on this.
+# Testable on host - no STM32 headers required.
+cc_library(
+    name = "hal_interface",
+    hdrs = glob(["include/hal/*.h"]),
+    copts = BAREMETAL_COPTS,
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+
+# ── Application Logic (platform-independent, fully testable) ───────
+cc_library(
+    name = "logic",
+    srcs = [
+        "src/comms.cpp",
+        "src/fw_comms.cpp",
+        "src/control.cpp",
+        "src/state.cpp",
+        "src/sensor.cpp",
+        "src/led.cpp",
+        "src/constants.cpp",
+        "src/transforms.cpp",
+        "src/SVM.cpp",
+        "src/pid.cpp",
+        "src/fast_math.cpp",
+        "src/LUTFunction.cpp",
+    ],
+    hdrs = glob([
+        "include/*.h",
+        "include/*.hpp",
+    ]),
+    copts = BAREMETAL_COPTS,
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":hal_interface",
+        "//common:common_headers",
+        "//common:crc16",
+    ],
+    alwayslink = True,
+)
+
+# ── STM32 HAL Implementation (hardware-specific, not unit tested) ──
+cc_library(
+    name = "hal_stm32",
+    srcs = [
+        "src/startup.c",
+        "src/system.c",
+        "src/gpio.cpp",
+        "src/uart_dma.cpp",
+        "src/pwm.cpp",
+        "src/adc.cpp",
+        "src/spi.cpp",
+        "src/i2c.cpp",
+        "src/iwdg.cpp",
+        "src/flash_impl.cpp",
+    ],
+    hdrs = glob([
+        "include/*.h",
+        "include/*.hpp",
+    ]),
+    copts = STM32_COPTS,
+    includes = ["include"],
+    deps = [
+        ":hal_interface",
+        "@stm32f4xx_hal_driver//:stm32f4xx_hal_driver",
+    ],
+    alwayslink = True,
+)
+
+# ── Firmware Binary ─────────────────────────────────────────────────
+firmware_binary(
+    name = "firmware_baremetal_raw",
+    srcs = ["src/main.cpp"],
+    copts = STM32_COPTS,
+    linkopts = [
+        "-T $(location :link.ld)",
+        "-nostartfiles",
+        "-Wl,--gc-sections",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":link.ld",
+        ":logic",
+        ":hal_stm32",
+    ],
+)
+
+gen_binary(
+    name = "firmware_baremetal",
+    src = ":firmware_baremetal_raw",
+)
+
+# ── Unit Tests (run on host) ────────────────────────────────────────
+cc_library(
+    name = "hal_mock",
+    srcs = ["test/hal_mock.cpp"],
+    hdrs = ["test/hal_mock.h"],
+    copts = BAREMETAL_COPTS,
+    includes = ["include"],
+    deps = [
+        ":hal_interface",
+    ],
+    testonly = True,
+)
+
+cc_test(
+    name = "comms_test",
+    srcs = ["test/comms_test.cpp"],
+    copts = BAREMETAL_COPTS,
+    deps = [
+        ":logic",
+        ":hal_mock",
+    ],
+)
+
+cc_test(
+    name = "control_test",
+    srcs = ["test/control_test.cpp"],
+    copts = BAREMETAL_COPTS,
+    deps = [
+        ":logic",
+        ":hal_mock",
+    ],
+)
+
+cc_test(
+    name = "state_test",
+    srcs = ["test/state_test.cpp"],
+    copts = BAREMETAL_COPTS,
+    deps = [
+        ":logic",
+        ":hal_mock",
+    ],
+)
+
+cc_test(
+    name = "led_test",
+    srcs = ["test/led_test.cpp"],
+    copts = BAREMETAL_COPTS,
+    deps = [
+        ":logic",
+        ":hal_mock",
+    ],
+)
+
+cc_test(
+    name = "sensor_test",
+    srcs = ["test/sensor_test.cpp"],
+    copts = BAREMETAL_COPTS,
+    deps = [
+        ":logic",
+        ":hal_mock",
+    ],
+)
+
+# ── Flash/Debug Targets ─────────────────────────────────────────────
+flash_remote(
+    name = "upload",
+    image = ":firmware_baremetal.bin",
+    upload_type = "firmware",
+)
+
+openocd_flash(
+    name = "flash",
+    device_configs = [
+        "target/stm32f4x.cfg",
+    ],
+    flash_offset = "0x8010000",
+    image = ":firmware_baremetal.bin",
+    interface_configs = [
+        "interface/stlink.cfg",
+    ],
+)
+
+openocd_debug_server(
+    name = "debug",
+    device_configs = [
+        "target/stm32f4x.cfg",
+    ],
+    interface_configs = [
+        "interface/stlink.cfg",
+    ],
+    transport = "hla_swd",
+)
+
+debug_gdb(
+    name = "gdb",
+    elf = ":firmware_baremetal.elf",
+)

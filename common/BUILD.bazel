@@ -13,12 +13,34 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+# Shared protocol headers - standalone, no ChibiOS dependency.
+# Used by baremetal firmware for comms_defs.hpp and constants.hpp.
+cc_library(
+    name = "common_headers",
+    hdrs = [
+        "include/comms_defs.hpp",
+        "include/constants.hpp",
+    ],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+
+# CRC16 library - standalone, no ChibiOS dependency.
+# Used by both the ChibiOS firmware (via :common) and baremetal firmware.
+cc_library(
+    name = "crc16",
+    srcs = ["src/crc16.c"],
+    hdrs = ["include/crc16.h"],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "common",
     srcs = glob([
         "src/*.c",
         "src/*.cpp",
-    ]),
+    ], exclude = ["src/crc16.c"]),
     hdrs = (
         glob([
             "include/*.h",
@@ -32,6 +54,7 @@ cc_library(
     copts = project_inc_paths,
     visibility = ["//visibility:public"],
     deps = [
+        ":crc16",
         "//third_party:chibios_hal",
     ],
     alwayslink = True,

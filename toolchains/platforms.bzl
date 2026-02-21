@@ -1,5 +1,4 @@
 load("@rules_meta//meta:defs.bzl", "meta")
-load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("//toolchains:transitions.bzl", "switch_to_cortex_m4")
 
 firmware_binary = meta.wrap_with_transition(
@@ -26,7 +25,16 @@ bootloader_binary = meta.wrap_with_transition(
 
 def _impl(ctx):
     src = ctx.attr.src.files.to_list()[0]
-    toolchain = find_cc_toolchain(ctx)
+
+    # Resolve the ARM CC toolchain via the _cc_toolchain attribute
+    # which has cfg = switch_to_cortex_m4 transition.
+    # The transition may return a list; handle both cases.
+    cc_toolchain_attr = ctx.attr._cc_toolchain
+    if type(cc_toolchain_attr) == "list":
+        cc_toolchain_info = cc_toolchain_attr[0][cc_common.CcToolchainInfo]
+    else:
+        cc_toolchain_info = cc_toolchain_attr[cc_common.CcToolchainInfo]
+    objcopy_path = cc_toolchain_info.objcopy_executable
 
     # The raw binary is actually an elf file. We copy it to a .elf file extension.
     ctx.actions.run_shell(
@@ -40,7 +48,7 @@ def _impl(ctx):
 
     ctx.actions.run_shell(
         command = "{objcopy} -O binary {elf_in} {cc_bin}".format(
-            objcopy = toolchain.cc.objcopy_executable,
+            objcopy = objcopy_path,
             elf_in = ctx.outputs.elf.path,
             cc_bin = ctx.outputs.bin.path,
         ),
@@ -59,7 +67,7 @@ gen_binary = rule(
     attrs = {
         "_cc_toolchain": attr.label(
             default = Label("@rules_cc//cc:current_cc_toolchain"),
-          cfg=switch_to_cortex_m4,
+            cfg = switch_to_cortex_m4,
         ),
         "src": attr.label(allow_single_file = True),
         "_allowlist_function_transition": attr.label(
@@ -70,6 +78,5 @@ gen_binary = rule(
         "elf": "%{name}.elf",
         "bin": "%{name}.bin",
     },
-    # We set the config to transition to the cortex m4 platform
     incompatible_use_toolchain_transition = True,
 )

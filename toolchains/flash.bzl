@@ -4,14 +4,16 @@ def _flash_remote_impl(ctx):
         print("Invalid upload type {}".format(ctx.attr.upload_type))
         return
     script_template = """
-python3 -m bd_tools upload_{upload_type} {interface} {devices} {binary}
+NUM_BOARDS="${{1:-{default_num_boards}}}"
+DEVICES=$(seq -s, 1 "$NUM_BOARDS")
+python3 -m bd_tools upload_{upload_type} {interface} "$DEVICES" {binary}
 """
     script = ctx.actions.declare_file("%s.sh" % ctx.label.name)
 
     script_content = script_template.format(
         upload_type = ctx.attr.upload_type,
         interface = ctx.attr.interface,
-        devices = ctx.attr.devices,
+        default_num_boards = ctx.attr.num_boards,
         binary = ctx.file.image.short_path,
     )
     ctx.actions.write(script, script_content, is_executable = True)
@@ -44,10 +46,10 @@ Example:
             mandatory = False,
             default = "/dev/ttyUSB0",
         ),
-        "devices": attr.string(
-            doc = "csv of betzdrive device ids to flash (i.e. 1,2,3)",
+        "num_boards": attr.int(
+            doc = "Number of boards to flash (1..N, boards numbered 1 to N)",
             mandatory = False,
-            default = "1",
+            default = 1,
         ),
     },
     executable = True,
