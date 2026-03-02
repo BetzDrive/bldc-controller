@@ -9,6 +9,11 @@
 
 static volatile uint32_t systick_ms;
 
+/* CMSIS system variables required by ST HAL (baud rate computation, etc.) */
+uint32_t SystemCoreClock = SYSCLK_HZ;
+const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+const uint8_t APBPrescTable[8] = {0, 0, 0, 0, 1, 2, 3, 4};
+
 void SysTick_Handler(void) {
     systick_ms++;
 }
@@ -25,6 +30,22 @@ void system_init(void) {
         NVIC->ICER[i] = 0xFFFFFFFF;
         NVIC->ICPR[i] = 0xFFFFFFFF;
     }
+
+    /* Stop all DMA streams inherited from the bootloader.
+     * The ChibiOS bootloader leaves a 1-byte circular DMA running on
+     * USART1 RX (DMA2_Stream5).  If not stopped, it writes to the
+     * bootloader's old buffer address which now overlaps our RAM. */
+    for (int s = 0; s < 8; s++) {
+        ((DMA_Stream_TypeDef *)((uint32_t)DMA1_Stream0 + 0x18 * s))->CR = 0;
+        ((DMA_Stream_TypeDef *)((uint32_t)DMA2_Stream0 + 0x18 * s))->CR = 0;
+    }
+
+    /* Reset USART1 and DMA2 peripherals to clear all bootloader state.
+     * This ensures CR1/CR2/CR3, BRR, and SR all start at defaults. */
+    RCC->APB2RSTR |= RCC_APB2RSTR_USART1RST;
+    RCC->APB2RSTR &= ~RCC_APB2RSTR_USART1RST;
+    RCC->AHB1RSTR |= RCC_AHB1RSTR_DMA2RST;
+    RCC->AHB1RSTR &= ~RCC_AHB1RSTR_DMA2RST;
 
     /* The bootloader leaves PLL running as SYSCLK.  We must switch away
      * from PLL before reconfiguring it (RM0090 §7.3.2: PLL parameters
@@ -98,8 +119,10 @@ void system_init(void) {
     /* NVIC priority grouping: 4 bits group, 0 bits sub */
     NVIC_SetPriorityGrouping(0);
 
-    /* SysTick: 1ms interrupts */
+    /* SysTick: 1ms interrupts.  Override default priority (15, lowest)
+     * so SysTick isn't starved by TIM1_UP motor ISR (priority 4). */
     SysTick_Config(SYSCLK_HZ / 1000);
+    NVIC_SetPriority(SysTick_IRQn, 2);
 
     /* Enable DWT cycle counter for microsecond timing */
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
@@ -110,6 +133,14 @@ void system_init(void) {
      * before jumping to firmware.  Without this, SysTick and all other
      * ISRs are permanently blocked. */
     __enable_irq();
+}
+
+/* ── ST HAL tick override ─────────────────────────────────────── */
+
+/* ST HAL functions (HAL_UART_Transmit_DMA, etc.) call HAL_GetTick()
+ * for timeout tracking.  Override the weak default to use our SysTick. */
+uint32_t HAL_GetTick(void) {
+    return systick_ms;
 }
 
 /* ── hal_timer implementation ──────────────────────────────────── */

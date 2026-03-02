@@ -28,6 +28,10 @@ void hal_uart_tx_wait_complete(void);
 /* RS485 direction control */
 void hal_uart_set_tx_mode(bool transmit);
 
+/* Debug: return internal DMA RX state */
+void hal_uart_rx_debug(uint32_t *write_pos, uint32_t *read_pos,
+                       uint32_t *ndtr_val, uint32_t *buf_size);
+
 #ifdef __cplusplus
 }
 #endif

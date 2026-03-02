@@ -174,6 +174,14 @@ extern "C" void hal_uart_tx_wait_complete(void) {}
 
 extern "C" void hal_uart_set_tx_mode(bool transmit) { (void)transmit; }
 
+extern "C" void hal_uart_rx_debug(uint32_t *write_pos, uint32_t *read_pos,
+                                   uint32_t *ndtr_val, uint32_t *buf_size) {
+    *write_pos = 0;
+    *read_pos = 0;
+    *ndtr_val = 0;
+    *buf_size = MOCK_UART_BUF_SIZE;
+}
+
 /* ════════════════════════════════════════════════════════════
  *  PWM Mock
  * ════════════════════════════════════════════════════════════ */

@@ -620,6 +620,34 @@ TEST(test_oversized_length_resets_fsm) {
     ASSERT(mock_uart_read_tx(tx_buf, sizeof(tx_buf)) > 0);
 }
 
+TEST(test_unprogrammed_board_responds_to_broadcast) {
+    /* Don't call set_board_id — flash is 0xFF (erased).
+     * comms_init() maps 0xFF → board_id=0 = COMM_ID_BROADCAST.
+     * Board should respond to broadcast (id=0) but NOT to id=1. */
+
+    /* Broadcast NOP → should respond */
+    uint8_t payload[16];
+    size_t plen = build_submsg(payload, 0, COMM_FC_NOP, NULL, 0);
+    inject_packet(0x00, payload, plen);
+    comms_step(256);
+
+    uint8_t tx_buf[256];
+    ASSERT(mock_uart_read_tx(tx_buf, sizeof(tx_buf)) > 0);
+}
+
+TEST(test_unprogrammed_board_ignores_addressed) {
+    /* Same unprogrammed state: board_id=0.
+     * Packet addressed to id=1 should be ignored. */
+
+    uint8_t payload[16];
+    size_t plen = build_submsg(payload, 1, COMM_FC_NOP, NULL, 0);
+    inject_packet(0x00, payload, plen);
+    comms_step(256);
+
+    uint8_t tx_buf[256];
+    ASSERT(mock_uart_read_tx(tx_buf, sizeof(tx_buf)) == 0);
+}
+
 /* ── Main ──────────────────────────────────────────────────── */
 
 int main(void) {
@@ -649,6 +677,8 @@ int main(void) {
     RUN_TEST(test_enumerate_non_matching_id);
     RUN_TEST(test_consecutive_packets);
     RUN_TEST(test_oversized_length_resets_fsm);
+    RUN_TEST(test_unprogrammed_board_responds_to_broadcast);
+    RUN_TEST(test_unprogrammed_board_ignores_addressed);
 
     printf("\n%d passed, %d failed\n", tests_passed, tests_failed);
     return tests_failed > 0 ? 1 : 0;

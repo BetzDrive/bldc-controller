@@ -232,6 +232,7 @@ void BLDCControllerClient::HandleReceive(const boost::system::error_code &error,
       incoming_data_buffer_.insert(
           incoming_data_buffer_.end(), raw_read_buffer_.begin(),
           raw_read_buffer_.begin() + bytes_transferred);
+      std::cout << "Received " << bytes_transferred << " bytes." << std::endl;
     }
     // Notify processing thread? Could use condition variable if
     // ProcessIncomingData sleeps longer.
@@ -419,9 +420,9 @@ void BLDCControllerClient::ProcessIncomingData() {
         break;
 
       case State::READ_FLAGS:
-        // We can assume this should have a one in the lower bit as traffic
-        // should only come from a non-host.
-        if (next_byte == 0x01 || next_byte == 0x03) {
+        // Responses from boards have COMM_FG_BOARD (bit 0) set.
+        // Other flag bits (RESET, TIMEOUT, etc.) are informational.
+        if (next_byte & 0x01) {
           next_state = State::READ_LEN_L;
         }
         break;

@@ -40,3 +40,11 @@ cc_binary(
     ],
 )
 
+# Minimal RS485 diagnostic tool — no boost, just POSIX serial I/O.
+# Boots the board, jumps to firmware, prints raw serial data, sends NOP.
+cc_binary(
+    name = "serial_probe",
+    srcs = ["executables/serial_probe.cc"],
+    copts = ["-std=c++17"],
+)
+

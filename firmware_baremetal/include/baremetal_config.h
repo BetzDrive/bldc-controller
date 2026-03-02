@@ -182,8 +182,8 @@
 /* ──────────────────────────────────────────────
  *  Flash Memory Map (matches bootloader)
  * ────────────────────────────────────────────── */
-#define FLASH_BOARD_ID_ADDR  0x08008000U
-#define FLASH_CALIB_ADDR     0x0800C000U
+#define FLASH_BOARD_ID_ADDR  0x0800C000U  /* Sector 3 - must match bootloader */
+#define FLASH_CALIB_ADDR     0x08008000U  /* Sector 2 - must match bootloader */
 #define FLASH_FW_ADDR        0x08010000U
 
 #endif /* BAREMETAL_CONFIG_H */
