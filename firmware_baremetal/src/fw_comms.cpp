@@ -10,6 +10,7 @@
 
 #include <cstring>
 
+#include "control.h"
 #include "hal/hal_timer.h"
 #include "state.h"
 
@@ -76,6 +77,9 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
                              comm_errors_t &errors) {
     size_t index = 0;
     float cur_time;
+
+    /* Reset control timeout on any comms activity (matches ChibiOS behavior) */
+    control_reset_timeout();
 
     for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
         if (addr >= 0x1200 &&

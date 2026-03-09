@@ -2,6 +2,7 @@
 
 import bd_tools.bin.calibrate_encoder
 import bd_tools.bin.control_motor
+import bd_tools.bin.diagnostic
 import bd_tools.bin.read_sensor
 import bd_tools.bin.update_calibration
 import bd_tools.bin.upload_bootloader

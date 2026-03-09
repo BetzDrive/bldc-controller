@@ -16,8 +16,8 @@ static volatile uint16_t adc1_buf[4];  /* 2 channels x 2 (double-buffered) */
 static volatile uint16_t adc2_buf[2];  /* 1 channel x 2 */
 static volatile uint16_t adc3_buf[2];  /* 1 channel x 2 */
 
-/* ADC external trigger: TIM3 TRGO = EXTSEL 0111 (RM0090 Table 68) */
-#define ADC_EXTSEL_TIM3_TRGO   (7U << 24)
+/* ADC external trigger: TIM3 TRGO = EXTSEL 1000 (RM0090 Table 68) */
+#define ADC_EXTSEL_TIM3_TRGO   (8U << 24)
 #define ADC_EXTEN_RISING       (1U << 28)
 
 /* DMA flag clear masks (RM0090 Section 10.5.5/10.5.6) */

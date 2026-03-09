@@ -27,22 +27,22 @@ int main(void) {
   gpio_init();
 
   hal_iwdg_init();
-  // hal_pwm_motor_init();
+  hal_pwm_motor_init();
   hal_pwm_led_init();
-  // hal_adc_init();
-  // hal_spi_init();
-  // hal_i2c_init();
+  hal_adc_init();
+  hal_spi_init();
+  hal_i2c_init();
   hal_uart_init(1000000); /* 1 Mbit/s RS485 */
 
-  // state_init();
-  // state_load_calibration();
-  // control_init();
+  state_init();
+  state_load_calibration();
+  control_init();
   comms_init();
-  // sensor_init();
+  sensor_init();
   led_init();
 
-  // hal_adc_start();
-  // hal_pwm_motor_start();
+  hal_adc_start();
+  hal_pwm_motor_start();
 
   /* Cooperative main loop */
   while (1) {
@@ -58,7 +58,8 @@ int main(void) {
       NVIC_SystemReset();
     }
 
-    // sensor_step();
+    sensor_step();
+    control_step();
     led_step();
   }
 

@@ -9,6 +9,7 @@
 
 #include "control.h"
 #include "state.h"
+#include "baremetal_config.h"
 
 #include "hal/hal_pwm.h"
 #include "hal/hal_adc.h"
@@ -391,6 +392,25 @@ extern "C" void control_step(void) {
             control_brake();
             state_parameters.timeout_flag = true;
         }
+    }
+
+    /* Gate driver management (DRV8312 RST pins, active low) */
+    bool fault = !hal_gpio_read(MDRV_NFAULT_PORT, MDRV_NFAULT_PIN);
+    if (!state_parameters.gate_active && !fault) {
+        /* Start in brake mode (zero duty) before enabling gates */
+        control_brake();
+        hal_gpio_set(MDRV_RST_A_PORT, MDRV_RST_A_PIN);
+        hal_gpio_set(MDRV_RST_B_PORT, MDRV_RST_B_PIN);
+        hal_gpio_set(MDRV_RST_C_PORT, MDRV_RST_C_PIN);
+        state_parameters.gate_active = true;
+    }
+    if (state_parameters.gate_active && fault) {
+        hal_gpio_clear(MDRV_RST_A_PORT, MDRV_RST_A_PIN);
+        hal_gpio_clear(MDRV_RST_B_PORT, MDRV_RST_B_PIN);
+        hal_gpio_clear(MDRV_RST_C_PORT, MDRV_RST_C_PIN);
+        control_brake();
+        state_parameters.gate_active = false;
+        state_parameters.gate_fault = true;
     }
 
     /* State estimation: encoder + ADC */

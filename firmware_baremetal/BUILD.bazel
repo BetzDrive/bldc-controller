@@ -99,6 +99,7 @@ firmware_binary(
         "-T $(location :link.ld)",
         "-nostartfiles",
         "-Wl,--gc-sections",
+        "-lm",
     ],
     visibility = ["//visibility:public"],
     deps = [

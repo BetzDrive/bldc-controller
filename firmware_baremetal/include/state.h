@@ -91,7 +91,8 @@ struct Parameters {
     bool timeout_flag;
 };
 
-#define CALIB_START_SEQ  0x5454
+#define CALIB_START_SEQ     0x5454
+#define CALIB_START_SEQ_PB  0x8383
 
 extern struct Results state_results;
 extern struct Calibration state_calibration;

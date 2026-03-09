@@ -74,10 +74,51 @@ static void setup_rx_dma(void) {
 
 /* ── Public API ─────────────────────────────────────────────────── */
 
+static void i2c_bus_recovery(void) {
+    /*
+     * If a slave was interrupted mid-transfer (e.g. by reset), SDA may
+     * be held low.  Toggle SCL 9 times as GPIO to clock out the stuck
+     * byte, then generate a STOP condition to release the bus.
+     */
+    GPIO_TypeDef *scl_gpio = (GPIO_TypeDef *)I2C_SCL_PORT;
+    GPIO_TypeDef *sda_gpio = (GPIO_TypeDef *)I2C_SDA_PORT;
+
+    /* Temporarily switch SCL to GPIO output open-drain */
+    uint32_t scl_moder_save = scl_gpio->MODER;
+    scl_gpio->MODER = (scl_gpio->MODER & ~(3U << (I2C_SCL_PIN * 2)))
+                    | (1U << (I2C_SCL_PIN * 2));  /* Output mode */
+
+    for (int i = 0; i < 9; i++) {
+        scl_gpio->BSRR = (1U << (I2C_SCL_PIN + 16));  /* SCL low */
+        for (volatile int d = 0; d < 100; d++) {}
+        scl_gpio->BSRR = (1U << I2C_SCL_PIN);          /* SCL high */
+        for (volatile int d = 0; d < 100; d++) {}
+        /* Check if SDA released */
+        if (sda_gpio->IDR & (1U << I2C_SDA_PIN)) break;
+    }
+
+    /* Generate STOP: SDA low then high while SCL is high */
+    /* Switch SDA to GPIO output open-drain temporarily */
+    uint32_t sda_moder_save = sda_gpio->MODER;
+    sda_gpio->MODER = (sda_gpio->MODER & ~(3U << (I2C_SDA_PIN * 2)))
+                    | (1U << (I2C_SDA_PIN * 2));
+    sda_gpio->BSRR = (1U << (I2C_SDA_PIN + 16));       /* SDA low */
+    for (volatile int d = 0; d < 100; d++) {}
+    sda_gpio->BSRR = (1U << I2C_SDA_PIN);               /* SDA high (STOP) */
+    for (volatile int d = 0; d < 100; d++) {}
+
+    /* Restore AF mode */
+    scl_gpio->MODER = scl_moder_save;
+    sda_gpio->MODER = sda_moder_save;
+}
+
 extern "C" void hal_i2c_init(void) {
     /* Enable clocks */
     RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
     RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
+
+    /* Release any stuck I2C slave before init */
+    i2c_bus_recovery();
 
     /* Reset I2C2 */
     I2C2->CR1 = I2C_CR1_SWRST;

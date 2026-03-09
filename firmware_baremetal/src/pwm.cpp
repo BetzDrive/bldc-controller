@@ -68,10 +68,10 @@ extern "C" void hal_pwm_motor_init(void) {
     NVIC_SetPriority(TIM1_UP_TIM10_IRQn, NVIC_PRIO_TIM1_UP);
     NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
 
-    /* Initialize duties to 0 */
-    TIM1->CCR1 = 0;
-    TIM1->CCR2 = 0;
-    TIM1->CCR3 = 0;
+    /* Initialize duties to 0% (CCR=ARR for active-low polarity) */
+    TIM1->CCR1 = MOTOR_PWM_ARR;
+    TIM1->CCR2 = MOTOR_PWM_ARR;
+    TIM1->CCR3 = MOTOR_PWM_ARR;
 
     /* ── TIM3: ADC trigger, one-pulse slaved to TIM1 ── */
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
@@ -100,7 +100,10 @@ extern "C" void hal_pwm_motor_set_duty(uint8_t channel, float duty) {
     if (duty < 0.0f) duty = 0.0f;
     if (duty > 1.0f) duty = 1.0f;
 
-    uint32_t ccr = (uint32_t)(duty * MOTOR_PWM_ARR);
+    /* Invert for active-low polarity (CCxP=1): CCR=0 means output HIGH
+     * (100% duty), CCR=ARR means output LOW (0% duty).  Match ChibiOS
+     * DRV8312 driver which does (1 - duty) * period. */
+    uint32_t ccr = (uint32_t)((1.0f - duty) * MOTOR_PWM_ARR);
 
     /* Channel mapping (from DRV8312 constructor: channels 2,1,0):
      *   channel 0 = Phase A = TIM1_CH3 (PA10)
