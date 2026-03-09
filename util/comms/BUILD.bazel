@@ -40,6 +40,42 @@ cc_binary(
     ],
 )
 
+# Debug variant of the client library with packet-level logging
+cc_library(
+    name = "bldc_client_lib_debug",
+    srcs = ["client.cc"],
+    hdrs = ["client.h"],
+    copts = ["-std=c++17", "-DDEBUG"],
+    deps = [
+        "@boost//:asio",
+        "@boost//:circular_buffer",
+        "@boost//:system",
+        "@boost//:thread",
+    ],
+)
+
+cc_library(
+    name = "board_manager_lib_debug",
+    srcs = ["board_manager.cc"],
+    hdrs = ["board_manager.h"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":bldc_client_lib_debug",
+    ],
+)
+
+# Debug build of control_motor with packet-level logging
+cc_binary(
+    name = "control_motor_debug",
+    srcs = ["executables/control_motor.cc"],
+    copts = ["-std=c++17"],
+    linkopts = ["-lpthread"],
+    deps = [
+        ":board_manager_lib_debug",
+        "@boost//:program_options",
+    ],
+)
+
 # Minimal RS485 diagnostic tool — no boost, just POSIX serial I/O.
 # Boots the board, jumps to firmware, prints raw serial data, sends NOP.
 cc_binary(

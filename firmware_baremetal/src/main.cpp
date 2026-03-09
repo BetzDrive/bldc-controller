@@ -55,6 +55,11 @@ int main(void) {
       hal_flash_jump(jump);
     }
     if (comms_should_reset()) {
+      /* Extend IWDG to ~32s so the bootloader has time to start
+       * before the watchdog fires (IWDG can't be stopped). Without
+       * this, the 10ms IWDG fires during bootloader init, sets
+       * WDGRSTF, and the bootloader jumps right back to firmware. */
+      hal_iwdg_pause();
       NVIC_SystemReset();
     }
 

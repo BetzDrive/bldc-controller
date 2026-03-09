@@ -232,7 +232,9 @@ void BLDCControllerClient::HandleReceive(const boost::system::error_code &error,
       incoming_data_buffer_.insert(
           incoming_data_buffer_.end(), raw_read_buffer_.begin(),
           raw_read_buffer_.begin() + bytes_transferred);
+#ifdef DEBUG
       std::cout << "Received " << bytes_transferred << " bytes." << std::endl;
+#endif
     }
     // Notify processing thread? Could use condition variable if
     // ProcessIncomingData sleeps longer.
@@ -500,6 +502,7 @@ void BLDCControllerClient::ProcessIncomingData() {
                                 incoming_data_buffer_.begin() + 5 +
                                     current_packet_len);
 
+#ifdef DEBUG
         // Print the incoming data buffer and then the segment for CRC
         for (auto b : incoming_data_buffer_) {
           std::cout << "0x" << std::hex << static_cast<int>(b) << " ";
@@ -509,6 +512,7 @@ void BLDCControllerClient::ProcessIncomingData() {
           std::cout << "0x" << std::hex << static_cast<int>(b) << " ";
         }
         std::cout << std::dec << std::endl;
+#endif
 
         uint16_t calculated_crc = ComputeCRC16(data_for_crc);
 
