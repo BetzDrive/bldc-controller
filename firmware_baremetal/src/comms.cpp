@@ -367,11 +367,13 @@ static void handle_request(uint8_t *datagram, size_t datagram_len,
 
     case COMM_FC_CLEAR_IWDGRST:
         wdg_reset_flag = false;
+        hal_iwdg_clear_reset_flag();
         proto_state = ProtoState::RESPONDING;
         break;
 
     case COMM_FC_SYSTEM_RESET:
         should_reset = true;
+        hal_iwdg_clear_reset_flag();
         proto_state = ProtoState::RESPONDING;
         break;
 

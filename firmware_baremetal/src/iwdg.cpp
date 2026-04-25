@@ -59,3 +59,7 @@ extern "C" void hal_iwdg_resume(void) {
     while (IWDG->SR != 0) {}
     IWDG->KR = IWDG_KEY_RELOAD;
 }
+
+extern "C" void hal_iwdg_clear_reset_flag(void) {
+    RCC->CSR |= RCC_CSR_RMVF;
+}

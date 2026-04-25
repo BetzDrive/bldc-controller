@@ -14,6 +14,9 @@ void hal_iwdg_kick(void);
 void hal_iwdg_pause(void);
 void hal_iwdg_resume(void);
 
+/* Clear hardware watchdog-reset flag (RCC_CSR WDGRSTF on STM32). */
+void hal_iwdg_clear_reset_flag(void);
+
 #ifdef __cplusplus
 }
 #endif

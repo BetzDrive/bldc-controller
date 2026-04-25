@@ -459,10 +459,15 @@ extern "C" void hal_flash_jump(uint32_t addr) {
  *  IWDG Mock
  * ════════════════════════════════════════════════════════════ */
 
+static int mock_iwdg_clear_reset_count = 0;
+
 extern "C" void hal_iwdg_init(void) {}
 extern "C" void hal_iwdg_kick(void) {}
 extern "C" void hal_iwdg_pause(void) {}
 extern "C" void hal_iwdg_resume(void) {}
+extern "C" void hal_iwdg_clear_reset_flag(void) { mock_iwdg_clear_reset_count++; }
+
+int mock_iwdg_clear_reset_flag_count(void) { return mock_iwdg_clear_reset_count; }
 
 /* ════════════════════════════════════════════════════════════
  *  Reset All
@@ -497,4 +502,6 @@ void mock_reset_all(void) {
     mock_spi_last_tx = 0;
 
     memset(mock_flash_mem, 0xFF, sizeof(mock_flash_mem));
+
+    mock_iwdg_clear_reset_count = 0;
 }

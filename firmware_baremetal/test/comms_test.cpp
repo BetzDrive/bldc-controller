@@ -365,6 +365,32 @@ TEST(test_system_reset_flag) {
     ASSERT(comms_should_reset());
 }
 
+TEST(test_system_reset_clears_hw_wdg_flag) {
+    set_board_id(1);
+
+    ASSERT(mock_iwdg_clear_reset_flag_count() == 0);
+
+    uint8_t payload[16];
+    size_t plen = build_submsg(payload, 1, COMM_FC_SYSTEM_RESET, NULL, 0);
+    inject_packet(0x00, payload, plen);
+    comms_step(256);
+
+    ASSERT(mock_iwdg_clear_reset_flag_count() > 0);
+}
+
+TEST(test_clear_iwdgrst_clears_hw_wdg_flag) {
+    set_board_id(1);
+
+    ASSERT(mock_iwdg_clear_reset_flag_count() == 0);
+
+    uint8_t payload[16];
+    size_t plen = build_submsg(payload, 1, COMM_FC_CLEAR_IWDGRST, NULL, 0);
+    inject_packet(0x00, payload, plen);
+    comms_step(256);
+
+    ASSERT(mock_iwdg_clear_reset_flag_count() > 0);
+}
+
 TEST(test_flash_sector_count) {
     set_board_id(1);
 
@@ -665,6 +691,8 @@ int main(void) {
     RUN_TEST(test_reg_write_control_mode);
     RUN_TEST(test_reg_read_write_simultaneous);
     RUN_TEST(test_system_reset_flag);
+    RUN_TEST(test_system_reset_clears_hw_wdg_flag);
+    RUN_TEST(test_clear_iwdgrst_clears_hw_wdg_flag);
     RUN_TEST(test_flash_sector_count);
     RUN_TEST(test_invalid_fc_returns_error);
     RUN_TEST(test_other_board_message_decrements_resp_count);

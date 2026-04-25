@@ -67,6 +67,9 @@ void mock_adc_set_samples(uint16_t ia, uint16_t ib, uint16_t ic, uint16_t vbus);
 void mock_spi_set_response(uint16_t value);
 uint16_t mock_spi_get_last_tx(void);
 
+/* ── Mock IWDG ─────────────────────────────────────────── */
+int mock_iwdg_clear_reset_flag_count(void);
+
 /* ── Mock Flash ────────────────────────────────────────── */
 #define MOCK_FLASH_SIZE 32768
 #define MOCK_FLASH_BASE 0x08008000U
