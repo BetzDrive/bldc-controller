@@ -77,11 +77,31 @@ static bool pb_skip_field(struct PbStream *s, uint32_t wire_type) {
     }
 }
 
+/*
+ * Decode a single float field: verify wire_type is 5 (fixed32),
+ * read 4 bytes, copy into destination. On wire_type mismatch, skip.
+ */
+static bool pb_decode_float(struct PbStream *s, uint32_t wire_type, float *dst) {
+    if (wire_type != 5) return pb_skip_field(s, wire_type);
+    uint32_t uval;
+    if (!pb_read_fixed32(s, &uval)) return false;
+    memcpy(dst, &uval, 4);
+    return true;
+}
+
+/*
+ * Decode a single varint field: verify wire_type is 0,
+ * read varint, return value. On wire_type mismatch, skip.
+ */
+static bool pb_decode_uvarint(struct PbStream *s, uint32_t wire_type, uint32_t *dst) {
+    if (wire_type != 0) return pb_skip_field(s, wire_type);
+    return pb_read_varint(s, dst);
+}
+
 static bool decode_calibration_pb(const uint8_t *data, size_t len,
                                   struct Calibration *cal) {
     struct PbStream s = {data, len, 0};
     uint32_t tag, field_num, wire_type, uval;
-    float fval;
 
     while (s.pos < s.len) {
         if (!pb_read_varint(&s, &tag)) return false;
@@ -90,118 +110,47 @@ static bool decode_calibration_pb(const uint8_t *data, size_t len,
 
         switch (field_num) {
         case 1:  /* erev_start (uint32 → uint16_t) */
-            if (!pb_read_varint(&s, &uval)) return false;
+            if (!pb_decode_uvarint(&s, wire_type, &uval)) return false;
             cal->erev_start = (uint16_t)uval;
             break;
         case 2:  /* erevs_per_mrev (uint32 → uint8_t) */
-            if (!pb_read_varint(&s, &uval)) return false;
+            if (!pb_decode_uvarint(&s, wire_type, &uval)) return false;
             cal->erevs_per_mrev = (uint8_t)uval;
             break;
         case 3:  /* flip_phases (bool → uint8_t) */
-            if (!pb_read_varint(&s, &uval)) return false;
+            if (!pb_decode_uvarint(&s, wire_type, &uval)) return false;
             cal->flip_phases = (uint8_t)uval;
             break;
-        case 4:  /* foc_kp_d */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->foc_kp_d, &uval, 4);
-            break;
-        case 5:  /* foc_ki_d */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->foc_ki_d, &uval, 4);
-            break;
-        case 6:  /* foc_kp_q */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->foc_kp_q, &uval, 4);
-            break;
-        case 7:  /* foc_ki_q */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->foc_ki_q, &uval, 4);
-            break;
-        case 8:  /* velocity_kp */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->velocity_kp, &uval, 4);
-            break;
-        case 9:  /* velocity_kd */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->velocity_kd, &uval, 4);
-            break;
-        case 10: /* position_kp */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->position_kp, &uval, 4);
-            break;
-        case 11: /* position_kd */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->position_kd, &uval, 4);
-            break;
-        case 12: /* current_limit */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->current_limit, &uval, 4);
-            break;
-        case 13: /* torque_limit */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->torque_limit, &uval, 4);
-            break;
-        case 14: /* velocity_limit */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->velocity_limit, &uval, 4);
-            break;
-        case 15: /* position_lower_limit */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->position_lower_limit, &uval, 4);
-            break;
-        case 16: /* position_upper_limit */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->position_upper_limit, &uval, 4);
-            break;
-        case 17: /* motor_resistance */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->motor_resistance, &uval, 4);
-            break;
-        case 18: /* motor_inductance */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->motor_inductance, &uval, 4);
-            break;
-        case 19: /* motor_torque_const */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->motor_torque_const, &uval, 4);
-            break;
+        case 4:  if (!pb_decode_float(&s, wire_type, &cal->foc_kp_d)) return false; break;
+        case 5:  if (!pb_decode_float(&s, wire_type, &cal->foc_ki_d)) return false; break;
+        case 6:  if (!pb_decode_float(&s, wire_type, &cal->foc_kp_q)) return false; break;
+        case 7:  if (!pb_decode_float(&s, wire_type, &cal->foc_ki_q)) return false; break;
+        case 8:  if (!pb_decode_float(&s, wire_type, &cal->velocity_kp)) return false; break;
+        case 9:  if (!pb_decode_float(&s, wire_type, &cal->velocity_kd)) return false; break;
+        case 10: if (!pb_decode_float(&s, wire_type, &cal->position_kp)) return false; break;
+        case 11: if (!pb_decode_float(&s, wire_type, &cal->position_kd)) return false; break;
+        case 12: if (!pb_decode_float(&s, wire_type, &cal->current_limit)) return false; break;
+        case 13: if (!pb_decode_float(&s, wire_type, &cal->torque_limit)) return false; break;
+        case 14: if (!pb_decode_float(&s, wire_type, &cal->velocity_limit)) return false; break;
+        case 15: if (!pb_decode_float(&s, wire_type, &cal->position_lower_limit)) return false; break;
+        case 16: if (!pb_decode_float(&s, wire_type, &cal->position_upper_limit)) return false; break;
+        case 17: if (!pb_decode_float(&s, wire_type, &cal->motor_resistance)) return false; break;
+        case 18: if (!pb_decode_float(&s, wire_type, &cal->motor_inductance)) return false; break;
+        case 19: if (!pb_decode_float(&s, wire_type, &cal->motor_torque_const)) return false; break;
         case 20: /* control_timeout (uint32 → uint16_t) */
-            if (!pb_read_varint(&s, &uval)) return false;
+            if (!pb_decode_uvarint(&s, wire_type, &uval)) return false;
             cal->control_timeout = (uint16_t)uval;
             break;
-        case 21: /* hf_velocity_filter_param */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->hf_velocity_filter_param, &uval, 4);
-            break;
-        case 22: /* lf_velocity_filter_param */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->lf_velocity_filter_param, &uval, 4);
-            break;
-        case 23: /* position_offset */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->position_offset, &uval, 4);
-            break;
-        case 24: /* ia_offset */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->ia_offset, &uval, 4);
-            break;
-        case 25: /* ib_offset */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->ib_offset, &uval, 4);
-            break;
-        case 26: /* ic_offset */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->ic_offset, &uval, 4);
-            break;
-        case 27: /* enc_ang_corr_scale */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->enc_ang_corr_scale, &uval, 4);
-            break;
-        case 28: /* enc_ang_corr_offset */
-            if (!pb_read_fixed32(&s, &uval)) return false;
-            memcpy(&cal->enc_ang_corr_offset, &uval, 4);
-            break;
+        case 21: if (!pb_decode_float(&s, wire_type, &cal->hf_velocity_filter_param)) return false; break;
+        case 22: if (!pb_decode_float(&s, wire_type, &cal->lf_velocity_filter_param)) return false; break;
+        case 23: if (!pb_decode_float(&s, wire_type, &cal->position_offset)) return false; break;
+        case 24: if (!pb_decode_float(&s, wire_type, &cal->ia_offset)) return false; break;
+        case 25: if (!pb_decode_float(&s, wire_type, &cal->ib_offset)) return false; break;
+        case 26: if (!pb_decode_float(&s, wire_type, &cal->ic_offset)) return false; break;
+        case 27: if (!pb_decode_float(&s, wire_type, &cal->enc_ang_corr_scale)) return false; break;
+        case 28: if (!pb_decode_float(&s, wire_type, &cal->enc_ang_corr_offset)) return false; break;
         case 29: /* enc_ang_corr_table_values (bytes) */
+            if (wire_type != 2) { pb_skip_field(&s, wire_type); break; }
             if (!pb_read_varint(&s, &uval)) return false;
             if (s.pos + uval > s.len) return false;
             if (uval > 257) uval = 257;
@@ -241,6 +190,7 @@ void state_init(void) {
     state_calibration.torque_limit = 3.0f;
     state_calibration.velocity_limit = 10.0f;
     state_calibration.motor_resistance = 17.8f;
+    state_calibration.motor_torque_const = 0.5f;
     state_calibration.hf_velocity_filter_param = 0.01f;
     state_calibration.lf_velocity_filter_param = 0.0025f;
 }
@@ -272,6 +222,9 @@ void state_load_calibration(void) {
         /* Old format: raw C struct */
         hal_flash_read(FLASH_CALIB_ADDR, &state_calibration,
                        sizeof(struct Calibration));
+        /* Sanitize table size in case flash data is corrupted */
+        if (state_calibration.enc_ang_corr_table_values.size > 257)
+            state_calibration.enc_ang_corr_table_values.size = 257;
     } else if (header.start_sequence == CALIB_START_SEQ_PB) {
         /* Nanopb format: decode protobuf wire format */
         size_t total = sizeof(struct CalibHeader) + header.length;

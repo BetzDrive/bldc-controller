@@ -274,11 +274,13 @@ static void run_current_control(void) {
         iq_sp = state_parameters.foc_q_current_sp;
     } else if (state_parameters.control_mode == consts::control_mode_position_feed_forward) {
         id_sp = 0.0f;
-        iq_sp = (state_parameters.torque_sp / state_calibration.motor_torque_const) +
+        float kt = state_calibration.motor_torque_const;
+        iq_sp = ((kt > 0.0f) ? (state_parameters.torque_sp / kt) : 0.0f) +
                 state_parameters.feed_forward;
     } else {
         id_sp = 0.0f;
-        iq_sp = state_parameters.torque_sp / state_calibration.motor_torque_const;
+        float kt = state_calibration.motor_torque_const;
+        iq_sp = (kt > 0.0f) ? (state_parameters.torque_sp / kt) : 0.0f;
     }
 
     /* Compute voltage commands */

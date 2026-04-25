@@ -20,6 +20,9 @@ size_t hal_uart_rx_read(uint8_t *buf, size_t max_len);
 bool hal_uart_rx_peek(uint8_t *out);
 void hal_uart_rx_consume(size_t count);
 
+/* Discard all pending RX data (advance read pos to DMA write pos) */
+void hal_uart_rx_discard(void);
+
 /* TX operations - enqueue data into transmit buffer */
 bool hal_uart_tx_send(const uint8_t *data, size_t len);
 bool hal_uart_tx_busy(void);

@@ -13,9 +13,20 @@ load("@bazel_embedded//tools/openocd:defs.bzl", "openocd_debug_server", "openocd
 firmware_binary(
     name = "firmware_raw",
     srcs = glob(["src/*.c"]) + glob(["src/*.cpp"]),
-    copts = project_inc_paths,
+    copts = project_inc_paths + [
+        "-O2",
+        "-ggdb",
+        "-fomit-frame-pointer",
+        "-falign-functions=16",
+        "-fsingle-precision-constant",
+        "-mno-thumb-interwork",
+    ],
     linkopts = [
         "-T $(location :link.ld)",
+        "-lc",
+        "-lm",
+        "-lnosys",
+        "-Wl,--gc-sections",
     ],
     visibility = ["//visibility:public"],
     deps = [

@@ -82,8 +82,11 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
     control_reset_timeout();
 
     for (comm_addr_t addr = start_addr; addr < start_addr + reg_count; addr++) {
-        if (addr >= 0x1200 &&
-            addr < 0x1200 + state_calibration.enc_ang_corr_table_values.size) {
+        /* Cap table size to array bounds to prevent corrupted flash data
+         * from swallowing higher register addresses (0x2000+, 0x3000+). */
+        size_t table_size = state_calibration.enc_ang_corr_table_values.size;
+        if (table_size > 257) table_size = 257;
+        if (addr >= 0x1200 && addr < 0x1200 + table_size) {
             /* Encoder angle correction table values */
             handleVarAccess(
                 state_calibration.enc_ang_corr_table_values.bytes[addr - 0x1200],

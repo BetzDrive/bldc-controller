@@ -160,6 +160,10 @@ extern "C" void hal_uart_rx_consume(size_t count) {
         mock_uart_rx_tail = (mock_uart_rx_tail + 1) % MOCK_UART_BUF_SIZE;
 }
 
+extern "C" void hal_uart_rx_discard(void) {
+    mock_uart_rx_tail = mock_uart_rx_head;
+}
+
 extern "C" bool hal_uart_tx_send(const uint8_t *data, size_t len) {
     for (size_t i = 0; i < len; i++) {
         if (mock_uart_tx_count >= MOCK_UART_BUF_SIZE) return false;

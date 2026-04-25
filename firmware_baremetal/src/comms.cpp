@@ -653,10 +653,16 @@ static void compose_and_send_response(comm_errors_t errors) {
 
     /* Transmit: set RS485 to TX, send via DMA, block until complete,
      * then switch back to RX.  At 1Mbit/s a typical response (~15 bytes)
-     * takes ~150us — well within the IWDG budget. */
+     * takes ~150us — well within the IWDG budget.
+     *
+     * While DIR=TX, the RS485 transceiver's receiver is disabled but
+     * the UART RX DMA keeps running.  Noise on the floating RX line
+     * can inject garbage into the circular buffer.  After TX, discard
+     * any bytes the DMA captured during the transmit window. */
     size_t total_len = kHeaderLen + payload_len + kCrcLen;
     hal_uart_set_tx_mode(true);
     hal_uart_tx_send(tx_packet, total_len);
     hal_uart_tx_wait_complete();
     hal_uart_set_tx_mode(false);
+    hal_uart_rx_discard();
 }

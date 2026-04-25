@@ -152,6 +152,10 @@ void hal_uart_rx_consume(size_t count) {
     rx_read_pos = (rx_read_pos + count) % UART_RX_BUF_SIZE;
 }
 
+void hal_uart_rx_discard(void) {
+    rx_read_pos = dma_write_pos();
+}
+
 /* ── TX operations ─────────────────────────────────────────── */
 
 bool hal_uart_tx_send(const uint8_t *data, size_t len) {

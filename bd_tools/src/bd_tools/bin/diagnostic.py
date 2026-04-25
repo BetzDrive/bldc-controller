@@ -28,6 +28,11 @@ def parser_args():
         default=2.0,
         help="Sweep duration in seconds (default 2.0)",
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable verbose serial debugging",
+    )
     parser.set_defaults(
         baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
     )
@@ -297,6 +302,19 @@ def test_calibration(client, board_id):
     return ok
 
 
+def flush_and_report(ser, label=""):
+    """Flush serial input buffer, report any stale bytes."""
+    waiting = ser.in_waiting
+    if waiting > 0:
+        stale = ser.read(waiting)
+        print(
+            f"  [DEBUG] {label}: flushed {len(stale)} stale bytes: "
+            f"{stale[:32].hex()}"
+            f"{'...' if len(stale) > 32 else ''}"
+        )
+    return waiting
+
+
 def action(args):
     board_ids = [int(bid) for bid in args.board_ids.split(",")]
 
@@ -304,6 +322,9 @@ def action(args):
         port=args.serial, baudrate=args.baud_rate, timeout=0.04
     )
     client = comms.BLDCControllerClient(ser)
+
+    if args.debug:
+        comms.DEBUG = True
 
     print("Initializing boards...")
     boards.initBoards(client, board_ids)
@@ -345,14 +366,18 @@ def action(args):
         ]
 
         for name, test_fn in tests:
+            flush_and_report(ser, f"before {name}")
             try:
                 if test_fn():
                     passed += 1
             except (
                 comms.ProtocolError,
                 comms.MalformedPacketError,
+                struct.error,
+                Exception,
             ) as e:
-                print(f"[FAIL] {name}: comms error - {e}")
+                print(f"[FAIL] {name}: {type(e).__name__} - {e}")
+                flush_and_report(ser, f"after {name} failure")
 
         print(f"=== {passed}/{total} PASSED ===")
 
