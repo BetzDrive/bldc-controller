@@ -359,6 +359,10 @@ extern "C" hal_i2c_status_t hal_i2c_error(void) {
     return mock_i2c_last_error;
 }
 
+extern "C" uint8_t hal_i2c_raw_state(void) {
+    return mock_i2c_is_busy ? 1 : 0;  /* 0=IDLE, 1=busy (approximation) */
+}
+
 /* ════════════════════════════════════════════════════════════
  *  ADC Mock
  * ════════════════════════════════════════════════════════════ */

@@ -331,6 +331,22 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
                 handleVarAccess(state_results.estimation_loops, buf, index,
                                 buf_size, access_type, errors);
                 break;
+            case 0x3050:
+                handleVarAccess(state_results.sensor_fsm_state, buf, index,
+                                buf_size, access_type, errors);
+                break;
+            case 0x3051:
+                handleVarAccess(state_results.sensor_i2c_error, buf, index,
+                                buf_size, access_type, errors);
+                break;
+            case 0x3052:
+                handleVarAccess(state_results.sensor_init_errors, buf, index,
+                                buf_size, access_type, errors);
+                break;
+            case 0x3053:
+                handleVarAccess(state_results.sensor_i2c_drv_state, buf, index,
+                                buf_size, access_type, errors);
+                break;
 
             default:
                 errors |= COMM_ERRORS_INVALID_ARGS;

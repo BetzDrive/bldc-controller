@@ -74,7 +74,7 @@ def action(args):
     elif sen == "temp":
         message = "{0}: {1[0]} degC"
     if sen == "imu":
-        decode = "<hhh"
+        decode = "<iii"
         num_regs = 3
         message = "{0} -> x:{1[0]}, y:{1[1]}, z:{1[2]}"
 

@@ -90,7 +90,7 @@ if __name__ == "__main__":
             boards.driveMotor(client, board_ids, actuations, mode)
             responses = getIMU(board_ids)
             for i in range(len(responses)):
-                val = struct.unpack("<hhh", responses[i])
+                val = struct.unpack("<iii", responses[i])
                 np_val = np.array(val, dtype=float)
                 np_val = np_val / (1 << 13) * (GRAVITY)
                 bid = board_ids[i]

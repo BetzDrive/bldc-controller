@@ -59,9 +59,9 @@ def read_uint8(client, board_id, addr):
     return struct.unpack("<B", data[0])[0]
 
 
-def read_int16x3(client, board_id, addr):
+def read_int32x3(client, board_id, addr):
     data = client.readRegisters([board_id], [addr], [3])
-    return struct.unpack("<hhh", data[0])
+    return struct.unpack("<iii", data[0])
 
 
 def set_phase_pwm(client, board_id, p0, p1, p2):
@@ -181,7 +181,7 @@ def test_encoder(client, board_id):
 def test_i2c_sensors(client, board_id):
     """Test 5: I2C sensors - temperature and accelerometer."""
     temp = read_float(client, board_id, 0x3005)
-    ax, ay, az = read_int16x3(client, board_id, 0x3006)
+    ax, ay, az = read_int32x3(client, board_id, 0x3006)
 
     # Check temperature range
     temp_ok = -10.0 < temp < 80.0

@@ -30,9 +30,13 @@ struct Results {
     float va, vb, vc;
     float vin;
     float ia, ib, ic;
-    int16_t xl_x, xl_y, xl_z;
+    int32_t xl_x, xl_y, xl_z;
     float temperature;
     uint32_t estimation_loops;
+    uint8_t sensor_fsm_state;
+    uint8_t sensor_i2c_error;
+    uint8_t sensor_init_errors;
+    uint8_t sensor_i2c_drv_state;
 };
 
 struct Calibration {

@@ -34,6 +34,13 @@ static uint8_t accel_buf[6];
 static uint8_t temp_reg;
 static uint8_t temp_buf[2];
 
+static void update_debug(void) {
+    state_results.sensor_fsm_state     = (uint8_t)state;
+    state_results.sensor_i2c_error     = (uint8_t)hal_i2c_error();
+    state_results.sensor_init_errors   = init_error_count;
+    state_results.sensor_i2c_drv_state = hal_i2c_raw_state();
+}
+
 void sensor_init(void) {
     state = SENSOR_UNINIT;
     last_poll_ms = 0;
@@ -58,6 +65,7 @@ bool acc_check_id(void) {
 }
 
 bool sensor_step(void) {
+    update_debug();
     switch (state) {
     case SENSOR_UNINIT:
         if (hal_i2c_start_write(ACC_I2C_ADDR, init_ctrl1, sizeof(init_ctrl1))) {

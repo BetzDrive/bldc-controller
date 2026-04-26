@@ -291,6 +291,94 @@ TEST(test_reg_read_rotor_pos) {
     ASSERT_FLOAT_EQ(val, 1.234f);
 }
 
+TEST(test_reg_read_temperature) {
+    set_board_id(1);
+
+    state_results.temperature = 25.5f;
+
+    /* REG_READ: addr=0x3005 (temperature), count=1 */
+    uint8_t sub_data[] = {
+        0x05, 0x30,  /* addr = 0x3005 */
+        0x01,        /* count = 1 */
+    };
+    uint8_t payload[16];
+    size_t plen = build_submsg(payload, 1, COMM_FC_REG_READ, sub_data, sizeof(sub_data));
+
+    inject_packet(0x00, payload, plen);
+    comms_step(256);
+
+    uint8_t tx_buf[256];
+    size_t tx_len = mock_uart_read_tx(tx_buf, sizeof(tx_buf));
+    ASSERT(tx_len > 0);
+
+    uint8_t *resp_body = tx_buf + 5;
+    ASSERT(resp_body[3] == COMM_FC_REG_READ);
+
+    uint16_t errors = (uint16_t)resp_body[4] | ((uint16_t)resp_body[5] << 8);
+    ASSERT(errors == 0);
+
+    float val;
+    memcpy(&val, resp_body + 6, sizeof(float));
+    ASSERT_FLOAT_EQ(val, 25.5f);
+}
+
+TEST(test_reg_read_state_block) {
+    set_board_id(1);
+
+    /* Set known values for the 9 registers read by getState():
+     * 0x3000: rotor_pos (float)
+     * 0x3001: lf_rotor_vel (float)
+     * 0x3002: foc_d_current (float)
+     * 0x3003: foc_q_current (float)
+     * 0x3004: vin (float)
+     * 0x3005: temperature (float)
+     * 0x3006: xl_x (int16_t)
+     * 0x3007: xl_y (int16_t)
+     * 0x3008: xl_z (int16_t)
+     *
+     * Host expects <ffffffiii (6 floats + 3 int32 = 36 bytes).
+     * If xl fields are int16_t, firmware only produces 30 bytes. */
+    state_results.rotor_pos = 1.0f;
+    state_results.lf_rotor_vel = 2.0f;
+    state_results.foc_d_current = 0.1f;
+    state_results.foc_q_current = 0.2f;
+    state_results.vin = 24.0f;
+    state_results.temperature = 25.5f;
+    state_results.xl_x = 100;
+    state_results.xl_y = -200;
+    state_results.xl_z = 1000;
+
+    /* REG_READ: addr=0x3000, count=9 */
+    uint8_t sub_data[] = {
+        0x00, 0x30,  /* addr = 0x3000 */
+        0x09,        /* count = 9 */
+    };
+    uint8_t payload[16];
+    size_t plen = build_submsg(payload, 1, COMM_FC_REG_READ, sub_data, sizeof(sub_data));
+
+    inject_packet(0x00, payload, plen);
+    comms_step(256);
+
+    uint8_t tx_buf[256];
+    size_t tx_len = mock_uart_read_tx(tx_buf, sizeof(tx_buf));
+    ASSERT(tx_len > 0);
+
+    uint8_t *resp_body = tx_buf + 5;
+    ASSERT(resp_body[3] == COMM_FC_REG_READ);
+
+    uint16_t errors = (uint16_t)resp_body[4] | ((uint16_t)resp_body[5] << 8);
+    ASSERT(errors == 0);
+
+    /* Host unpacks as <ffffffiii (36 bytes).
+     * Verify total register data length matches. */
+    uint16_t sub_len = (uint16_t)resp_body[0] | ((uint16_t)resp_body[1] << 8);
+    size_t reg_data_len = sub_len - 4;  /* subtract id(1) + fc(1) + errors(2) */
+
+    /* Expected: 6 floats (24) + 3 int32 (12) = 36 bytes for host compat.
+     * If xl fields are int16_t, we get 30 bytes instead. */
+    ASSERT(reg_data_len == 36);
+}
+
 TEST(test_reg_write_control_mode) {
     set_board_id(1);
 
@@ -688,6 +776,8 @@ int main(void) {
     RUN_TEST(test_bad_crc_no_response);
     RUN_TEST(test_idle_timeout_resets_fsm);
     RUN_TEST(test_reg_read_rotor_pos);
+    RUN_TEST(test_reg_read_temperature);
+    RUN_TEST(test_reg_read_state_block);
     RUN_TEST(test_reg_write_control_mode);
     RUN_TEST(test_reg_read_write_simultaneous);
     RUN_TEST(test_system_reset_flag);

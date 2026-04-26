@@ -178,6 +178,16 @@ cc_test(
 )
 
 # ── Flash/Debug Targets ─────────────────────────────────────────────
+sh_binary(
+    name = "sensor_debug",
+    srcs = ["sensor_debug.sh"],
+)
+
+sh_binary(
+    name = "diagnostic",
+    srcs = ["diagnostic.sh"],
+)
+
 flash_remote(
     name = "upload",
     image = ":firmware_baremetal.bin",

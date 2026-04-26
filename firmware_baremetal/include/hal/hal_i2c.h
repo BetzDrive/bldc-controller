@@ -42,6 +42,11 @@ bool hal_i2c_busy(void);
 /* Returns the status of the last completed transfer. */
 hal_i2c_status_t hal_i2c_error(void);
 
+/* Returns the raw internal I2C driver state (I2CState enum value).
+ * 0=IDLE 1=START_SENT 2=ADDR_W_SENT 3=TX_DATA 4=RESTART_SENT
+ * 5=ADDR_R_SENT 6=RX_DMA 7=COMPLETE 8=ERROR */
+uint8_t hal_i2c_raw_state(void);
+
 #ifdef __cplusplus
 }
 #endif
