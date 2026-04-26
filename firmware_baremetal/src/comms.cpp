@@ -16,6 +16,7 @@
 #include "crc16.h"
 #include "fw_comms.h"
 #include "hal/hal_flash.h"
+#include "hal/hal_gpio.h"
 #include "hal/hal_iwdg.h"
 #include "hal/hal_timer.h"
 #include "hal/hal_uart.h"
@@ -132,6 +133,10 @@ void comms_init(void) {
     if (board_id == 0xFF) {
         board_id = 0;  /* Unprogrammed flash → broadcast ID */
     }
+
+    /* Signal successor boards: firmware is running, disco chain can advance.
+     * Mirrors startComms() setDisco() call in the original firmware. */
+    hal_gpio_clear(DISCO_BUS_OUT_PORT, DISCO_BUS_OUT_PIN);
 }
 
 size_t comms_step(uint32_t max_bytes) {
@@ -532,7 +537,8 @@ static void handle_request(uint8_t *datagram, size_t datagram_len,
         break;
 
     case COMM_FC_CONFIRM_ID:
-        /* In firmware (not bootloader), just acknowledge */
+        /* Signal successor board that this board is confirmed. */
+        hal_gpio_clear(DISCO_BUS_OUT_PORT, DISCO_BUS_OUT_PIN);
         proto_state = ProtoState::RESPONDING;
         break;
 
