@@ -273,6 +273,16 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
                 handleVarAccess(state_parameters.pwm_drive, buf, index,
                                 buf_size, access_type, errors);
                 break;
+            case 0x200B: {
+                uint8_t v = state_parameters.gate_active ? 1 : 0;
+                handleVarAccess(v, buf, index, buf_size, access_type, errors);
+                break;
+            }
+            case 0x200C: {
+                uint8_t v = state_parameters.gate_fault ? 1 : 0;
+                handleVarAccess(v, buf, index, buf_size, access_type, errors);
+                break;
+            }
 
             /* ── Results registers (0x3000 - 0x3040) ─────────── */
             case 0x3000:
@@ -346,6 +356,18 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count,
             case 0x3053:
                 handleVarAccess(state_results.sensor_i2c_drv_state, buf, index,
                                 buf_size, access_type, errors);
+                break;
+            case 0x3060:
+                handleVarAccess(state_results.ia, buf, index, buf_size,
+                                access_type, errors);
+                break;
+            case 0x3061:
+                handleVarAccess(state_results.ib, buf, index, buf_size,
+                                access_type, errors);
+                break;
+            case 0x3062:
+                handleVarAccess(state_results.ic, buf, index, buf_size,
+                                access_type, errors);
                 break;
 
             default:

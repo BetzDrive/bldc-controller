@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "hal_mock.h"
+#include "baremetal_config.h"
 #include "control.h"
 #include "state.h"
 
@@ -343,6 +344,7 @@ TEST(test_raw_pwm_mode_sets_duties) {
     reset_state();
     mock_adc_set_samples(2048, 2048, 2048, 2048);
     mock_spi_set_response(0);
+    mock_gpio_set_input(MDRV_NFAULT_PORT, MDRV_NFAULT_PIN, true);
 
     state_parameters.control_mode = consts::control_mode_raw_phase_pwm;
     state_parameters.phase0 = 0.5f;
@@ -351,15 +353,97 @@ TEST(test_raw_pwm_mode_sets_duties) {
 
     control_init();
 
-    /* Run steps to execute control */
-    for (int i = 0; i < 4; i++) {
+    /* Warm up ADC and enable gate, then run one more full cycle */
+    for (int i = 0; i < 2 * (int)consts::ivsense_rolling_average_count + 2; i++) {
         control_step();
     }
 
-    /* Duties should be phase * max_duty_cycle */
+    ASSERT_TRUE(state_parameters.gate_active);
     ASSERT_NEAR(mock_pwm_get_motor_duty(0), 0.5f * consts::max_duty_cycle, 0.01f);
     ASSERT_NEAR(mock_pwm_get_motor_duty(1), 0.3f * consts::max_duty_cycle, 0.01f);
     ASSERT_NEAR(mock_pwm_get_motor_duty(2), 0.7f * consts::max_duty_cycle, 0.01f);
+}
+
+TEST(test_gate_enable_preserves_control_mode) {
+    mock_reset_all();
+    reset_state();
+    mock_adc_set_samples(2048, 2048, 2048, 2048);
+    mock_spi_set_response(0);
+
+    /* nFAULT high = no fault */
+    mock_gpio_set_input(MDRV_NFAULT_PORT, MDRV_NFAULT_PIN, true);
+
+    state_parameters.control_mode = consts::control_mode_foc_current;
+    state_parameters.foc_q_current_sp = 1.0f;
+
+    control_init();
+
+    /* 2 calls per full execution * ivsense_rolling_average_count executions needed */
+    for (int i = 0; i < 2 * (int)consts::ivsense_rolling_average_count; i++) {
+        control_step();
+    }
+
+    ASSERT_TRUE(state_parameters.gate_active);
+    ASSERT_TRUE(state_parameters.control_mode == consts::control_mode_foc_current);
+}
+
+/* Gate must not enable before the ADC rolling average is fully warmed up.
+ * Without warmup guard, gate enables on the 2nd control_step() call and the
+ * FOC immediately sees ia/ib readings that are biased toward zero (rolling
+ * average denominator=5 but only 1 real sample) -> computes large error ->
+ * applies full duty -> crackle. */
+TEST(test_gate_not_enabled_before_adc_ready) {
+    mock_reset_all();
+    reset_state();
+    mock_adc_set_samples(2048, 2048, 2048, 2048);
+    mock_spi_set_response(0);
+
+    mock_gpio_set_input(MDRV_NFAULT_PORT, MDRV_NFAULT_PIN, true);
+    state_parameters.control_mode = consts::control_mode_foc_current;
+
+    control_init();
+
+    /* Run one fewer full execution than ivsense_rolling_average_count */
+    for (int i = 0; i < 2 * ((int)consts::ivsense_rolling_average_count - 1); i++) {
+        control_step();
+    }
+
+    ASSERT_TRUE(!state_parameters.gate_active);
+}
+
+/* After a nFAULT glitch the gate disables then re-enables.
+ * The fault path must not call control_brake() - that would reset
+ * control_mode to raw_phase_pwm and stop the motor silently. */
+TEST(test_fault_preserves_control_mode) {
+    mock_reset_all();
+    reset_state();
+    mock_adc_set_samples(2048, 2048, 2048, 2048);
+    mock_spi_set_response(0);
+
+    mock_gpio_set_input(MDRV_NFAULT_PORT, MDRV_NFAULT_PIN, true);
+    state_parameters.control_mode = consts::control_mode_torque;
+    state_parameters.torque_sp = 1.0f;
+
+    control_init();
+
+    /* Warm up ADC and enable gate */
+    for (int i = 0; i < 2 * (int)consts::ivsense_rolling_average_count; i++) {
+        control_step();
+    }
+    ASSERT_TRUE(state_parameters.gate_active);
+
+    /* Simulate nFAULT glitch */
+    mock_gpio_set_input(MDRV_NFAULT_PORT, MDRV_NFAULT_PIN, false);
+    for (int i = 0; i < 4; i++) control_step();
+    ASSERT_TRUE(!state_parameters.gate_active);
+
+    /* Fault clears - gate re-enables */
+    mock_gpio_set_input(MDRV_NFAULT_PORT, MDRV_NFAULT_PIN, true);
+    for (int i = 0; i < 4; i++) control_step();
+    ASSERT_TRUE(state_parameters.gate_active);
+
+    /* BUG: fault path calls control_brake() -> mode reset to raw_phase_pwm */
+    ASSERT_TRUE(state_parameters.control_mode == consts::control_mode_torque);
 }
 
 TEST(test_timeout_triggers_brake) {
@@ -454,6 +538,9 @@ int main(void) {
     printf("\nControl Modes:\n");
     RUN_TEST(test_brake_sets_raw_pwm_mode);
     RUN_TEST(test_raw_pwm_mode_sets_duties);
+    RUN_TEST(test_gate_enable_preserves_control_mode);
+    RUN_TEST(test_gate_not_enabled_before_adc_ready);
+    RUN_TEST(test_fault_preserves_control_mode);
     RUN_TEST(test_timeout_triggers_brake);
     RUN_TEST(test_timeout_reset_prevents_brake);
 

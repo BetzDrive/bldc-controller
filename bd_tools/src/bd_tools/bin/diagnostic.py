@@ -33,6 +33,17 @@ def parser_args():
         action="store_true",
         help="Enable verbose serial debugging",
     )
+    parser.add_argument(
+        "--monitor",
+        action="store_true",
+        help="Continuous state monitor: detects IWDG resets, comms timeouts, nFAULT glitches",
+    )
+    parser.add_argument(
+        "--monitor_interval",
+        type=float,
+        default=0.2,
+        help="Monitor poll interval in seconds (default 0.2)",
+    )
     parser.set_defaults(
         baud_rate=comms.COMM_DEFAULT_BAUD_RATE,
     )
@@ -207,14 +218,20 @@ def test_i2c_sensors(client, board_id):
 
 def test_motor_sweep(client, board_id, amplitude, duration):
     """Test 6: Open-loop motor sweep - encoder tracks rotation."""
-    # Read starting encoder position
+    gate_active = read_uint8(client, board_id, 0x200B)
+    if not gate_active:
+        print("[FAIL] Motor Sweep: gate driver not active (DRV8312 nFAULT asserted?)")
+        return False
+
     start_pos = read_float(client, board_id, 0x3000)
     start_raw = read_uint16(client, board_id, 0x3010)
 
     steps = 100
     dt = duration / steps
+    sample_interval = steps // 5  # sample current ~5 times during sweep
 
     positions = [start_pos]
+    peak_current = 0.0
 
     try:
         for i in range(steps + 1):
@@ -227,27 +244,35 @@ def test_motor_sweep(client, board_id, amplitude, duration):
 
             pos = read_float(client, board_id, 0x3000)
             positions.append(pos)
+
+            if i % sample_interval == 0:
+                ia = read_float(client, board_id, 0x3060)
+                ib = read_float(client, board_id, 0x3061)
+                peak_current = max(peak_current, math.sqrt(ia**2 + ib**2))
     finally:
-        # Always return to brake mode
         brake(client, board_id)
 
     end_pos = positions[-1]
     end_raw = read_uint16(client, board_id, 0x3010)
     total_displacement = abs(end_pos - start_pos)
 
-    # Check that encoder moved at all (> 0.01 rad ~ 0.6 degrees)
     if total_displacement < 0.01:
-        print(
-            f"[FAIL] Motor Sweep: no encoder movement "
-            f"(start={start_pos:.3f}, end={end_pos:.3f}, "
-            f"delta={total_displacement:.4f}rad)"
-        )
+        if peak_current < 0.05:
+            print(
+                f"[FAIL] Motor Sweep: no current (peak={peak_current:.3f}A) - "
+                f"gate driver fault or motor phases disconnected"
+            )
+        else:
+            print(
+                f"[FAIL] Motor Sweep: current flowing (peak={peak_current:.3f}A) "
+                f"but motor stuck - check calibration or mechanical load"
+            )
         return False
 
     print(
         f"[PASS] Motor Sweep: encoder tracked {total_displacement:.3f}rad "
         f"over 1 erev sweep "
-        f"(raw: {start_raw}->{end_raw})"
+        f"(raw: {start_raw}->{end_raw}, peak_current={peak_current:.3f}A)"
     )
     return True
 
@@ -302,6 +327,112 @@ def test_calibration(client, board_id):
     return ok
 
 
+CONTROL_MODE_NAMES = {
+    0: "foc_current",
+    1: "raw_phase_pwm",
+    2: "torque",
+    3: "velocity",
+    4: "position",
+    5: "pos_vel",
+    6: "pos_ff",
+    7: "pwm_drive",
+}
+
+
+def safe_mode_name(mode):
+    if mode in CONTROL_MODE_NAMES:
+        return CONTROL_MODE_NAMES[mode]
+    return f"INVALID(0x{mode:02X})"
+
+
+def monitor_board(client, board_id, interval):
+    """Continuous monitor: flags IWDG resets, comms timeouts, nFAULT glitches."""
+    print(f"\n=== Live Monitor (Board {board_id}) — Ctrl-C to stop ===")
+
+    try:
+        ctrl_timeout = read_uint16(client, board_id, 0x1030)
+        print(f"[INFO] control_timeout in flash: {ctrl_timeout} ms "
+              f"({'disabled' if ctrl_timeout == 0 else 'active'})")
+    except Exception:
+        print("[WARN] Could not read control_timeout")
+
+    print(f"{'TIME':>8}  {'MODE':<18}  {'GATE':>4}  {'FAULT':>6}  FLAGS")
+    print("-" * 72)
+
+    prev_time = None
+    prev_mode = None
+    prev_gate_active = None
+    prev_gate_fault = None
+    iwdg_resets = 0
+    timeouts = 0
+    fault_transitions = 0
+    bad_reads = 0
+
+    while True:
+        flags = []
+        try:
+            cur_time = read_float(client, board_id, 0x0006)
+            mode = read_uint8(client, board_id, 0x2000)
+            gate_active = read_uint8(client, board_id, 0x200B)
+            gate_fault = read_uint8(client, board_id, 0x200C)
+        except (comms.ProtocolError, comms.MalformedPacketError, struct.error) as e:
+            print(f"  [COMMS ERROR] {type(e).__name__}: {e}")
+            time.sleep(interval)
+            continue
+
+        # Sanity check: mode must be 0-7. Anything else = corrupted read.
+        if mode > 7:
+            bad_reads += 1
+            print(
+                f"{cur_time:>8.2f}  {'?':<18}  "
+                f"{'?':>4}  {'?':>6}  *** CORRUPT READ "
+                f"(mode=0x{mode:02X} gate=0x{gate_active:02X} "
+                f"fault=0x{gate_fault:02X}) total={bad_reads}"
+            )
+            time.sleep(interval)
+            continue
+
+        # IWDG reset: time went backward
+        if prev_time is not None and cur_time < prev_time - 0.5:
+            iwdg_resets += 1
+            flags.append(f"*** IWDG RESET #{iwdg_resets}")
+
+        # Comms timeout: mode silently became raw_phase_pwm
+        if (prev_mode is not None and prev_mode != 1 and mode == 1):
+            timeouts += 1
+            flags.append(f"*** COMMS TIMEOUT #{timeouts} (mode→raw_phase_pwm)")
+
+        # Any other mode change
+        elif prev_mode is not None and mode != prev_mode:
+            flags.append(f"mode {safe_mode_name(prev_mode)}→{safe_mode_name(mode)}")
+
+        # Gate transitions
+        if prev_gate_active is not None:
+            if gate_active and not prev_gate_active:
+                flags.append("gate ENABLED")
+            elif not gate_active and prev_gate_active:
+                flags.append("gate DISABLED")
+
+        # gate_fault is LATCHED in firmware (set on first nFAULT, never cleared).
+        # Only flag NEW transitions to fault, not the steady-state latched value.
+        if prev_gate_fault is not None and gate_fault and not prev_gate_fault:
+            fault_transitions += 1
+            flags.append(f"*** NEW nFAULT #{fault_transitions}")
+
+        flag_str = "  ".join(flags) if flags else ""
+        fault_label = "LATCH" if gate_fault else "ok"
+        print(
+            f"{cur_time:>8.2f}  {safe_mode_name(mode):<18}  "
+            f"{'ON' if gate_active else 'OFF':>4}  {fault_label:>6}  {flag_str}"
+        )
+
+        prev_time = cur_time
+        prev_mode = mode
+        prev_gate_active = gate_active
+        prev_gate_fault = gate_fault
+        time.sleep(interval)
+
+
 def flush_and_report(ser, label=""):
     """Flush serial input buffer, report any stale bytes."""
     waiting = ser.in_waiting
@@ -337,6 +468,16 @@ def action(args):
     # Set watchdog timeout so motor shuts off if comms stop
     for bid in board_ids:
         client.setWatchdogTimeout([bid], [1000])
+
+    if args.monitor:
+        if len(board_ids) > 1:
+            print("Monitor only supports one board at a time; using first board.")
+        try:
+            monitor_board(client, board_ids[0], args.monitor_interval)
+        except KeyboardInterrupt:
+            print("\nMonitor stopped.")
+        ser.close()
+        return
 
     for board_id in board_ids:
         print(f"\n=== Peripheral I/O Diagnostic (Board {board_id}) ===")

@@ -51,6 +51,7 @@ static controller::PID pid_position(0.0f, 0.0f, 0.0f, consts::position_control_i
 static uint32_t last_timeout_reset_ms;
 static uint32_t loop_count;
 static bool encoder_primed;
+static uint16_t adc_warmup_count;
 
 /* Rolling ADC average buffers */
 static uint16_t roll_ia[consts::ivsense_rolling_average_count];
@@ -185,6 +186,9 @@ static void estimate_state(void) {
     state_results.vin = avg_vin;
 
     state_results.estimation_loops++;
+
+    if (adc_warmup_count < consts::ivsense_rolling_average_count)
+        adc_warmup_count++;
 }
 
 /* ── Position control (400Hz) ────────────────────── */
@@ -225,10 +229,15 @@ static void run_velocity_control(void) {
 
 static void run_current_control(void) {
     if (state_parameters.control_mode == consts::control_mode_raw_phase_pwm) {
-        /* Directly set PWM duty cycles */
-        hal_pwm_motor_set_duty(0, state_parameters.phase0 * consts::max_duty_cycle);
-        hal_pwm_motor_set_duty(1, state_parameters.phase1 * consts::max_duty_cycle);
-        hal_pwm_motor_set_duty(2, state_parameters.phase2 * consts::max_duty_cycle);
+        if (state_parameters.gate_active) {
+            hal_pwm_motor_set_duty(0, state_parameters.phase0 * consts::max_duty_cycle);
+            hal_pwm_motor_set_duty(1, state_parameters.phase1 * consts::max_duty_cycle);
+            hal_pwm_motor_set_duty(2, state_parameters.phase2 * consts::max_duty_cycle);
+        } else {
+            hal_pwm_motor_set_duty(0, 0.0f);
+            hal_pwm_motor_set_duty(1, 0.0f);
+            hal_pwm_motor_set_duty(2, 0.0f);
+        }
         return;
     }
 
@@ -356,6 +365,7 @@ extern "C" void control_init(void) {
 
     loop_count = 0;
     encoder_primed = false;
+    adc_warmup_count = 0;
 
     roll_idx = 0;
     roll_sum_ia = 0;
@@ -396,11 +406,14 @@ extern "C" void control_step(void) {
         }
     }
 
-    /* Gate driver management (DRV8312 RST pins, active low) */
+    /* State estimation: encoder + ADC (updates adc_warmup_count) */
+    estimate_state();
+
+    /* Gate driver management (DRV8312 RST pins, active low).
+     * Runs after estimate_state so adc_warmup_count is current. */
     bool fault = !hal_gpio_read(MDRV_NFAULT_PORT, MDRV_NFAULT_PIN);
-    if (!state_parameters.gate_active && !fault) {
-        /* Start in brake mode (zero duty) before enabling gates */
-        control_brake();
+    bool adc_ready = adc_warmup_count >= consts::ivsense_rolling_average_count;
+    if (!state_parameters.gate_active && !fault && adc_ready) {
         hal_gpio_set(MDRV_RST_A_PORT, MDRV_RST_A_PIN);
         hal_gpio_set(MDRV_RST_B_PORT, MDRV_RST_B_PIN);
         hal_gpio_set(MDRV_RST_C_PORT, MDRV_RST_C_PIN);
@@ -410,13 +423,9 @@ extern "C" void control_step(void) {
         hal_gpio_clear(MDRV_RST_A_PORT, MDRV_RST_A_PIN);
         hal_gpio_clear(MDRV_RST_B_PORT, MDRV_RST_B_PIN);
         hal_gpio_clear(MDRV_RST_C_PORT, MDRV_RST_C_PIN);
-        control_brake();
         state_parameters.gate_active = false;
         state_parameters.gate_fault = true;
     }
-
-    /* State estimation: encoder + ADC */
-    estimate_state();
 
     /* Cascaded control loops with frequency dividers */
     if (loop_count % consts::pos_divider == 0) {
